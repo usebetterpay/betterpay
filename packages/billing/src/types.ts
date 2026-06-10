@@ -20,9 +20,8 @@ export interface FeatureInclude {
   metered?: MeteredFeatureConfig;
 }
 
-// Brand symbols
+// Brand symbol for features only (plans use shape detection)
 const FEATURE_BRAND = Symbol.for('betterpay.feature');
-const PLAN_BRAND = Symbol.for('betterpay.plan');
 
 // ── Feature factory return type ──────────────────────────────────────────
 export interface FeatureFactory {
@@ -46,7 +45,6 @@ export interface PlanDefinition {
   price?: PlanPrice;
   default?: boolean;
   includes: FeatureInclude[];
-  readonly [PLAN_BRAND]: true;
 }
 
 // ── Subscription states ──────────────────────────────────────────────────
