@@ -155,28 +155,53 @@ async function main() {
   console.log('   ✅ Idempotency working');
   console.log('\n🎉 BetterPay demo complete!\n');
 
-  // 8. Show how to use in real app
+  // 8. Billing demo
+  console.log('─'.repeat(50));
+  console.log('\n📦 Billing Plugin Demo\n');
+
+  // Import billing dynamically to avoid circular deps in demo
+  const { feature, plan, normalizeSchema, SubscriptionService, EntitlementService } = await import('@betterpay/billing');
+
+  const messages = feature({ id: 'messages', type: 'metered' });
+  const aiModels = feature({ id: 'ai-models', type: 'boolean' });
+
+  const free = plan({
+    id: 'free', group: 'base', default: true,
+    includes: [messages({ limit: 100, reset: 'month' })],
+  });
+
+  const pro = plan({
+    id: 'pro', group: 'base',
+    price: { amount: 199000, currency: 'IDR', interval: 'month' },
+    includes: [messages({ limit: 5000, reset: 'month' }), aiModels()],
+  });
+
+  const schema = normalizeSchema([free, pro]);
+  console.log(`   Plans: ${schema.plans.map(p => p.id).join(', ')}`);
+  console.log(`   Pro hash: ${schema.planMap.get('pro')!.hash}`);
+  console.log(`   Pro features: ${schema.planMap.get('pro')!.features.map(f => f.featureId).join(', ')}`);
+  console.log('   ✅ Billing DSL working!\n');
+
+  // 9. Show how to use in real app
   console.log('─'.repeat(50));
   console.log('\n📖 Real usage example:\n');
   console.log('```ts');
   console.log('import { betterPay } from "@betterpay/core";');
   console.log('import { midtrans } from "@betterpay/midtrans";');
-  console.log('import { xendit } from "@betterpay/xendit";');
+  console.log('import { billing, feature, plan } from "@betterpay/billing";');
+  console.log('');
+  console.log('const messages = feature({ id: "messages", type: "metered" });');
+  console.log('const pro = plan({ id: "pro", group: "base",');
+  console.log('  price: { amount: 199000, currency: "IDR", interval: "month" },');
+  console.log('  includes: [messages({ limit: 5000, reset: "month" })],');
+  console.log('});');
   console.log('');
   console.log('const pay = betterPay({');
   console.log('  plugins: [');
   console.log('    midtrans({ serverKey: "...", isSandbox: true }),');
-  console.log('    xendit({ apiKey: "...", webhookSecret: "..." }),');
+  console.log('    billing({ products: [pro] }),');
   console.log('  ],');
   console.log('});');
-  console.log('');
-  console.log('// Create payment');
-  console.log('const result = await pay.createTransaction({');
-  console.log('  orderId: "order_001",');
-  console.log('  amount: 199000,');
-  console.log('  customerEmail: "user@example.com",');
-  console.log('});');
-  console.log('// → { paymentUrl: "https://..." }');
   console.log('```');
 }
 
