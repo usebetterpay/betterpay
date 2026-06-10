@@ -1,0 +1,29 @@
+{
+  "name": "@betterpay/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-call": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/pg": "^8.15.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
