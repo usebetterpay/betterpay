@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+
+catalog:
+  typescript: ^5.8.3
+  vitest: ^3.2.1
+  better-call: ^1.1.0
+  drizzle-orm: ^0.44.2
+  '@types/node': ^22.15.0
