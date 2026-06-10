@@ -56,6 +56,10 @@ export type { InvoiceRepository } from './invoice';
 export { BillingCycleRunner } from './billing-cycle';
 export type { BillingCycleResult, BillingCycleDeps } from './billing-cycle';
 
+// Test clock
+export { TestClock, testClock } from './test-clock';
+export type { TestClockConfig } from './test-clock';
+
 // ── Plugin factory ───────────────────────────────────────────────────────
 
 export interface BillingPluginOptions {
