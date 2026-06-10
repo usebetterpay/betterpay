@@ -11,7 +11,6 @@ import type {
 } from './types';
 
 const FEATURE_BRAND = Symbol.for('betterpay.feature');
-const PLAN_BRAND = Symbol.for('betterpay.plan');
 
 // ── Validation helpers ───────────────────────────────────────────────────
 
@@ -98,7 +97,6 @@ export function plan(def: {
     price: def.price,
     default: def.default ?? false,
     includes,
-    [PLAN_BRAND]: true as const,
   };
 }
 
@@ -119,12 +117,13 @@ export function isFeature(value: unknown): value is FeatureFactory {
   );
 }
 
-/** Check if a value is a branded plan definition. */
+/** Check if a value looks like a plan definition. */
 export function isPlan(value: unknown): value is PlanDefinition {
   return (
     typeof value === 'object' &&
     value !== null &&
-    PLAN_BRAND in value &&
-    (value as Record<symbol, unknown>)[PLAN_BRAND] === true
+    'id' in value &&
+    'group' in value &&
+    'includes' in value
   );
 }
