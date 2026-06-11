@@ -1,0 +1,516 @@
+---
+title: "Midtrans Integration Guide"
+description: "Complete guide to integrating Midtrans payment gateway with BetterPay"
+---
+
+Midtrans is a leading Indonesian payment gateway that provides Snap API for seamless checkout experience. This guide will walk you through the complete integration process.
+
+## Overview
+
+**Midtrans** provides:
+- Snap API for hosted checkout page
+- Direct API for custom checkout
+- Virtual Account, E-Wallet, QRIS, Credit Card
+- Comprehensive fraud detection
+
+**Key Features:**
+- SHA512 signature verification
+- Webhook support with signature validation
+- Sandbox environment for testing
+- 3D Secure for credit cards
+- Fraud detection system
+
+## Prerequisites
+
+Before you start, you need:
+
+1. **Midtrans Merchant Account**
+   - Register at [midtrans.com](https://midtrans.com)
+   - Complete merchant verification
+
+2. **API Credentials**
+   - Server Key
+   - Client Key
+
+   Get these from your Midtrans dashboard: **Settings → Access Keys**
+
+## Installation
+
+Install the Midtrans adapter package:
+
+<CodeGroup>
+```bash npm
+npm install @betterpay/midtrans
+```
+
+```bash pnpm
+pnpm add @betterpay/midtrans
+```
+
+```bash yarn
+yarn add @betterpay/midtrans
+```
+</CodeGroup>
+
+## Basic Setup
+
+### 1. Configure Environment Variables
+
+Create a `.env` file:
+
+```bash
+MIDTRANS_SERVER_KEY=your_server_key_here
+MIDTRANS_CLIENT_KEY=your_client_key_here
+```
+
+### 2. Initialize Midtrans Provider
+
+```typescript
+import { betterPay } from '@betterpay/core';
+import { MidtransProvider } from '@betterpay/midtrans';
+
+const pay = betterPay({
+  providers: [
+    new MidtransProvider({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      clientKey: process.env.MIDTRANS_CLIENT_KEY!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+```
+
+### 3. Create Payment
+
+```typescript
+// Create a payment link
+const payment = await pay.createPayment({
+  provider: 'midtrans',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  customerPhone: '081234567890',
+  description: 'Payment for Order #123',
+  callbackUrl: 'https://yourapp.com/api/webhooks/midtrans',
+  returnUrl: 'https://yourapp.com/payment/success',
+  items: [
+    {
+      name: 'Product A',
+      price: 100000,
+      quantity: 1,
+    },
+    {
+      name: 'Product B',
+      price: 50000,
+      quantity: 1,
+    },
+  ],
+});
+
+console.log('Payment URL:', payment.paymentUrl);
+```
+
+## Payment Methods
+
+### Snap API (Recommended)
+
+Snap API provides a hosted checkout page with all payment methods:
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'midtrans',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  callbackUrl: 'https://yourapp.com/api/webhooks/midtrans',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+
+// Redirect user to payment URL
+console.log('Payment URL:', payment.paymentUrl);
+```
+
+### Available Payment Methods
+
+Midtrans supports:
+
+| Category | Methods |
+|----------|---------|
+| **Credit Card** | Visa, Mastercard, JCB |
+| **Bank Transfer** | BCA, BNI, BRI, Mandiri, Permata |
+| **E-Wallet** | GoPay, ShopeePay, DANA |
+| **Convenience Store** | Indomaret, Alfamart |
+| **QRIS** | All QRIS-enabled apps |
+
+## Webhook Integration
+
+### 1. Create Webhook Endpoint
+
+<CodeGroup>
+```typescript Next.js App Router
+// app/api/webhooks/midtrans/route.ts
+import { pay } from '@/lib/payments';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.text();
+    const headers = Object.fromEntries(request.headers);
+
+    // Verify webhook signature
+    const isValid = await pay.verifyWebhook('midtrans', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
+    }
+
+    // Parse webhook
+    const events = await pay.normalizeWebhook('midtrans', {
+      body,
+      headers,
+    });
+
+    // Process each event
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          await updateOrderStatus(event.payload.order_id, 'paid');
+          break;
+        case 'payment.expired':
+          await updateOrderStatus(event.payload.order_id, 'expired');
+          break;
+        case 'payment.failed':
+          await updateOrderStatus(event.payload.order_id, 'failed');
+          break;
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+```typescript Hono
+// src/routes/webhooks.ts
+import { Hono } from 'hono';
+import { pay } from '../lib/payments';
+
+const app = new Hono();
+
+app.post('/api/webhooks/midtrans', async (c) => {
+  try {
+    const body = await c.req.text();
+    const headers = c.req.header();
+
+    const isValid = await pay.verifyWebhook('midtrans', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
+
+    const events = await pay.normalizeWebhook('midtrans', {
+      body,
+      headers,
+    });
+
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          await updateOrderStatus(event.payload.order_id, 'paid');
+          break;
+        case 'payment.expired':
+          await updateOrderStatus(event.payload.order_id, 'expired');
+          break;
+        case 'payment.failed':
+          await updateOrderStatus(event.payload.order_id, 'failed');
+          break;
+      }
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+```
+</CodeGroup>
+
+### 2. Register Webhook URL
+
+In your Midtrans dashboard:
+1. Go to **Settings → Configuration**
+2. Set Payment Notification URL: `https://yourapp.com/api/webhooks/midtrans`
+3. Save changes
+
+### 3. Webhook Events
+
+Midtrans sends these transaction status:
+
+| Status | Description |
+|--------|-------------|
+| `capture` | Payment captured (credit card) |
+| `settlement` | Payment settled |
+| `pending` | Waiting for payment |
+| `deny` | Payment denied |
+| `expire` | Payment expired |
+| `cancel` | Payment cancelled |
+
+### 4. Webhook Payload
+
+Example webhook payload:
+
+```json
+{
+  "va_numbers": [
+    {
+      "bank": "bca",
+      "va_number": "1234567890"
+    }
+  ],
+  "transaction_time": "2023-12-16 15:00:00",
+  "transaction_status": "settlement",
+  "transaction_id": "abc123",
+  "status_message": "Success, transaction is found",
+  "status_code": "200",
+  "signature_key": "abc123...",
+  "payment_type": "bank_transfer",
+  "order_id": "ORDER-123",
+  "merchant_id": "G123456789",
+  "gross_amount": "150000.00",
+  "fraud_status": "accept",
+  "currency": "IDR"
+}
+```
+
+### 5. Signature Verification
+
+The signature is generated using:
+
+```typescript
+signature = SHA512(order_id + status_code + gross_amount + server_key)
+```
+
+BetterPay automatically verifies this signature in `verifyWebhook()`.
+
+## Checking Payment Status
+
+You can check payment status programmatically:
+
+```typescript
+const status = await pay.checkStatus('midtrans', 'ORDER-123');
+
+console.log('Status:', status.status);
+console.log('Amount:', status.amount);
+console.log('Paid At:', status.paidAt);
+```
+
+## Testing
+
+### Sandbox Environment
+
+Use sandbox environment for testing:
+
+```typescript
+const provider = new MidtransProvider({
+  serverKey: process.env.MIDTRANS_SERVER_KEY!,
+  clientKey: process.env.MIDTRANS_CLIENT_KEY!,
+  isSandbox: true, // Enable sandbox
+});
+```
+
+### Test Credit Cards
+
+In sandbox mode, use these test cards:
+
+| Card Number | Description |
+|-------------|-------------|
+| `4811 1111 1111 1114` | Visa (3D Secure) |
+| `5211 1111 1111 1117` | Mastercard (3D Secure) |
+
+**CVV:** Any 3 digits  
+**Expiry:** Any future date
+
+### Test Webhooks
+
+Test webhook endpoint:
+
+```bash
+curl -X POST https://yourapp.com/api/webhooks/midtrans \
+  -H "Content-Type: application/json" \
+  -d '{
+    "order_id": "ORDER-123",
+    "transaction_status": "settlement",
+    "status_code": "200",
+    "gross_amount": "150000.00",
+    "signature_key": "abc123..."
+  }'
+```
+
+## Going Live
+
+### 1. Switch to Production
+
+Update your environment variables:
+
+```bash
+MIDTRANS_SERVER_KEY=production_server_key
+MIDTRANS_CLIENT_KEY=production_client_key
+```
+
+Set `isSandbox: false`:
+
+```typescript
+const provider = new MidtransProvider({
+  serverKey: process.env.MIDTRANS_SERVER_KEY!,
+  clientKey: process.env.MIDTRANS_CLIENT_KEY!,
+  isSandbox: false, // Production mode
+});
+```
+
+### 2. Update Webhook URL
+
+Update webhook URL in Midtrans dashboard to production URL.
+
+## Error Handling
+
+### Common Errors
+
+**Invalid Server Key**
+```typescript
+try {
+  const payment = await pay.createPayment({ /* ... */ });
+} catch (error) {
+  if (error.message.includes('401')) {
+    console.error('Check your server key');
+  }
+}
+```
+
+**Invalid Signature**
+```typescript
+const isValid = await pay.verifyWebhook('midtrans', { body, headers });
+if (!isValid) {
+  console.error('Webhook signature verification failed');
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+## Best Practices
+
+### 1. Always Verify Webhooks
+
+```typescript
+const isValid = await pay.verifyWebhook('midtrans', { body, headers });
+if (!isValid) {
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+### 2. Handle Idempotency
+
+Process webhooks idempotently:
+
+```typescript
+// Check if webhook already processed
+const existing = await db.webhooks.findUnique({
+  where: { transactionId: event.payload.transaction_id },
+});
+
+if (existing) {
+  return NextResponse.json({ success: true });
+}
+```
+
+### 3. Use Snap Token for Custom UI
+
+If you want to use your own UI:
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'midtrans',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  // ...
+});
+
+// Use snap token for custom checkout
+console.log('Snap Token:', payment.raw.token);
+```
+
+### 4. Monitor Fraud Status
+
+Check fraud status in webhook:
+
+```typescript
+if (event.payload.fraud_status === 'deny') {
+  console.error('Transaction denied by fraud detection');
+  return;
+}
+```
+
+## API Reference
+
+### MidtransProvider
+
+```typescript
+class MidtransProvider implements PaymentProvider {
+  constructor(config: MidtransConfig);
+  
+  readonly id: string;
+  readonly name: string;
+  readonly paymentMethods: PaymentMethod[];
+  readonly capabilities: ProviderCapabilities;
+  
+  createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult>;
+  verifyWebhook(data: WebhookData): Promise<boolean>;
+  normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]>;
+  getApiEndpoint(): string;
+  checkStatus(providerTransactionId: string): Promise<StatusResult>;
+}
+```
+
+### MidtransConfig
+
+```typescript
+interface MidtransConfig {
+  serverKey: string;
+  clientKey: string;
+  isSandbox?: boolean; // Default: true
+}
+```
+
+## Support
+
+- **Documentation:** [docs.midtrans.com](https://docs.midtrans.com)
+- **Support Email:** support@midtrans.com
+- **Dashboard:** [dashboard.midtrans.com](https://dashboard.midtrans.com)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Xendit Integration" href="/docs/providers/xendit">
+    Learn how to integrate Xendit payment gateway
+  </Card>
+
+  <Card title="Webhook Security" href="/docs/security">
+    Learn about webhook security best practices
+  </Card>
+</CardGroup>

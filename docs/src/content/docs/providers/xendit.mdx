@@ -1,0 +1,605 @@
+---
+title: "Xendit Integration Guide"
+description: "Complete guide to integrating Xendit payment gateway with BetterPay"
+---
+
+Xendit is a regional payment gateway that provides extensive payment method coverage across Southeast Asia. This guide will walk you through the complete integration process.
+
+## Overview
+
+**Xendit** provides:
+- Payment API for custom checkout
+- Invoice API for hosted checkout
+- Virtual Account, E-Wallet, QRIS, Credit Card, Retail
+- Recurring payments support
+
+**Key Features:**
+- HMAC-SHA256 webhook signature verification
+- Webhook support with signature validation
+- Sandbox environment for testing
+- Recurring payment support
+- Multi-country support (Indonesia, Philippines, Vietnam)
+
+## Prerequisites
+
+Before you start, you need:
+
+1. **Xendit Merchant Account**
+   - Register at [xendit.co](https://xendit.co)
+   - Complete merchant verification
+
+2. **API Credentials**
+   - API Key
+   - Webhook Token
+
+   Get these from your Xendit dashboard: **Settings → Developers → API Keys**
+
+## Installation
+
+Install the Xendit adapter package:
+
+<CodeGroup>
+```bash npm
+npm install @betterpay/xendit
+```
+
+```bash pnpm
+pnpm add @betterpay/xendit
+```
+
+```bash yarn
+yarn add @betterpay/xendit
+```
+</CodeGroup>
+
+## Basic Setup
+
+### 1. Configure Environment Variables
+
+Create a `.env` file:
+
+```bash
+XENDIT_API_KEY=your_api_key_here
+XENDIT_WEBHOOK_TOKEN=your_webhook_token_here
+```
+
+### 2. Initialize Xendit Provider
+
+```typescript
+import { betterPay } from '@betterpay/core';
+import { XenditProvider } from '@betterpay/xendit';
+
+const pay = betterPay({
+  providers: [
+    new XenditProvider({
+      apiKey: process.env.XENDIT_API_KEY!,
+      webhookToken: process.env.XENDIT_WEBHOOK_TOKEN!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+```
+
+### 3. Create Payment
+
+```typescript
+// Create a payment link
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  customerPhone: '081234567890',
+  description: 'Payment for Order #123',
+  paymentMethod: 'BCA', // BCA Virtual Account
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+  items: [
+    {
+      name: 'Product A',
+      price: 100000,
+      quantity: 1,
+    },
+    {
+      name: 'Product B',
+      price: 50000,
+      quantity: 1,
+    },
+  ],
+});
+
+console.log('Payment URL:', payment.paymentUrl);
+console.log('VA Number:', payment.vaNumber);
+```
+
+## Payment Methods
+
+### Virtual Account
+
+Available VA banks:
+
+| Code | Bank | Fee |
+|------|------|-----|
+| `BCA` | BCA Virtual Account | Rp 4,000 |
+| `BNI` | BNI Virtual Account | Rp 4,000 |
+| `BRI` | BRI Virtual Account | Rp 4,000 |
+| `MANDIRI` | Mandiri Virtual Account | Rp 4,000 |
+| `PERMATA` | Permata Virtual Account | Rp 4,000 |
+| `CIMB` | CIMB Niaga Virtual Account | Rp 4,000 |
+| `SAHABAT_SAMPOERNA` | Sahabat Sampoerna VA | Rp 4,000 |
+| `BSI` | BSI Virtual Account | Rp 4,000 |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'BCA', // BCA Virtual Account
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+### E-Wallet
+
+Available e-wallets:
+
+| Code | E-Wallet | Fee |
+|------|----------|-----|
+| `OVO` | OVO | 1.5% |
+| `DANA` | DANA | 1.5% |
+| `SHOPEEPAY` | ShopeePay | 1.5% |
+| `LINKAJA` | LinkAja | 1.5% |
+| `GOPAY` | GoPay | 2% |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'OVO',
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+### QRIS
+
+QRIS support:
+
+| Code | Description | Fee |
+|------|-------------|-----|
+| `QRIS` | QRIS (all apps) | 0.7% |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'QRIS',
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+
+// Display QR code
+console.log('QR String:', payment.qrString);
+```
+
+### Retail
+
+Available retail outlets:
+
+| Code | Outlet | Fee |
+|------|--------|-----|
+| `ALFAMART` | Alfamart | Rp 5,000 |
+| `INDOMARET` | Indomaret | Rp 5,000 |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'ALFAMART',
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+### Credit Card
+
+Credit card support:
+
+| Code | Description | Fee |
+|------|-------------|-----|
+| `CREDIT_CARD` | Visa, Mastercard, JCB | 2.9% + Rp 2,000 |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'CREDIT_CARD',
+  callbackUrl: 'https://yourapp.com/api/webhooks/xendit',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+## Webhook Integration
+
+### 1. Create Webhook Endpoint
+
+<CodeGroup>
+```typescript Next.js App Router
+// app/api/webhooks/xendit/route.ts
+import { pay } from '@/lib/payments';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.text();
+    const headers = Object.fromEntries(request.headers);
+
+    // Verify webhook signature
+    const isValid = await pay.verifyWebhook('xendit', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
+    }
+
+    // Parse webhook
+    const events = await pay.normalizeWebhook('xendit', {
+      body,
+      headers,
+    });
+
+    // Process each event
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          await updateOrderStatus(event.payload.external_id, 'paid');
+          break;
+        case 'payment.expired':
+          await updateOrderStatus(event.payload.external_id, 'expired');
+          break;
+        case 'payment.failed':
+          await updateOrderStatus(event.payload.external_id, 'failed');
+          break;
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+```typescript Hono
+// src/routes/webhooks.ts
+import { Hono } from 'hono';
+import { pay } from '../lib/payments';
+
+const app = new Hono();
+
+app.post('/api/webhooks/xendit', async (c) => {
+  try {
+    const body = await c.req.text();
+    const headers = c.req.header();
+
+    const isValid = await pay.verifyWebhook('xendit', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
+
+    const events = await pay.normalizeWebhook('xendit', {
+      body,
+      headers,
+    });
+
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          await updateOrderStatus(event.payload.external_id, 'paid');
+          break;
+        case 'payment.expired':
+          await updateOrderStatus(event.payload.external_id, 'expired');
+          break;
+        case 'payment.failed':
+          await updateOrderStatus(event.payload.external_id, 'failed');
+          break;
+      }
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+```
+</CodeGroup>
+
+### 2. Register Webhook URL
+
+In your Xendit dashboard:
+1. Go to **Settings → Developers → Webhooks**
+2. Add webhook URL: `https://yourapp.com/api/webhooks/xendit`
+3. Select events to receive
+4. Save changes
+
+### 3. Webhook Events
+
+Xendit sends these webhook events:
+
+| Event | Description |
+|-------|-------------|
+| `invoice.paid` | Invoice paid |
+| `invoice.expired` | Invoice expired |
+| `payment_method.activated` | Payment method activated |
+| `payment_method.expired` | Payment method expired |
+
+### 4. Webhook Payload
+
+Example webhook payload:
+
+```json
+{
+  "id": "5f4e1b3b3b3b3b3b3b3b3b3b",
+  "external_id": "ORDER-123",
+  "user_id": "5f4e1b3b3b3b3b3b3b3b3b3b",
+  "status": "PAID",
+  "merchant_name": "Your Company",
+  "amount": 150000,
+  "paid_amount": 150000,
+  "bank_code": "BCA",
+  "payment_channel": "BCA",
+  "payment_destination": "1234567890",
+  "paid_at": "2023-12-16T15:00:00.000Z",
+  "created": "2023-12-16T14:00:00.000Z",
+  "updated": "2023-12-16T15:00:00.000Z",
+  "currency": "IDR"
+}
+```
+
+### 5. Signature Verification
+
+The signature is verified using:
+
+```typescript
+signature = HMAC_SHA256(body, webhookToken)
+```
+
+BetterPay automatically verifies this signature in `verifyWebhook()`.
+
+## Checking Payment Status
+
+You can check payment status programmatically:
+
+```typescript
+const status = await pay.checkStatus('xendit', 'ORDER-123');
+
+console.log('Status:', status.status);
+console.log('Amount:', status.amount);
+console.log('Paid At:', status.paidAt);
+```
+
+## Testing
+
+### Sandbox Environment
+
+Use sandbox environment for testing:
+
+```typescript
+const provider = new XenditProvider({
+  apiKey: process.env.XENDIT_API_KEY!,
+  webhookToken: process.env.XENDIT_WEBHOOK_TOKEN!,
+  isSandbox: true, // Enable sandbox
+});
+```
+
+### Test Payment Methods
+
+In sandbox mode, you can simulate payments:
+
+1. Create a payment
+2. Copy the payment URL or VA number
+3. Use Xendit test mode to simulate payment
+4. Webhook will be sent to your callback URL
+
+### Test Credit Cards
+
+In sandbox mode, use these test cards:
+
+| Card Number | Description |
+|-------------|-------------|
+| `4000 0000 0000 0002` | Visa (success) |
+| `4000 0000 0000 0010` | Visa (declined) |
+
+**CVV:** Any 3 digits  
+**Expiry:** Any future date
+
+## Going Live
+
+### 1. Switch to Production
+
+Update your environment variables:
+
+```bash
+XENDIT_API_KEY=production_api_key
+XENDIT_WEBHOOK_TOKEN=production_webhook_token
+```
+
+Set `isSandbox: false`:
+
+```typescript
+const provider = new XenditProvider({
+  apiKey: process.env.XENDIT_API_KEY!,
+  webhookToken: process.env.XENDIT_WEBHOOK_TOKEN!,
+  isSandbox: false, // Production mode
+});
+```
+
+### 2. Update Webhook URL
+
+Update webhook URL in Xendit dashboard to production URL.
+
+## Error Handling
+
+### Common Errors
+
+**Invalid API Key**
+```typescript
+try {
+  const payment = await pay.createPayment({ /* ... */ });
+} catch (error) {
+  if (error.message.includes('401')) {
+    console.error('Check your API key');
+  }
+}
+```
+
+**Invalid Signature**
+```typescript
+const isValid = await pay.verifyWebhook('xendit', { body, headers });
+if (!isValid) {
+  console.error('Webhook signature verification failed');
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+## Best Practices
+
+### 1. Always Verify Webhooks
+
+```typescript
+const isValid = await pay.verifyWebhook('xendit', { body, headers });
+if (!isValid) {
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+### 2. Handle Idempotency
+
+Process webhooks idempotently:
+
+```typescript
+// Check if webhook already processed
+const existing = await db.webhooks.findUnique({
+  where: { invoiceId: event.payload.id },
+});
+
+if (existing) {
+  return NextResponse.json({ success: true });
+}
+```
+
+### 3. Use Invoice API for Hosted Checkout
+
+If you want hosted checkout:
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'xendit',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  // ...
+});
+
+// Use invoice URL for hosted checkout
+console.log('Invoice URL:', payment.paymentUrl);
+```
+
+### 4. Monitor Payment Expiry
+
+Handle expired payments:
+
+```typescript
+if (event.name === 'payment.expired') {
+  await updateOrderStatus(event.payload.external_id, 'expired');
+  await notifyCustomer('Payment expired');
+}
+```
+
+## API Reference
+
+### XenditProvider
+
+```typescript
+class XenditProvider implements PaymentProvider {
+  constructor(config: XenditConfig);
+  
+  readonly id: string;
+  readonly name: string;
+  readonly paymentMethods: PaymentMethod[];
+  readonly capabilities: ProviderCapabilities;
+  
+  createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult>;
+  verifyWebhook(data: WebhookData): Promise<boolean>;
+  normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]>;
+  getApiEndpoint(): string;
+  checkStatus(providerTransactionId: string): Promise<StatusResult>;
+}
+```
+
+### XenditConfig
+
+```typescript
+interface XenditConfig {
+  apiKey: string;
+  webhookToken: string;
+  isSandbox?: boolean; // Default: true
+}
+```
+
+## Support
+
+- **Documentation:** [developers.xendit.co](https://developers.xendit.co)
+- **Support Email:** support@xendit.co
+- **Dashboard:** [dashboard.xendit.co](https://dashboard.xendit.co)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tripay Integration" href="/docs/providers/tripay">
+    Learn how to integrate Tripay payment gateway
+  </Card>
+
+  <Card title="Webhook Security" href="/docs/security">
+    Learn about webhook security best practices
+  </Card>
+</CardGroup>

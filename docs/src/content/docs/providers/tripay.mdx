@@ -1,0 +1,651 @@
+---
+title: "Tripay Integration Guide"
+description: "Complete guide to integrating Tripay payment gateway with BetterPay"
+---
+
+Tripay is an Indonesian payment gateway that supports Virtual Account, E-Wallet, QRIS, and Retail payments. This guide will walk you through the complete integration process.
+
+## Overview
+
+**Tripay** provides:
+- Virtual Account (BCA, BNI, BRI, Mandiri, and more)
+- E-Wallet (OVO, DANA, ShopeePay)
+- QRIS (universal QR code)
+- Retail (Alfamart, Indomaret, Alfamidi)
+
+**Key Features:**
+- HMAC-SHA256 signature verification
+- Webhook support with signature validation
+- Sandbox environment for testing
+- Comprehensive API documentation
+
+## Prerequisites
+
+Before you start, you need:
+
+1. **Tripay Merchant Account**
+   - Register at [tripay.co.id](https://tripay.co.id)
+   - Complete merchant verification
+
+2. **API Credentials**
+   - API Key
+   - Private Key
+   - Merchant Code
+
+   Get these from your Tripay dashboard: **API & Integrasi → Merchant → Detail**
+
+## Installation
+
+Install the Tripay adapter package:
+
+<CodeGroup>
+```bash npm
+npm install @betterpay/tripay
+```
+
+```bash pnpm
+pnpm add @betterpay/tripay
+```
+
+```bash yarn
+yarn add @betterpay/tripay
+```
+</CodeGroup>
+
+## Basic Setup
+
+### 1. Configure Environment Variables
+
+Create a `.env` file:
+
+```bash
+TRIPAY_API_KEY=your_api_key_here
+TRIPAY_PRIVATE_KEY=your_private_key_here
+TRIPAY_MERCHANT_CODE=T0001
+```
+
+### 2. Initialize Tripay Provider
+
+```typescript
+import { betterPay } from '@betterpay/core';
+import { TripayProvider } from '@betterpay/tripay';
+
+const pay = betterPay({
+  providers: [
+    new TripayProvider({
+      apiKey: process.env.TRIPAY_API_KEY!,
+      privateKey: process.env.TRIPAY_PRIVATE_KEY!,
+      merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+```
+
+### 3. Create Payment
+
+```typescript
+// Create a payment link
+const payment = await pay.createPayment({
+  provider: 'tripay',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  customerPhone: '081234567890',
+  description: 'Payment for Order #123',
+  paymentMethod: 'BRIVA', // BRI Virtual Account
+  callbackUrl: 'https://yourapp.com/api/webhooks/tripay',
+  returnUrl: 'https://yourapp.com/payment/success',
+  expiryMinutes: 60, // Payment expires in 1 hour
+  items: [
+    {
+      name: 'Product A',
+      price: 100000,
+      quantity: 1,
+    },
+    {
+      name: 'Product B',
+      price: 50000,
+      quantity: 1,
+    },
+  ],
+});
+
+console.log('Payment URL:', payment.paymentUrl);
+console.log('VA Number:', payment.vaNumber);
+```
+
+## Payment Methods
+
+### Virtual Account
+
+Available VA banks:
+
+| Code | Bank | Fee |
+|------|------|-----|
+| `BCAVA` | BCA Virtual Account | Rp 5,500 |
+| `BNIVA` | BNI Virtual Account | Rp 4,250 |
+| `BRIVA` | BRI Virtual Account | Rp 4,250 |
+| `MANDIRIVA` | Mandiri Virtual Account | Rp 4,250 |
+| `CIMBVA` | CIMB Niaga Virtual Account | Rp 4,250 |
+| `PERMATAVA` | Permata Virtual Account | Rp 4,250 |
+| `DANAMONVA` | Danamon Virtual Account | Rp 4,250 |
+| `BSIVA` | BSI Virtual Account | Rp 4,250 |
+| `OCBCVA` | OCBC NISP Virtual Account | Rp 4,250 |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'tripay',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'BCAVA', // BCA Virtual Account
+  callbackUrl: 'https://yourapp.com/api/webhooks/tripay',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+### E-Wallet
+
+Available e-wallets:
+
+| Code | E-Wallet | Fee |
+|------|----------|-----|
+| `OVO` | OVO | 3% (min Rp 1,000) |
+| `DANA` | DANA | 3% (min Rp 1,000) |
+| `SHOPEEPAY` | ShopeePay | 3% (min Rp 1,000) |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'tripay',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'OVO',
+  callbackUrl: 'https://yourapp.com/api/webhooks/tripay',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+### QRIS
+
+QRIS codes:
+
+| Code | Description | Fee |
+|------|-------------|-----|
+| `QRIS` | QRIS by ShopeePay | Rp 750 + 0.7% |
+| `QRISC` | QRIS Customizable | Rp 750 + 0.7% |
+| `QRIS2` | QRIS Standard | Rp 750 + 0.7% |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'tripay',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'QRIS',
+  callbackUrl: 'https://yourapp.com/api/webhooks/tripay',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+
+// Display QR code
+console.log('QR String:', payment.qrString);
+```
+
+### Retail
+
+Available retail outlets:
+
+| Code | Outlet | Fee |
+|------|--------|-----|
+| `ALFAMART` | Alfamart | Rp 3,500 |
+| `INDOMARET` | Indomaret | Rp 3,500 |
+| `ALFAMIDI` | Alfamidi | Rp 3,500 |
+
+**Example:**
+
+```typescript
+const payment = await pay.createPayment({
+  provider: 'tripay',
+  orderId: 'ORDER-123',
+  amount: 150000,
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  paymentMethod: 'ALFAMART',
+  callbackUrl: 'https://yourapp.com/api/webhooks/tripay',
+  returnUrl: 'https://yourapp.com/payment/success',
+});
+```
+
+## Webhook Integration
+
+Tripay sends webhook notifications when payment status changes. You need to handle these webhooks to update your order status.
+
+### 1. Create Webhook Endpoint
+
+<CodeGroup>
+```typescript Next.js App Router
+// app/api/webhooks/tripay/route.ts
+import { pay } from '@/lib/payments';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.text();
+    const headers = Object.fromEntries(request.headers);
+
+    // Verify webhook signature
+    const isValid = await pay.verifyWebhook('tripay', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
+    }
+
+    // Parse webhook
+    const events = await pay.normalizeWebhook('tripay', {
+      body,
+      headers,
+    });
+
+    // Process each event
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          // Update order status to paid
+          await updateOrderStatus(event.payload.reference, 'paid');
+          break;
+        case 'payment.expired':
+          // Update order status to expired
+          await updateOrderStatus(event.payload.reference, 'expired');
+          break;
+        case 'payment.failed':
+          // Update order status to failed
+          await updateOrderStatus(event.payload.reference, 'failed');
+          break;
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+```typescript Hono
+// src/routes/webhooks.ts
+import { Hono } from 'hono';
+import { pay } from '../lib/payments';
+
+const app = new Hono();
+
+app.post('/api/webhooks/tripay', async (c) => {
+  try {
+    const body = await c.req.text();
+    const headers = c.req.header();
+
+    // Verify webhook signature
+    const isValid = await pay.verifyWebhook('tripay', {
+      body,
+      headers,
+    });
+
+    if (!isValid) {
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
+
+    // Parse webhook
+    const events = await pay.normalizeWebhook('tripay', {
+      body,
+      headers,
+    });
+
+    // Process each event
+    for (const event of events) {
+      switch (event.name) {
+        case 'payment.completed':
+          await updateOrderStatus(event.payload.reference, 'paid');
+          break;
+        case 'payment.expired':
+          await updateOrderStatus(event.payload.reference, 'expired');
+          break;
+        case 'payment.failed':
+          await updateOrderStatus(event.payload.reference, 'failed');
+          break;
+      }
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
+```
+</CodeGroup>
+
+### 2. Register Webhook URL
+
+In your Tripay dashboard:
+1. Go to **API & Integrasi → Merchant → Detail**
+2. Set your webhook URL: `https://yourapp.com/api/webhooks/tripay`
+3. Save changes
+
+### 3. Webhook Events
+
+Tripay sends these webhook events:
+
+| Event | Description |
+|-------|-------------|
+| `payment.completed` | Payment successful |
+| `payment.expired` | Payment expired |
+| `payment.failed` | Payment failed |
+| `payment.refunded` | Payment refunded |
+
+### 4. Webhook Payload
+
+Example webhook payload:
+
+```json
+{
+  "reference": "T0001000000000000006",
+  "merchant_ref": "ORDER-123",
+  "payment_method": "BRI Virtual Account",
+  "payment_method_code": "BRIVA",
+  "total_amount": 150000,
+  "fee_merchant": 4250,
+  "fee_customer": 0,
+  "total_fee": 4250,
+  "amount_received": 145750,
+  "is_closed_payment": 1,
+  "status": "PAID",
+  "paid_at": 1608133017,
+  "note": null
+}
+```
+
+### 5. Webhook Headers
+
+Tripay includes these headers:
+
+```
+X-Callback-Signature: <HMAC-SHA256 signature>
+X-Callback-Event: payment_status
+Content-Type: application/json
+```
+
+### 6. Signature Verification
+
+The signature is generated using:
+
+```typescript
+signature = HMAC_SHA256(payload, privateKey)
+```
+
+BetterPay automatically verifies this signature in `verifyWebhook()`.
+
+## Checking Payment Status
+
+You can check payment status programmatically:
+
+```typescript
+const status = await pay.checkStatus('tripay', 'T0001000000000000006');
+
+console.log('Status:', status.status);
+console.log('Amount:', status.amount);
+console.log('Paid At:', status.paidAt);
+```
+
+## Testing
+
+### Sandbox Environment
+
+Use sandbox environment for testing:
+
+```typescript
+const provider = new TripayProvider({
+  apiKey: process.env.TRIPAY_API_KEY!,
+  privateKey: process.env.TRIPAY_PRIVATE_KEY!,
+  merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
+  isSandbox: true, // Enable sandbox
+});
+```
+
+### Test Payment Methods
+
+In sandbox mode, you can simulate payments:
+
+1. Create a payment
+2. Copy the payment URL or VA number
+3. Use Tripay simulator: [tripay.co.id/simulator](https://tripay.co.id/simulator)
+4. Complete the simulated payment
+5. Webhook will be sent to your callback URL
+
+### Test Webhooks
+
+Test webhook endpoint:
+
+```bash
+curl -X POST https://yourapp.com/api/webhooks/tripay \
+  -H "Content-Type: application/json" \
+  -H "X-Callback-Event: payment_status" \
+  -H "X-Callback-Signature: <signature>" \
+  -d '{
+    "reference": "T0001000000000000006",
+    "merchant_ref": "ORDER-123",
+    "status": "PAID",
+    "total_amount": 150000,
+    "paid_at": 1608133017
+  }'
+```
+
+## Going Live
+
+### 1. Switch to Production
+
+Update your environment variables:
+
+```bash
+TRIPAY_API_KEY=production_api_key
+TRIPAY_PRIVATE_KEY=production_private_key
+TRIPAY_MERCHANT_CODE=production_merchant_code
+```
+
+Set `isSandbox: false`:
+
+```typescript
+const provider = new TripayProvider({
+  apiKey: process.env.TRIPAY_API_KEY!,
+  privateKey: process.env.TRIPAY_PRIVATE_KEY!,
+  merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
+  isSandbox: false, // Production mode
+});
+```
+
+### 2. Update Webhook URL
+
+Update webhook URL in Tripay dashboard to production URL.
+
+### 3. Whitelist IP
+
+If your server has IP whitelist, add Tripay IP:
+- **IPv4:** `95.111.200.230`
+- **IPv6:** `2a04:3543:1000:2310:ac92:4cff:fe87:63f9`
+
+## Error Handling
+
+### Common Errors
+
+**Invalid API Key**
+```typescript
+try {
+  const payment = await pay.createPayment({ /* ... */ });
+} catch (error) {
+  if (error.message.includes('Invalid API Key')) {
+    console.error('Check your API credentials');
+  }
+}
+```
+
+**Invalid Signature**
+```typescript
+const isValid = await pay.verifyWebhook('tripay', { body, headers });
+if (!isValid) {
+  console.error('Webhook signature verification failed');
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+**Payment Method Not Available**
+```typescript
+try {
+  const payment = await pay.createPayment({
+    paymentMethod: 'INVALID_METHOD',
+    // ...
+  });
+} catch (error) {
+  if (error.message.includes('Payment method')) {
+    console.error('Payment method not available');
+  }
+}
+```
+
+## Best Practices
+
+### 1. Always Verify Webhooks
+
+```typescript
+const isValid = await pay.verifyWebhook('tripay', { body, headers });
+if (!isValid) {
+  return new Response('Invalid signature', { status: 401 });
+}
+```
+
+### 2. Handle Idempotency
+
+Process webhooks idempotently:
+
+```typescript
+// Check if webhook already processed
+const existing = await db.webhooks.findUnique({
+  where: { reference: event.payload.reference },
+});
+
+if (existing) {
+  return NextResponse.json({ success: true });
+}
+
+// Process webhook
+await db.webhooks.create({
+  data: {
+    reference: event.payload.reference,
+    status: event.name,
+    processedAt: new Date(),
+  },
+});
+```
+
+### 3. Use Expiry Time
+
+Set reasonable expiry time:
+
+```typescript
+const payment = await pay.createPayment({
+  // ...
+  expiryMinutes: 60, // 1 hour
+});
+```
+
+### 4. Monitor Webhook Failures
+
+Implement retry logic:
+
+```typescript
+try {
+  await processWebhook(event);
+} catch (error) {
+  // Queue for retry
+  await queueWebhookRetry(event);
+  return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+}
+```
+
+### 5. Log Everything
+
+```typescript
+console.log('Webhook received:', {
+  reference: event.payload.reference,
+  event: event.name,
+  timestamp: new Date(),
+});
+```
+
+## API Reference
+
+### TripayProvider
+
+```typescript
+class TripayProvider implements PaymentProvider {
+  constructor(config: TripayConfig);
+  
+  readonly id: string;
+  readonly name: string;
+  readonly paymentMethods: PaymentMethod[];
+  readonly capabilities: ProviderCapabilities;
+  
+  createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult>;
+  verifyWebhook(data: WebhookData): Promise<boolean>;
+  normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]>;
+  getApiEndpoint(): string;
+  checkStatus(providerTransactionId: string): Promise<StatusResult>;
+}
+```
+
+### TripayConfig
+
+```typescript
+interface TripayConfig {
+  apiKey: string;
+  privateKey: string;
+  merchantCode: string;
+  isSandbox?: boolean; // Default: true
+}
+```
+
+## Support
+
+- **Documentation:** [tripay.co.id/developer](https://tripay.co.id/developer)
+- **Support Email:** support@tripay.co.id
+- **Dashboard:** [tripay.co.id/member](https://tripay.co.id/member)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Midtrans Integration" href="/docs/providers/midtrans">
+    Learn how to integrate Midtrans payment gateway
+  </Card>
+
+  <Card title="Webhook Security" href="/docs/security">
+    Learn about webhook security best practices
+  </Card>
+</CardGroup>
