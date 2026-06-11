@@ -72,6 +72,12 @@ export const schemas = {
       .max(50)
       .regex(/^[a-z0-9_-]+$/)
       .optional(),
+    paymentMethod: z.string()
+      .max(50)
+      .optional(),
+    callbackUrl: z.string()
+      .url('Invalid callback URL')
+      .optional(),
     returnUrl: z.string()
       .url('Invalid return URL')
       .optional(),

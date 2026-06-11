@@ -9,6 +9,7 @@ import type { WebhookHandler } from './webhook/handler';
 import type { BillingPluginData } from './billing-bridge';
 import type { Logger } from './logging/logger';
 import type { RateLimiter } from './security/rate-limiter';
+import { schemas, validateInputStrict } from './security/input-validation';
 
 export interface RouterContext {
   providerRegistry: ProviderRegistry;
@@ -64,43 +65,46 @@ export function createPayRouter(ctx: RouterContext) {
       try {
         const body = await c.request.json();
         
+        // Input validation
+        const validated = validateInputStrict(schemas.createTransaction, body);
+        
         logger?.debug('Creating transaction', { 
-          orderId: body.orderId,
-          amount: body.amount,
-          currency: body.currency ?? 'IDR' 
+          orderId: validated.orderId,
+          amount: validated.amount,
+          currency: validated.currency ?? 'IDR' 
         });
 
-        const provider = body.providerId
-          ? ctx.providerRegistry.get(body.providerId)
+        const provider = validated.providerId
+          ? ctx.providerRegistry.get(validated.providerId)
           : ctx.providerRegistry.getDefault();
         if (!provider) {
-          logger?.warn('No provider available', { providerId: body.providerId });
+          logger?.warn('No provider available', { providerId: validated.providerId });
           return toResponse({ error: 'No provider available' }, { status: 400 });
         }
 
         const txn = await ctx.transactionService.create({
-          orderId: body.orderId,
+          orderId: validated.orderId,
           providerId: provider.id,
-          amount: body.amount,
-          currency: body.currency ?? 'IDR',
-          customerEmail: body.customerEmail,
-          metadata: body.metadata,
+          amount: validated.amount,
+          currency: validated.currency ?? 'IDR',
+          customerEmail: validated.customerEmail,
+          metadata: validated.metadata,
         });
 
         const result = await provider.createPaymentLink({
-          orderId: body.orderId,
-          amount: body.amount,
-          currency: body.currency ?? 'IDR',
-          customerEmail: body.customerEmail,
-          customerName: body.customerName,
-          description: body.description ?? '',
-          callbackUrl: body.callbackUrl ?? '',
-          returnUrl: body.returnUrl ?? '',
-          paymentMethod: body.paymentMethod,
-          metadata: body.metadata,
+          orderId: validated.orderId,
+          amount: validated.amount,
+          currency: validated.currency ?? 'IDR',
+          customerEmail: validated.customerEmail,
+          customerName: validated.customerName,
+          description: validated.description ?? '',
+          callbackUrl: validated.callbackUrl ?? '',
+          returnUrl: validated.returnUrl ?? '',
+          paymentMethod: validated.paymentMethod,
+          metadata: validated.metadata,
         });
 
-        await ctx.transactionService.updateStatus(body.orderId, 'active', result.providerTransactionId);
+        await ctx.transactionService.updateStatus(validated.orderId, 'active', result.providerTransactionId);
 
         logger?.info('Transaction created successfully', { 
           orderId: txn.orderId,
@@ -121,7 +125,13 @@ export function createPayRouter(ctx: RouterContext) {
         logger?.error('Failed to create transaction', { 
           error: error instanceof Error ? error.message : String(error) 
         });
-        return toResponse({ error: (error as Error).message }, { status: 500 });
+        
+        // Don't leak internal error details
+        if (error instanceof Error && error.message.includes('Validation failed')) {
+          return toResponse({ error: error.message }, { status: 400 });
+        }
+        
+        return toResponse({ error: 'Failed to create transaction' }, { status: 500 });
       }
     },
   );
@@ -223,24 +233,27 @@ export function createPayRouter(ctx: RouterContext) {
         try {
           const body = await c.request.json();
           
+          // Input validation
+          const validated = validateInputStrict(schemas.subscribe, body);
+          
           logger?.debug('Processing subscription', { 
-            customerId: body.customerId, 
-            planId: body.planId 
+            customerId: validated.customerId, 
+            planId: validated.planId 
           });
           
-          const planDef = billing.products.find((p: any) => p.id === body.planId);
+          const planDef = billing.products.find((p: any) => p.id === validated.planId);
           if (!planDef) {
-            logger?.warn('Plan not found', { planId: body.planId });
-            return toResponse({ error: `Plan not found: ${body.planId}` }, { status: 404 });
+            logger?.warn('Plan not found', { planId: validated.planId });
+            return toResponse({ error: `Plan not found: ${validated.planId}` }, { status: 404 });
           }
 
           const sub = await billing.subscription.subscribe({
-            customerId: body.customerId,
+            customerId: validated.customerId,
             plan: planDef,
           }) as any;
 
           await billing.entitlement.createEntitlements(
-            body.customerId,
+            validated.customerId,
             sub.id,
             planDef.includes,
           );
@@ -260,7 +273,12 @@ export function createPayRouter(ctx: RouterContext) {
           logger?.error('Failed to create subscription', { 
             error: error instanceof Error ? error.message : String(error) 
           });
-          return toResponse({ error: (error as Error).message }, { status: 500 });
+          
+          if (error instanceof Error && error.message.includes('Validation failed')) {
+            return toResponse({ error: error.message }, { status: 400 });
+          }
+          
+          return toResponse({ error: 'Failed to create subscription' }, { status: 500 });
         }
       },
     );
@@ -271,10 +289,34 @@ export function createPayRouter(ctx: RouterContext) {
       async (c: any) => {
         try {
           const body = await c.request.json();
-          const result = await billing.entitlement.check(body.customerId, body.featureId);
+          
+          // Input validation
+          const validated = validateInputStrict(schemas.entitlementCheck, body);
+          
+          logger?.debug('Checking entitlement', { 
+            customerId: validated.customerId,
+            featureId: validated.featureId 
+          });
+          
+          const result = await billing.entitlement.check(validated.customerId, validated.featureId);
+          
+          logger?.debug('Entitlement check completed', { 
+            customerId: validated.customerId,
+            featureId: validated.featureId,
+            allowed: result.allowed 
+          });
+          
           return toResponse(result);
         } catch (error) {
-          return toResponse({ error: (error as Error).message }, { status: 500 });
+          logger?.error('Failed to check entitlement', { 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+          
+          if (error instanceof Error && error.message.includes('Validation failed')) {
+            return toResponse({ error: error.message }, { status: 400 });
+          }
+          
+          return toResponse({ error: 'Failed to check entitlement' }, { status: 500 });
         }
       },
     );
@@ -285,10 +327,39 @@ export function createPayRouter(ctx: RouterContext) {
       async (c: any) => {
         try {
           const body = await c.request.json();
-          const result = await billing.entitlement.report(body.customerId, body.featureId, body.amount);
+          
+          // Input validation
+          const validated = validateInputStrict(schemas.entitlementReport, body);
+          
+          logger?.debug('Reporting usage', { 
+            customerId: validated.customerId,
+            featureId: validated.featureId,
+            amount: validated.amount 
+          });
+          
+          const result = await billing.entitlement.report(
+            validated.customerId, 
+            validated.featureId, 
+            validated.amount
+          );
+          
+          logger?.debug('Usage reported', { 
+            customerId: validated.customerId,
+            featureId: validated.featureId,
+            success: result.success 
+          });
+          
           return toResponse(result);
         } catch (error) {
-          return toResponse({ error: (error as Error).message }, { status: 500 });
+          logger?.error('Failed to report usage', { 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+          
+          if (error instanceof Error && error.message.includes('Validation failed')) {
+            return toResponse({ error: error.message }, { status: 400 });
+          }
+          
+          return toResponse({ error: 'Failed to report usage' }, { status: 500 });
         }
       },
     );
@@ -299,14 +370,36 @@ export function createPayRouter(ctx: RouterContext) {
       async (c: any) => {
         try {
           const body = await c.request.json();
+          
+          // Input validation
+          const validated = validateInputStrict(schemas.createCustomer, body);
+          
+          logger?.debug('Creating customer', { 
+            email: validated.email 
+          });
+          
           const customer = await billing.customer.create({
-            email: body.email,
-            name: body.name,
-            phone: body.phone,
+            email: validated.email,
+            name: validated.name,
+            phone: validated.phone,
           }) as any;
+          
+          logger?.info('Customer created', { 
+            customerId: customer.id,
+            email: customer.email 
+          });
+          
           return toResponse({ id: customer.id, email: customer.email });
         } catch (error) {
-          return toResponse({ error: (error as Error).message }, { status: 500 });
+          logger?.error('Failed to create customer', { 
+            error: error instanceof Error ? error.message : String(error) 
+          });
+          
+          if (error instanceof Error && error.message.includes('Validation failed')) {
+            return toResponse({ error: error.message }, { status: 400 });
+          }
+          
+          return toResponse({ error: 'Failed to create customer' }, { status: 500 });
         }
       },
     );
