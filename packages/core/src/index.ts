@@ -76,6 +76,20 @@ export type { EncryptedValue } from './security/credential-encryption';
 
 export { schemas, validateInput, validateInputStrict, validationMiddleware } from './security/input-validation';
 
+export {
+  executeMiddlewareChain,
+  requireAuth,
+  validateCSRF,
+  rateLimit,
+  requireRole,
+  validateOwnership,
+} from './security/middleware';
+export type {
+  SecurityContext,
+  SecurityMiddleware,
+  SecurityMiddlewareOptions,
+} from './security/middleware';
+
 // Errors
 export {
   BetterPayError,

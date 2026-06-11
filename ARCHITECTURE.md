@@ -686,6 +686,304 @@ rateLimit: {
 
 ---
 
+## Security Middleware
+
+BetterPay provides a flexible middleware system that allows user applications to inject their own authentication, CSRF protection, and authorization logic. **This follows the library pattern: BetterPay provides the hooks, user apps implement the policies.**
+
+### Security Responsibility Model
+
+| Layer | Responsibility | Implementation |
+|-------|---------------|----------------|
+| **Input Validation** | BetterPay | Zod schemas for all endpoints |
+| **Webhook Security** | BetterPay | Signature verification + replay protection |
+| **Error Sanitization** | BetterPay | Generic errors to clients, detailed logs |
+| **Request Size Limits** | BetterPay | 10MB max, prevents DoS |
+| **Rate Limiting** | BetterPay | In-memory or distributed |
+| **Authentication** | **User App** | Via `requireAuth()` middleware |
+| **CSRF Protection** | **User App** | Via `validateCSRF()` middleware |
+| **Authorization** | **User App** | Via `requireRole()` or `validateOwnership()` |
+| **Audit Logging** | **User App** | Via `after` middleware hook |
+
+### Middleware Types
+
+```typescript
+interface SecurityMiddleware {
+  before?: SecurityMiddlewareFn[];   // Run before request processing
+  after?: SecurityMiddlewareFn[];    // Run after request processing
+  onError?: (error, ctx) => Response | void;  // Custom error handler
+}
+
+type SecurityMiddlewareFn = (ctx: SecurityContext) => Response | void | Promise<Response | void>;
+
+interface SecurityContext {
+  request: Request;
+  user?: { id: string; email?: string; role?: string; [key: string]: unknown };
+  metadata: { requestId: string; startTime: number; [key: string]: unknown };
+}
+```
+
+### Built-in Middleware Helpers
+
+#### 1. `requireAuth()` — Authentication
+
+```typescript
+import { betterPay, requireAuth } from '@betterpay/core';
+import { auth } from '@/lib/auth';  // Your auth system (NextAuth, Clerk, etc.)
+
+const pay = betterPay({
+  plugins: [/* ... */],
+  middleware: {
+    before: [
+      requireAuth({
+        auth: async (request) => {
+          const session = await auth.getSession(request);
+          if (!session?.user) return null;
+          
+          return {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+          };
+        },
+        errorMessage: 'Please login to continue',
+        statusCode: 401,
+      }),
+    ],
+  },
+});
+```
+
+#### 2. `validateCSRF()` — CSRF Protection
+
+```typescript
+import { betterPay, validateCSRF } from '@betterpay/core';
+
+const pay = betterPay({
+  middleware: {
+    before: [
+      validateCSRF({
+        trustedOrigins: [
+          'https://myapp.com',
+          'https://*.myapp.com',  // Wildcard support
+        ],
+        errorMessage: 'Invalid origin',
+        statusCode: 403,
+      }),
+    ],
+  },
+});
+```
+
+#### 3. `requireRole()` — Role-Based Access Control
+
+```typescript
+import { betterPay, requireAuth, requireRole } from '@betterpay/core';
+
+const pay = betterPay({
+  middleware: {
+    before: [
+      requireAuth({ auth: /* ... */ }),
+      requireRole({
+        roles: ['admin', 'finance'],
+        errorMessage: 'Insufficient permissions',
+        statusCode: 403,
+      }),
+    ],
+  },
+});
+```
+
+#### 4. `validateOwnership()` — Resource Ownership
+
+```typescript
+import { betterPay, requireAuth, validateOwnership } from '@betterpay/core';
+
+const pay = betterPay({
+  middleware: {
+    before: [
+      requireAuth({ auth: /* ... */ }),
+      validateOwnership({
+        getResourceOwnerId: async (ctx) => {
+          const url = new URL(ctx.request.url);
+          const orderId = url.pathname.split('/').pop();
+          const order = await db.orders.findById(orderId);
+          return order?.customerId ?? null;
+        },
+        errorMessage: 'You do not own this resource',
+        statusCode: 403,
+      }),
+    ],
+  },
+});
+```
+
+#### 5. Audit Logging (after hook)
+
+```typescript
+import type { SecurityMiddleware } from '@betterpay/core';
+
+const auditLogger: SecurityMiddleware = async (ctx) => {
+  await db.auditLogs.create({
+    userId: ctx.user?.id,
+    action: `${ctx.request.method} ${new URL(ctx.request.url).pathname}`,
+    timestamp: new Date(),
+    ip: ctx.request.headers.get('x-forwarded-for'),
+    metadata: ctx.metadata,
+  });
+  return undefined;  // Continue processing
+};
+
+const pay = betterPay({
+  middleware: {
+    after: [auditLogger],
+  },
+});
+```
+
+### Middleware Execution Order
+
+```
+Request
+  ↓
+[1] CSRF validation
+  ↓
+[2] Authentication
+  ↓
+[3] Authorization (role/ownership)
+  ↓
+[4] Request processing (router)
+  ↓
+[5] Audit logging
+  ↓
+Response
+```
+
+If any middleware returns a `Response`, the chain stops immediately.
+
+### Complete Security Example
+
+```typescript
+import { betterPay, requireAuth, validateCSRF, validateOwnership } from '@betterpay/core';
+import { midtrans } from '@betterpay/midtrans';
+import { billing, feature, plan } from '@betterpay/billing';
+import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+
+// Define plans
+const messages = feature({ id: 'messages', type: 'metered' });
+const pro = plan({
+  id: 'pro',
+  group: 'base',
+  price: { amount: 199000, currency: 'IDR', interval: 'month' },
+  includes: [messages({ limit: 5000, reset: 'month' })],
+});
+
+// Audit logger
+const auditLogger = async (ctx) => {
+  await db.auditLogs.create({
+    userId: ctx.user?.id,
+    action: `${ctx.request.method} ${new URL(ctx.request.url).pathname}`,
+    timestamp: new Date(),
+    ip: ctx.request.headers.get('x-forwarded-for'),
+    metadata: ctx.metadata,
+  });
+  return undefined;
+};
+
+// Custom error handler
+const errorHandler = async (error, ctx) => {
+  console.error('Payment error:', {
+    error: error.message,
+    userId: ctx.user?.id,
+    requestId: ctx.metadata.requestId,
+  });
+  
+  return new Response(JSON.stringify({
+    error: 'An error occurred processing your payment',
+    requestId: ctx.metadata.requestId,
+  }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
+// Create BetterPay instance with full security
+export const pay = betterPay({
+  plugins: [
+    midtrans({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+    billing({ products: [pro] }),
+  ],
+  
+  middleware: {
+    before: [
+      // 1. CSRF protection
+      validateCSRF({
+        trustedOrigins: ['https://myapp.com', 'https://*.myapp.com'],
+      }),
+      
+      // 2. Authentication
+      requireAuth({
+        auth: async (request) => {
+          const session = await auth.getSession(request);
+          if (!session?.user) return null;
+          
+          return {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+          };
+        },
+      }),
+      
+      // 3. Resource ownership
+      validateOwnership({
+        getResourceOwnerId: async (ctx) => {
+          const url = new URL(ctx.request.url);
+          
+          if (url.pathname.includes('/subscription/')) {
+            const subscriptionId = url.pathname.split('/').pop();
+            const sub = await db.subscriptions.findById(subscriptionId);
+            return sub?.customerId ?? null;
+          }
+          
+          if (url.pathname.includes('/status/')) {
+            const orderId = url.pathname.split('/').pop();
+            const order = await db.orders.findById(orderId);
+            return order?.customerId ?? null;
+          }
+          
+          return null;
+        },
+      }),
+    ],
+    
+    after: [auditLogger],
+    onError: errorHandler,
+  },
+});
+```
+
+### Security Best Practices
+
+1. **Always use CSRF protection** for browser-based applications
+2. **Authenticate before authorize** — order matters
+3. **Validate ownership** for user-specific resources
+4. **Log everything** — use audit logging for compliance
+5. **Custom error handlers** — never expose stack traces in production
+6. **Rate limit sensitive endpoints** — use built-in rate limiter
+7. **Use HTTPS** — BetterPay assumes HTTPS in production
+
+### Learn More
+
+- [Security Middleware Examples](docs/SECURITY_MIDDLEWARE.md)
+- [Security Architecture](#security-architecture)
+- [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+
+---
+
 ## Client SDK
 
 ```typescript
