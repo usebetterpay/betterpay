@@ -1,0 +1,213 @@
+---
+title: Payments
+description: One-time payments API
+---
+
+BetterPay menyediakan API sederhana untuk one-time payments dengan multiple providers.
+
+## Basic Usage
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  orderId: 'order_123',
+});
+
+// Redirect user ke payment page
+console.log(payment.paymentUrl);
+```
+
+## Payment Object
+
+```typescript
+interface Payment {
+  orderId: string;
+  providerTransactionId: string;
+  paymentUrl?: string;
+  qrString?: string;
+  vaNumber?: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'active' | 'completed' | 'failed' | 'expired';
+}
+```
+
+## Payment Methods
+
+### Virtual Account
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  paymentMethod: 'virtual_account',
+});
+
+console.log(payment.vaNumber); // "880812345678"
+```
+
+### QRIS
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 50000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  paymentMethod: 'qris',
+});
+
+console.log(payment.qrString); // QR code data
+```
+
+### E-Wallet
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 75000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  paymentMethod: 'ewallet',
+});
+
+console.log(payment.paymentUrl); // Redirect URL
+```
+
+## Check Payment Status
+
+```typescript
+const status = await pay.getPaymentStatus('order_123');
+
+if (status.status === 'completed') {
+  console.log('Payment successful!');
+}
+```
+
+## Cancel Payment
+
+```typescript
+await pay.cancelPayment('order_123');
+```
+
+## Webhook Handling
+
+Payment provider akan mengirim webhook saat status payment berubah.
+
+```typescript
+const result = await pay.handleWebhook('midtrans', {
+  body: req.body,
+  headers: req.headers,
+});
+
+if (result.success) {
+  // Payment completed/failed/expired
+  console.log('Event:', result.eventName);
+}
+```
+
+## Error Handling
+
+```typescript
+try {
+  const payment = await pay.createPayment({
+    amount: 100000,
+    currency: 'IDR',
+    customerEmail: 'user@example.com',
+  });
+} catch (error) {
+  if (error instanceof PaymentError) {
+    console.error('Payment failed:', error.message);
+    console.error('Error code:', error.code);
+  }
+}
+```
+
+## Provider-Specific Options
+
+### Midtrans
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  provider: 'midtrans',
+  providerOptions: {
+    paymentType: 'bank_transfer', // or 'qris', 'gopay', etc
+    bank: 'bca', // for bank_transfer
+  },
+});
+```
+
+### Xendit
+
+```typescript
+const payment = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+  provider: 'xendit',
+  providerOptions: {
+    paymentMethod: 'VIRTUAL_ACCOUNT',
+    bankCode: 'BCA',
+  },
+});
+```
+
+## Currency Support
+
+BetterPay mendukung multiple currencies dengan ISO 4217 standard:
+
+```typescript
+// IDR (Indonesian Rupiah) - 0 decimals
+await pay.createPayment({
+  amount: 100000, // Rp 100,000
+  currency: 'IDR',
+});
+
+// USD (US Dollar) - 2 decimals
+await pay.createPayment({
+  amount: 1000, // $10.00
+  currency: 'USD',
+});
+```
+
+## Idempotency
+
+Gunakan `orderId` yang sama untuk mencegah duplicate payments:
+
+```typescript
+const orderId = `order_${userId}_${Date.now()}`;
+
+// Request 1
+const payment1 = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  orderId,
+});
+
+// Request 2 (dengan orderId yang sama)
+const payment2 = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  orderId,
+});
+
+// payment1 === payment2 (same transaction)
+```
+
+## Best Practices
+
+1. **Always use orderId** - Untuk tracking dan idempotency
+2. **Handle webhooks** - Jangan hanya rely pada polling
+3. **Verify signatures** - BetterPay otomatis verify webhook signatures
+4. **Use sandbox first** - Test di sandbox sebelum production
+5. **Monitor failures** - Setup alerting untuk payment failures
+
+## See Also
+
+- [Webhooks](/docs/core/webhooks) - Handle payment events
+- [Providers](/docs/providers/overview) - Provider comparison
+- [Error Handling](/docs/core/error-handling) - Error taxonomy

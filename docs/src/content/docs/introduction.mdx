@@ -1,0 +1,148 @@
+---
+title: Introduction
+description: BetterPay - Payment framework untuk Indonesia
+---
+
+BetterPay adalah payment framework TypeScript yang menyatukan multiple payment gateway Indonesia di bawah satu API. Fokus pada VA, QRIS, dan e-wallet.
+
+## Features
+
+<Cards>
+  <Card title="🇮🇩 Indonesian Focus" href="/docs/resources/indonesian-payments">
+    Dirancang untuk landscape pembayaran Indonesia
+  </Card>
+  <Card title="🏦 Multi-Provider" href="/docs/core/providers">
+    Priority-based provider selection dengan automatic failover
+  </Card>
+  <Card title="🔌 Plugin System" href="/docs/plugins/overview">
+    Extend dengan billing, notifications, dan custom plugins
+  </Card>
+  <Card title="🛡️ Production Ready" href="/docs/core/security">
+    Security middleware, rate limiting, dan error handling
+  </Card>
+</Cards>
+
+## Quick Start
+
+Install BetterPay:
+
+```bash
+pnpm add @betterpay/core @betterpay/midtrans
+```
+
+Setup dalam 5 menit:
+
+```typescript
+import { betterPay } from '@betterpay/core';
+import { midtrans } from '@betterpay/midtrans';
+
+const pay = betterPay({
+  plugins: [
+    midtrans({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+
+// Create payment
+const payment = await pay.createPayment({
+  amount: 100000,
+  currency: 'IDR',
+  customerEmail: 'user@example.com',
+});
+
+console.log(payment.paymentUrl); // Redirect user ke sini
+```
+
+## Why BetterPay?
+
+### 1. Indonesian Payment Landscape
+
+Indonesia punya landscape pembayaran yang unik:
+- **Virtual Account** (60-70% market share) - BCA, BNI, BRI, Mandiri
+- **QRIS** (15-20% market share) - Standard QR code
+- **E-Wallet** (10-15% market share) - GoPay, OVO, DANA, ShopeePay
+- **Credit Card** (less than 5% market share) - Masih minoritas
+
+BetterPay dirancang khusus untuk landscape ini.
+
+### 2. Multi-Provider First
+
+Jangan bergantung pada satu provider:
+
+```typescript
+const pay = betterPay({
+  plugins: [
+    midtrans({ serverKey: '...', priority: 1 }),
+    xendit({ apiKey: '...', priority: 2 }),
+    duitku({ apiKey: '...', priority: 3 }),
+  ],
+});
+```
+
+BetterPay akan:
+- Otomatis pilih provider dengan priority tertinggi
+- Fallback ke provider lain jika provider utama down (circuit breaker)
+- Load balance berdasarkan priority
+
+### 3. Billing as Plugin
+
+Billing adalah fitur optional, bukan mandatory:
+
+```typescript
+import { billing, feature, plan } from '@betterpay/billing';
+
+const messages = feature({ id: 'messages', type: 'metered' });
+
+const pro = plan({
+  id: 'pro',
+  price: { amount: 199000, currency: 'IDR', interval: 'month' },
+  includes: [messages({ limit: 5000, reset: 'month' })],
+});
+
+const pay = betterPay({
+  plugins: [
+    midtrans({ serverKey: '...' }),
+    billing({ products: [pro] }), // Optional!
+  ],
+});
+```
+
+User yang cuma butuh one-time payment tidak perlu load billing logic.
+
+### 4. Production Ready
+
+BetterPay sudah dipakai di production dengan:
+- **4 payment providers** (Midtrans, Xendit, Duitku, Pakasir)
+- **5 framework integrations** (Next.js, Hono, Express, Bun, Cloudflare)
+- **Security middleware** (auth, CSRF, rate limiting)
+- **Error handling** (13 error types)
+- **Webhook security** (signature verification + replay protection)
+
+## Comparison
+
+| Feature | BetterPay | Stripe.js | PayKit |
+|---------|-----------|-----------|---------|
+| Indonesian Providers | ✅ 4 providers | ❌ No | ❌ No |
+| Multi-Provider | ✅ Built-in | ❌ No | ❌ No |
+| Billing | ✅ Plugin | ✅ Built-in | ✅ Built-in |
+| Framework Agnostic | ✅ Yes | ✅ Yes | ✅ Yes |
+| Open Source | ✅ MIT | ❌ No | ✅ MIT |
+
+## Next Steps
+
+<Cards>
+  <Card title="🚀 Quick Start" href="/docs/quickstart">
+    Setup dalam 5 menit
+  </Card>
+  <Card title="💳 First Payment" href="/docs/getting-started/first-payment">
+    Tutorial pembayaran pertama
+  </Card>
+  <Card title="🏦 Providers" href="/docs/providers/overview">
+    Pilih payment provider
+  </Card>
+  <Card title="📚 API Reference" href="/docs/reference/api-endpoints">
+    Dokumentasi lengkap
+  </Card>
+</Cards>
