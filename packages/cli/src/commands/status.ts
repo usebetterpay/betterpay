@@ -22,24 +22,39 @@ export async function statusCommand(args: string[]): Promise<void> {
   };
   const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-  // 2. Check installed packages
-  const packages = [
-    '@betterpay/core',
-    '@betterpay/midtrans',
-    '@betterpay/xendit',
-    '@betterpay/client',
-    '@betterpay/next',
-    '@betterpay/hono',
-    '@betterpay/billing',
+  // 2. Check installed packages (grouped)
+  const packageGroups = [
+    {
+      name: 'Core',
+      packages: ['@betterpay/core', '@betterpay/client', '@betterpay/cli'],
+    },
+    {
+      name: 'Providers',
+      packages: ['@betterpay/midtrans', '@betterpay/xendit', '@betterpay/duitku', '@betterpay/pakasir'],
+    },
+    {
+      name: 'Billing',
+      packages: ['@betterpay/billing', '@betterpay/drizzle-adapter'],
+    },
+    {
+      name: 'Framework Handlers',
+      packages: ['@betterpay/next', '@betterpay/hono', '@betterpay/express', '@betterpay/bun', '@betterpay/cloudflare'],
+    },
+    {
+      name: 'Notifications',
+      packages: ['@betterpay/notification-email', '@betterpay/notification-whatsapp'],
+    },
   ];
 
-  console.log('   Installed packages:');
-  for (const pkg of packages) {
-    const version = allDeps[pkg];
-    if (version) {
-      console.log(`   ✅ ${pkg} ${version}`);
-    } else {
-      console.log(`   ⬜ ${pkg} (not installed)`);
+  for (const group of packageGroups) {
+    console.log(`\n   ${group.name}:`);
+    for (const pkg of group.packages) {
+      const version = allDeps[pkg];
+      if (version) {
+        console.log(`   ✅ ${pkg} ${version}`);
+      } else {
+        console.log(`   ⬜ ${pkg} (not installed)`);
+      }
     }
   }
 

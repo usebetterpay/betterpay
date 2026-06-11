@@ -39,6 +39,38 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/node@22.19.20)
 
+  packages/billing:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/bun:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
   packages/cli:
     dependencies:
       '@betterpay/core':
@@ -56,6 +88,22 @@ importers:
         version: 3.2.6(@types/node@22.19.20)
 
   packages/client:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/cloudflare:
     dependencies:
       '@betterpay/core':
         specifier: workspace:*
@@ -96,6 +144,57 @@ importers:
         specifier: 'catalog:'
         version: 3.2.6(@types/node@22.19.20)
 
+  packages/drizzle-adapter:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.44.7(@types/pg@8.20.0)(pg@8.21.0)
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/duitku:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/express:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
   packages/hono:
     dependencies:
       '@betterpay/core':
@@ -129,6 +228,54 @@ importers:
         version: 3.2.6(@types/node@22.19.20)
 
   packages/next:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/notification-email:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/notification-whatsapp:
+    dependencies:
+      '@betterpay/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.20
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.19.20)
+
+  packages/pakasir:
     dependencies:
       '@betterpay/core':
         specifier: workspace:*
