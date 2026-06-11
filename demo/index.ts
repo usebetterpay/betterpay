@@ -201,7 +201,7 @@ function createDemoBillingPlugin() {
 
 async function main() {
   console.log('🚀 BetterPay Complete Demo\n');
-  console.log('\u2500'.repeat(60));
+  console.log('─'.repeat(60));
 
   // 1. Initialize with multiple providers + billing
   console.log('\n📦 Initializing BetterPay with 4 providers + billing...\n');
@@ -223,7 +223,7 @@ async function main() {
   console.log(`   Billing enabled: ${pay.billing.enabled}`);
 
   // 2. One-time payment
-  console.log('\n─'.repeat(60));
+  console.log('\n' + '─'.repeat(60));
   console.log('\n💳 One-Time Payment Demo\n');
 
   const payment = await pay.createTransaction({
@@ -250,7 +250,7 @@ async function main() {
   console.log(`   Final Status: ${finalStatus?.status}`);
 
   // 3. Billing demo
-  console.log('\n─'.repeat(60));
+  console.log('\n' + '─'.repeat(60));
   console.log('\n📋 Subscription & Billing Demo\n');
 
   // Create customer
@@ -309,7 +309,7 @@ async function main() {
   console.log(`   AI models:    ${aiCheck.allowed ? '✅ Unlimited' : '❌'}`);
 
   // 4. Provider selection demo
-  console.log('\n─'.repeat(60));
+  console.log('\n' + '─'.repeat(60));
   console.log('\n🔄 Provider Priority Selection Demo\n');
 
   const vaProviders = pay.providerRegistry.findByMethod('virtual_account');
@@ -322,7 +322,7 @@ async function main() {
   console.log(`   Selected for VA: ${selected.name}`);
 
   // 5. Summary
-  console.log('\n─'.repeat(60));
+  console.log('\n' + '─'.repeat(60));
   console.log('\n📊 Summary\n');
   console.log('   ✅ 4 payment providers registered (Midtrans, Xendit, Duitku, Pakasir)');
   console.log('   ✅ One-time payment created + webhook processed');
@@ -333,7 +333,7 @@ async function main() {
   console.log('   ✅ Billing API (subscribe, check, report, cancel)');
 
   console.log('\n🎉 BetterPay demo complete!\n');
-  console.log('\u2500'.repeat(60));
+  console.log('─'.repeat(60));
   console.log('\n📖 Quick Start:\n');
   console.log('   npm install @betterpay/core @betterpay/midtrans @betterpay/billing');
   console.log('   npx @betterpay/cli init');
