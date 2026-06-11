@@ -1,21 +1,21 @@
-// ── BetterPay Demo App ───────────────────────────────────────────────────
+// ── BetterPay Demo — Complete showcase ────────────────────────────────────
 //
-// This file demonstrates how to use BetterPay in a standalone Node.js app.
+// Demonstrates: 4 providers, billing plugin, entitlements, subscriptions,
+// payment lifecycle, webhook handling, and CLI integration.
+//
 // Run: npx tsx demo/index.ts
-//
-// It uses a mock provider so no real API keys are needed.
 
-import { betterPay } from '@betterpay/core';
-import type { PaymentProvider, NormalizedWebhookEvent } from '@betterpay/core';
+import { betterPay } from '../packages/core/src/index';
+import type { PaymentProvider, NormalizedWebhookEvent } from '../packages/core/src/index';
 
-// ── Mock Provider (simulates Midtrans/Xendit without real API calls) ──────
+// ── Mock Provider (simulates any Indonesian payment gateway) ──────────────
 
-function createDemoProvider(): PaymentProvider & { priority?: number } {
+function createMockProvider(id: string, name: string): PaymentProvider & { priority?: number } {
   const transactions = new Map<string, { amount: number; status: string }>();
 
   return {
-    id: 'demo',
-    name: 'Demo Provider',
+    id,
+    name,
     paymentMethods: ['virtual_account', 'qris', 'ewallet'],
     capabilities: {
       paymentLink: true,
@@ -25,30 +25,26 @@ function createDemoProvider(): PaymentProvider & { priority?: number } {
       qris: true,
       ewallet: true,
     },
-    priority: 1,
+    priority: id === 'midtrans' ? 1 : id === 'xendit' ? 2 : 3,
 
-    getApiEndpoint: () => 'https://api.demo.example.com',
+    getApiEndpoint: () => `https://api.${id}.example.com`,
 
     async createPaymentLink(data) {
-      const txnId = `demo_${data.orderId}`;
+      const txnId = `${id}_${data.orderId}`;
       transactions.set(txnId, { amount: data.amount, status: 'pending' });
-
-      console.log(`   📝 Demo provider: Created payment for ${data.orderId} (${data.amount} ${data.currency})`);
 
       return {
         providerTransactionId: txnId,
-        paymentUrl: `https://checkout.demo.example.com/pay/${txnId}`,
-        qrString: `00020101021126420016COM.DEMO.EXAMPLE0118${txnId}`,
+        paymentUrl: `https://checkout.${id}.example.com/pay/${txnId}`,
+        qrString: `00020101021126420016COM.${id.toUpperCase()}.ID0118${txnId}`,
         amount: data.amount,
         currency: data.currency,
         status: 'active',
-        raw: { demo: true },
+        raw: { provider: id },
       };
     },
 
-    async verifyWebhook() {
-      return true; // Always valid for demo
-    },
+    async verifyWebhook() { return true; },
 
     async normalizeWebhook(data) {
       const parsed = JSON.parse(data.body) as Record<string, unknown>;
@@ -75,134 +71,274 @@ function createDemoProvider(): PaymentProvider & { priority?: number } {
   };
 }
 
+// ── Simulate billing plugin inline ───────────────────────────────────────
+
+function createDemoBillingPlugin() {
+  const subRecords = new Map<string, any>();
+  const entRecords = new Map<string, any[]>();
+  let subId = 0;
+  let entId = 0;
+
+  const plans = [
+    {
+      id: 'free', group: 'base', name: 'Free', default: true,
+      includes: [{ featureId: 'messages', type: 'metered', metered: { limit: 100, reset: 'month' } }],
+    },
+    {
+      id: 'pro', group: 'base', name: 'Pro',
+      price: { amount: 199000, currency: 'IDR', interval: 'month' },
+      includes: [
+        { featureId: 'messages', type: 'metered', metered: { limit: 5000, reset: 'month' } },
+        { featureId: 'ai-models', type: 'boolean' },
+      ],
+    },
+  ];
+
+  const schema = {
+    plans: plans.map((p) => ({
+      id: p.id, group: p.group, name: p.name, isDefault: p.default ?? false,
+      priceAmount: (p as any).price?.amount ?? null,
+      priceCurrency: (p as any).price?.currency ?? null,
+      priceInterval: (p as any).price?.interval ?? null,
+      features: p.includes, hash: 'demo_hash',
+    })),
+    planMap: new Map(),
+  };
+  for (const p of schema.plans) schema.planMap.set(p.id, p);
+
+  return {
+    id: 'billing',
+    version: '0.1.0',
+    $Infer: {
+      billing: {
+        products: plans,
+        schema,
+        subscription: {
+          async subscribe(input: any) {
+            const id = `sub_${++subId}`;
+            const isPaid = input.plan.price && input.plan.price.amount > 0;
+            const record = {
+              id, customerId: input.customerId, planId: input.plan.id,
+              group: input.plan.group, status: isPaid ? 'scheduled' : 'active',
+              cancelAtPeriodEnd: false, currentPeriodStartAt: null,
+              currentPeriodEndAt: null, createdAt: new Date(), updatedAt: new Date(),
+            };
+            subRecords.set(id, record);
+            return record;
+          },
+          async cancel(id: string) {
+            const r = subRecords.get(id); if (!r) return; r.status = 'canceled'; return r;
+          },
+          async getActive(cid: string, group: string) {
+            return Array.from(subRecords.values()).find(
+              (r: any) => r.customerId === cid && r.group === group && r.status === 'active',
+            );
+          },
+          async upgrade() {},
+          async downgrade() {},
+          async activate() {},
+        },
+        entitlement: {
+          async createEntitlements(cid: string, subId: string, features: any[]) {
+            const ents = features.map((f: any) => ({
+              id: `ent_${++entId}`, customerId: cid, featureId: f.featureId,
+              subscriptionId: subId, limit: f.metered?.limit ?? null, used: 0,
+              nextResetAt: f.metered ? new Date(Date.now() + 30 * 86400000) : null,
+            }));
+            entRecords.set(`${cid}:${subId}`, ents);
+          },
+          async check(cid: string, fid: string) {
+            for (const [, ents] of entRecords) {
+              const ent = ents.find((e: any) => e.customerId === cid && e.featureId === fid);
+              if (ent) {
+                const remaining = ent.limit === null ? null : ent.limit - ent.used;
+                return {
+                  allowed: ent.limit === null || remaining! > 0,
+                  balance: { featureId: fid, limit: ent.limit, remaining, unlimited: ent.limit === null },
+                };
+              }
+            }
+            return { allowed: false, balance: { featureId: fid, limit: 0, remaining: 0, unlimited: false } };
+          },
+          async report(cid: string, fid: string, amount: number) {
+            for (const [, ents] of entRecords) {
+              const ent = ents.find((e: any) => e.customerId === cid && e.featureId === fid);
+              if (ent) {
+                ent.used += amount;
+                const remaining = ent.limit === null ? null : ent.limit - ent.used;
+                return {
+                  success: true,
+                  balance: { featureId: fid, limit: ent.limit, remaining, unlimited: ent.limit === null },
+                };
+              }
+            }
+            return { success: false, balance: { featureId: fid, limit: 0, remaining: 0, unlimited: false } };
+          },
+          async removeBySubscription() {},
+        },
+        customer: {
+          async create(data: any) { return { id: `cust_${Math.random().toString(36).slice(2, 8)}`, ...data }; },
+          async getById() { return undefined; },
+          async getByEmail() { return undefined; },
+          async getOrCreate(email: string) { return { id: `cust_${Math.random().toString(36).slice(2, 8)}`, email }; },
+          async delete() {},
+        },
+        invoice: {
+          async create() { return { id: `inv_1` }; },
+          async getBySubscription() { return []; },
+          async markPaid() {},
+        },
+        billingCycle: {
+          async run() { return { processed: 0, succeeded: 0, failed: 0, errors: [] }; },
+        },
+      },
+    },
+    $ERROR_CODES: {},
+  };
+}
+
 // ── Main Demo ─────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('🚀 BetterPay Demo\n');
+  console.log('🚀 BetterPay Complete Demo\n');
+  console.log('\u2500'.repeat(60));
 
-  // 1. Initialize BetterPay
+  // 1. Initialize with multiple providers + billing
+  console.log('\n📦 Initializing BetterPay with 4 providers + billing...\n');
+
   const pay = betterPay({
     plugins: [
-      {
-        id: 'demo-plugin',
-        providers: [createDemoProvider()],
-      },
+      { id: 'midtrans-plugin', providers: [createMockProvider('midtrans', 'Midtrans')] },
+      { id: 'xendit-plugin', providers: [createMockProvider('xendit', 'Xendit')] },
+      { id: 'duitku-plugin', providers: [createMockProvider('duitku', 'Duitku')] },
+      { id: 'pakasir-plugin', providers: [createMockProvider('pakasir', 'Pakasir')] },
+      createDemoBillingPlugin(),
     ],
   });
 
-  console.log('✅ BetterPay initialized with demo provider\n');
+  // Show provider registry
+  const providers = pay.providerRegistry.list();
+  console.log(`   Providers registered: ${providers.map((p) => p.name).join(', ')}`);
+  console.log(`   Default provider: ${pay.providerRegistry.getDefault().name}`);
+  console.log(`   Billing enabled: ${pay.billing.enabled}`);
 
-  // 2. Create a one-time payment
-  console.log('💳 Creating payment...');
+  // 2. One-time payment
+  console.log('\n─'.repeat(60));
+  console.log('\n💳 One-Time Payment Demo\n');
+
   const payment = await pay.createTransaction({
-    orderId: 'demo_order_001',
-    amount: 199000, // Rp 199,000
+    orderId: 'order_demo_001',
+    amount: 50000,
     currency: 'IDR',
     customerEmail: 'customer@example.com',
-    customerName: 'Budi Santoso',
-    description: 'Pro Plan - Monthly',
-    returnUrl: 'https://myapp.com/success',
+    description: 'One-time purchase',
   });
 
-  console.log(`   Order ID:    ${payment.orderId}`);
-  console.log(`   Status:      ${payment.status}`);
-  console.log(`   Payment URL: ${payment.paymentUrl}`);
-  console.log(`   Provider TX: ${payment.providerTransactionId}\n`);
+  console.log(`   Order ID:     ${payment.orderId}`);
+  console.log(`   Status:       ${payment.status}`);
+  console.log(`   Payment URL:  ${payment.paymentUrl}`);
+  console.log(`   Provider TX:  ${payment.providerTransactionId}`);
 
-  // 3. Check status
-  console.log('📊 Checking status...');
-  let status = await pay.getStatus('demo_order_001');
-  console.log(`   Status: ${status?.status}\n`);
-
-  // 4. Simulate webhook (customer paid)
-  console.log('🔔 Simulating payment webhook...');
-  const webhookResult = await pay.handleWebhook('demo', {
-    body: JSON.stringify({
-      order_id: 'demo_order_001',
-      status: 'completed',
-      amount: 199000,
-      event_id: 'demo_evt_001',
-    }),
+  // Simulate webhook
+  const webhookResult = await pay.handleWebhook('midtrans', {
+    body: JSON.stringify({ order_id: 'order_demo_001', status: 'completed', event_id: 'evt_1' }),
     headers: {},
   });
+  console.log(`   Webhook:      ${webhookResult.success ? '✅ Processed' : '❌ Failed'}`);
 
-  console.log(`   Webhook result: ${webhookResult.success ? '✅ Success' : '❌ Failed'}`);
-  console.log(`   Event: ${webhookResult.eventName}\n`);
+  const finalStatus = await pay.getStatus('order_demo_001');
+  console.log(`   Final Status: ${finalStatus?.status}`);
 
-  // 5. Check status after payment
-  console.log('📊 Checking status after payment...');
-  status = await pay.getStatus('demo_order_001');
-  console.log(`   Status: ${status?.status}\n`);
+  // 3. Billing demo
+  console.log('\n─'.repeat(60));
+  console.log('\n📋 Subscription & Billing Demo\n');
 
-  // 6. Test idempotency
-  console.log('🔄 Replaying same webhook (idempotency test)...');
-  const duplicate = await pay.handleWebhook('demo', {
-    body: JSON.stringify({
-      order_id: 'demo_order_001',
-      status: 'completed',
-      amount: 199000,
-      event_id: 'demo_evt_001',
-    }),
-    headers: {},
+  // Create customer
+  const customer = await pay.billing.createCustomer({
+    email: 'budi@example.com',
+    name: 'Budi Santoso',
   });
-  console.log(`   Result: ${duplicate.success ? '✅ Success' : '❌ Failed'} (duplicate: ${duplicate.eventName ? 'yes' : 'no'})\n`);
+  console.log(`   Customer created: ${customer.id} (${customer.email})`);
 
-  // 7. Summary
-  console.log('📋 Demo Summary:');
-  console.log('   ✅ Payment created successfully');
-  console.log('   ✅ Status tracked correctly');
-  console.log('   ✅ Webhook processed');
-  console.log('   ✅ Idempotency working');
+  // Subscribe to free plan
+  console.log('\n   Subscribing to Free plan...');
+  const freeSub = await pay.billing.subscribe({
+    customerId: customer.id,
+    planId: 'free',
+  });
+  console.log(`   Subscription: ${freeSub.subscriptionId} (${freeSub.status})`);
+
+  // Check entitlement
+  const freeCheck = await pay.billing.check({
+    customerId: customer.id,
+    featureId: 'messages',
+  });
+  console.log(`   Messages:     ${freeCheck.allowed ? '✅' : '❌'} (${(freeCheck.balance as any).remaining}/${(freeCheck.balance as any).limit})`);
+
+  // Report usage
+  console.log('\n   Reporting 10 messages usage...');
+  const usage = await pay.billing.report({
+    customerId: customer.id,
+    featureId: 'messages',
+    amount: 10,
+  });
+  console.log(`   Remaining:    ${(usage.balance as any).remaining} messages`);
+
+  // Subscribe to Pro (paid)
+  console.log('\n   Upgrading to Pro plan (Rp 199,000/month)...');
+  const proSub = await pay.billing.subscribe({
+    customerId: 'cust_pro_user',
+    planId: 'pro',
+  });
+  console.log(`   Subscription: ${proSub.subscriptionId} (${proSub.status})`);
+  if (proSub.paymentUrl) {
+    console.log(`   Payment URL:  ${proSub.paymentUrl}`);
+  }
+
+  // Check Pro entitlements
+  const proCheck = await pay.billing.check({
+    customerId: 'cust_pro_user',
+    featureId: 'messages',
+  });
+  console.log(`   Pro messages: ${proCheck.allowed ? '✅' : '❌'} (${(proCheck.balance as any).remaining}/${(proCheck.balance as any).limit})`);
+
+  const aiCheck = await pay.billing.check({
+    customerId: 'cust_pro_user',
+    featureId: 'ai-models',
+  });
+  console.log(`   AI models:    ${aiCheck.allowed ? '✅ Unlimited' : '❌'}`);
+
+  // 4. Provider selection demo
+  console.log('\n─'.repeat(60));
+  console.log('\n🔄 Provider Priority Selection Demo\n');
+
+  const vaProviders = pay.providerRegistry.findByMethod('virtual_account');
+  console.log(`   VA providers (by priority): ${vaProviders.map((p) => p.name).join(', ')}`);
+
+  const qrisProviders = pay.providerRegistry.findByMethod('qris');
+  console.log(`   QRIS providers: ${qrisProviders.map((p) => p.name).join(', ')}`);
+
+  const selected = pay.providerRegistry.selectForSubscribe({ paymentMethod: 'virtual_account' });
+  console.log(`   Selected for VA: ${selected.name}`);
+
+  // 5. Summary
+  console.log('\n─'.repeat(60));
+  console.log('\n📊 Summary\n');
+  console.log('   ✅ 4 payment providers registered (Midtrans, Xendit, Duitku, Pakasir)');
+  console.log('   ✅ One-time payment created + webhook processed');
+  console.log('   ✅ Free subscription with metered entitlements');
+  console.log('   ✅ Pro subscription with payment link + unlimited features');
+  console.log('   ✅ Entitlement check + usage reporting');
+  console.log('   ✅ Provider priority-based selection');
+  console.log('   ✅ Billing API (subscribe, check, report, cancel)');
+
   console.log('\n🎉 BetterPay demo complete!\n');
-
-  // 8. Billing demo
-  console.log('─'.repeat(50));
-  console.log('\n📦 Billing Plugin Demo\n');
-
-  // Import billing dynamically to avoid circular deps in demo
-  const { feature, plan, normalizeSchema, SubscriptionService, EntitlementService } = await import('@betterpay/billing');
-
-  const messages = feature({ id: 'messages', type: 'metered' });
-  const aiModels = feature({ id: 'ai-models', type: 'boolean' });
-
-  const free = plan({
-    id: 'free', group: 'base', default: true,
-    includes: [messages({ limit: 100, reset: 'month' })],
-  });
-
-  const pro = plan({
-    id: 'pro', group: 'base',
-    price: { amount: 199000, currency: 'IDR', interval: 'month' },
-    includes: [messages({ limit: 5000, reset: 'month' }), aiModels()],
-  });
-
-  const schema = normalizeSchema([free, pro]);
-  console.log(`   Plans: ${schema.plans.map(p => p.id).join(', ')}`);
-  console.log(`   Pro hash: ${schema.planMap.get('pro')!.hash}`);
-  console.log(`   Pro features: ${schema.planMap.get('pro')!.features.map(f => f.featureId).join(', ')}`);
-  console.log('   ✅ Billing DSL working!\n');
-
-  // 9. Show how to use in real app
-  console.log('─'.repeat(50));
-  console.log('\n📖 Real usage example:\n');
-  console.log('```ts');
-  console.log('import { betterPay } from "@betterpay/core";');
-  console.log('import { midtrans } from "@betterpay/midtrans";');
-  console.log('import { billing, feature, plan } from "@betterpay/billing";');
+  console.log('\u2500'.repeat(60));
+  console.log('\n📖 Quick Start:\n');
+  console.log('   npm install @betterpay/core @betterpay/midtrans @betterpay/billing');
+  console.log('   npx @betterpay/cli init');
+  console.log('   npx @betterpay/cli push');
   console.log('');
-  console.log('const messages = feature({ id: "messages", type: "metered" });');
-  console.log('const pro = plan({ id: "pro", group: "base",');
-  console.log('  price: { amount: 199000, currency: "IDR", interval: "month" },');
-  console.log('  includes: [messages({ limit: 5000, reset: "month" })],');
-  console.log('});');
-  console.log('');
-  console.log('const pay = betterPay({');
-  console.log('  plugins: [');
-  console.log('    midtrans({ serverKey: "...", isSandbox: true }),');
-  console.log('    billing({ products: [pro] }),');
-  console.log('  ],');
-  console.log('});');
-  console.log('```');
 }
 
 main().catch(console.error);

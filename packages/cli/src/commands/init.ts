@@ -73,11 +73,29 @@ function generateBillingConfig(_framework: Framework): string {
   return `import { betterPay } from "@betterpay/core";
 // import { midtrans } from "@betterpay/midtrans";
 // import { xendit } from "@betterpay/xendit";
+// import { duitku } from "@betterpay/duitku";
+// import { pakasir } from "@betterpay/pakasir";
+// import { billing, feature, plan } from "@betterpay/billing";
+
+// ── Define your plans ───────────────────────────────────────────────────
+// const messages = feature({ id: "messages", type: "metered" });
+//
+// const free = plan({
+//   id: "free", group: "base", default: true,
+//   includes: [messages({ limit: 100, reset: "month" })],
+// });
+//
+// const pro = plan({
+//   id: "pro", group: "base",
+//   price: { amount: 199000, currency: "IDR", interval: "month" },
+//   includes: [messages({ limit: 5000, reset: "month" })],
+// });
 
 export const pay = betterPay({
   // database: process.env.DATABASE_URL!,
 
   plugins: [
+    // ── Payment Providers (choose one or more) ──────────────────────────
     // midtrans({
     //   serverKey: process.env.MIDTRANS_SERVER_KEY!,
     //   isSandbox: process.env.NODE_ENV !== "production",
@@ -86,6 +104,17 @@ export const pay = betterPay({
     //   apiKey: process.env.XENDIT_API_KEY!,
     //   webhookSecret: process.env.XENDIT_WEBHOOK_SECRET!,
     // }),
+    // duitku({
+    //   apiKey: process.env.DUITKU_API_KEY!,
+    //   merchantCode: process.env.DUITKU_MERCHANT_CODE!,
+    // }),
+    // pakasir({
+    //   apiKey: process.env.PAKASIR_API_KEY!,
+    //   projectSlug: process.env.PAKASIR_PROJECT_SLUG!,
+    // }),
+
+    // ── Billing (optional — uncomment to enable subscriptions) ──────────
+    // billing({ products: [free, pro] }),
   ],
 });
 `;
@@ -191,5 +220,13 @@ MIDTRANS_CLIENT_KEY=
 # Xendit
 XENDIT_API_KEY=
 XENDIT_WEBHOOK_SECRET=
+
+# Duitku
+DUITKU_API_KEY=
+DUITKU_MERCHANT_CODE=
+
+# Pakasir
+PAKASIR_API_KEY=
+PAKASIR_PROJECT_SLUG=
 `;
 }
