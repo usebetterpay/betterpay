@@ -42,3 +42,16 @@ export type { CircuitState, CircuitBreakerOptions, CircuitBreakerStats } from '.
 export { withRetry } from './utils/retry';
 export type { RetryOptions } from './utils/retry';
 export { generateOrderId, validateOrderId, validateAmount } from './utils/id';
+
+// Billing bridge (structural types for billing plugin integration)
+export type {
+  BillingPluginData,
+  BillingFeatureInclude,
+  BillingPlanDef,
+  BillingNormalizedPlan,
+  BillingSubscriptionHandle,
+  BillingEntitlementHandle,
+  BillingCustomerHandle,
+  BillingInvoiceHandle,
+  BillingCycleHandle,
+} from './billing-bridge';
