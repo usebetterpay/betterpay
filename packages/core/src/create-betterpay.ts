@@ -8,6 +8,10 @@ import { TransactionService, type TransactionRepository } from './transaction/se
 import { WebhookHandler } from './webhook/handler';
 import { createPayRouter } from './router';
 import type { BillingPluginData } from './billing-bridge';
+import { createLogger, type Logger } from './logging/logger';
+import { createRateLimiter, type RateLimiter } from './security/rate-limiter';
+import { ReconciliationWorker } from './reconciliation/reconciliation-worker';
+import { BetterPayError } from './errors/betterpay-error';
 
 export interface BetterPayOptions {
   /** PostgreSQL connection string or database adapter (future). */
@@ -21,6 +25,22 @@ export interface BetterPayOptions {
 
   /** Optional: identify the current customer from a request. */
   identify?: (request: Request) => Promise<{ customerId: string; email: string } | null>;
+
+  /** Optional: custom logger instance. */
+  logger?: Logger;
+
+  /** Optional: rate limiter configuration. */
+  rateLimit?: {
+    enabled?: boolean;
+    windowMs?: number;
+    maxRequests?: number;
+  };
+
+  /** Optional: enable reconciliation worker. */
+  reconciliation?: {
+    enabled?: boolean;
+    intervalMs?: number;
+  };
 }
 
 export interface BetterPayInstance {
@@ -91,6 +111,15 @@ export interface BetterPayInstance {
 
   /** Registered plugins. */
   plugins: BetterPayPlugin[];
+
+  /** Logger instance. */
+  logger: Logger;
+
+  /** Rate limiter instance (if enabled). */
+  rateLimiter: RateLimiter | null;
+
+  /** Reconciliation worker instance (if enabled). */
+  reconciliationWorker: ReconciliationWorker | null;
 }
 
 /**
@@ -109,6 +138,13 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     }
   }
 
+  // ── Initialize Logger (early, so it can be used by other components) ────
+  const logger = options.logger ?? createLogger({ level: 'info' });
+  logger.debug('BetterPay instance initializing', { 
+    pluginCount: plugins.length,
+    providerCount: providerRegistry.list().length 
+  });
+
   // ── Transaction service ────────────────────────────────────────────────
   const repo = options.transactionRepository ?? createInMemoryRepository();
   const transactionService = new TransactionService(repo);
@@ -118,6 +154,7 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
   const webhookHandler = new WebhookHandler({
     providers: allProviders,
     transactionService,
+    logger,
   });
 
   // ── Detect billing plugin ──────────────────────────────────────────────
@@ -129,20 +166,124 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     }
   }
 
+  // ── Initialize Rate Limiter ────────────────────────────────────────────
+  let rateLimiter: RateLimiter | null = null;
+  if (options.rateLimit?.enabled !== false) {
+    rateLimiter = createRateLimiter({
+      windowMs: options.rateLimit?.windowMs ?? 60000,
+      max: options.rateLimit?.maxRequests ?? 100,
+    });
+    logger.debug('Rate limiter initialized', { 
+      windowMs: options.rateLimit?.windowMs ?? 60000,
+      max: options.rateLimit?.maxRequests ?? 100 
+    });
+  }
+
+  // ── Initialize Reconciliation Worker ───────────────────────────────────
+  let reconciliationWorker: ReconciliationWorker | null = null;
+  if (options.reconciliation?.enabled) {
+    reconciliationWorker = new ReconciliationWorker(
+      {
+        intervalMinutes: (options.reconciliation.intervalMs ?? 60000) / 60000,
+        batchSize: 100,
+        maxAgeHours: 24,
+        providerIds: providerRegistry.list().map(p => p.id),
+      },
+      new Map(),
+      async (_providerIds: string[], _maxAge: Date, _limit: number) => {
+        // TODO: Implement actual query to get pending transactions
+        return [];
+      },
+      async (_transactionId: string, _status: string, _metadata?: Record<string, any>) => {
+        // TODO: Implement actual update logic
+      },
+    );
+    logger.debug('Reconciliation worker initialized', { 
+      intervalMs: options.reconciliation.intervalMs ?? 60000 
+    });
+  }
+
   // ── Router ─────────────────────────────────────────────────────────────
   const router = createPayRouter({
     providerRegistry,
     transactionService,
     webhookHandler,
     billing: billingData,
+    logger,
+    rateLimiter,
   });
 
   // ── Handler function ───────────────────────────────────────────────────
   async function handler(request: Request): Promise<Response> {
+    const requestId = Math.random().toString(36).substring(7);
+    const startTime = Date.now();
+    
+    logger.debug('Request received', { 
+      requestId,
+      method: request.method,
+      url: request.url 
+    });
+
     try {
-      return await router.handler(request);
+      // Rate limiting check
+      if (rateLimiter) {
+        const clientIp = request.headers.get('x-forwarded-for') ?? 
+                        request.headers.get('x-real-ip') ?? 
+                        'unknown';
+        const result = rateLimiter.check(clientIp);
+        if (!result.allowed) {
+          logger.warn('Rate limit exceeded', { requestId, clientIp });
+          return new Response(JSON.stringify({ 
+            error: 'Rate limit exceeded',
+            retryAfter: result.retryAfterMs ?? 0 
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': Math.ceil((result.retryAfterMs ?? 0) / 1000).toString(),
+            },
+          });
+        }
+      }
+
+      const response = await router.handler(request);
+      
+      const duration = Date.now() - startTime;
+      logger.debug('Request completed', { 
+        requestId,
+        status: response.status,
+        duration 
+      });
+      
+      return response;
     } catch (error) {
-      return new Response(JSON.stringify({ error: (error as Error).message }), {
+      const duration = Date.now() - startTime;
+      
+      if (error instanceof BetterPayError) {
+        logger.error('BetterPayError', { 
+          requestId,
+          code: error.code,
+          message: error.message,
+          duration 
+        });
+        
+        return new Response(JSON.stringify(error.toJSON()), {
+          status: error.statusCode,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      
+      logger.error('Unhandled error', { 
+        requestId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        duration 
+      });
+      
+      return new Response(JSON.stringify({ 
+        error: 'Internal server error',
+        requestId 
+      }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -232,6 +373,9 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     handleWebhook,
     billing: billingAPI,
     plugins,
+    logger,
+    rateLimiter,
+    reconciliationWorker,
   };
 }
 
