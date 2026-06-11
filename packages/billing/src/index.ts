@@ -50,6 +50,31 @@ export type { BillingCycleResult, BillingCycleDeps } from './billing-cycle';
 export { TestClock, testClock } from './test-clock';
 export type { TestClockConfig } from './test-clock';
 
+// Dunning
+export {
+  DunningManager,
+  createDunningManager,
+} from './dunning/dunning-manager';
+export type {
+  DunningConfig,
+  DunningState,
+  DunningStage,
+  DunningEvent,
+} from './dunning/dunning-manager';
+
+// Cron
+export {
+  CronEndpoint,
+  createCronEndpoint,
+  createCronHandler,
+  generateCronTemplates,
+} from './cron/cron-endpoint';
+export type {
+  CronConfig,
+  CronRequest,
+  CronResponse,
+} from './cron/cron-endpoint';
+
 // ── Plugin factory ───────────────────────────────────────────────────────
 
 export interface BillingPluginOptions {
