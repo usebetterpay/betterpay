@@ -1,0 +1,163 @@
+---
+title: "Payment Providers"
+description: "Supported payment providers and integration guides"
+---
+
+BetterPay supports multiple Indonesian payment providers through a unified adapter interface. Each provider implements the `PaymentProvider` interface, ensuring consistent API across all payment methods.
+
+## Supported Providers
+
+### Currently Available
+
+<CardGroup cols={2}>
+  <Card title="Tripay" href="/docs/providers/tripay">
+    Virtual Account, E-Wallet, QRIS, and Retail payments with comprehensive API support
+  </Card>
+
+  <Card title="Midtrans" href="/docs/providers/midtrans">
+    Leading payment gateway with Snap API for seamless checkout experience
+  </Card>
+
+  <Card title="Xendit" href="/docs/providers/xendit">
+    Regional payment platform with extensive payment method coverage
+  </Card>
+</CardGroup>
+
+### Coming Soon
+
+<CardGroup cols={2}>
+  <Card title="DOKU">
+    Enterprise payment gateway with advanced features
+  </Card>
+
+  <Card title="Duitku">
+    Affordable payment solution for SMEs
+  </Card>
+
+  <Card title="NicePay">
+    Bank Indonesia SNAP compliant payment gateway
+  </Card>
+
+  <Card title="Espay">
+    Multi-payment method gateway
+  </Card>
+
+  <Card title="iPaymu">
+    Simple payment gateway for small businesses
+  </Card>
+
+  <Card title="Finpay">
+    Telkom Indonesia payment platform
+  </Card>
+
+  <Card title="Mayar">
+    Modern payment gateway with subscription support
+  </Card>
+</CardGroup>
+
+## Payment Methods
+
+### Virtual Account (VA)
+Direct bank transfer through virtual account numbers. Supported banks:
+- BCA, BNI, BRI, Mandiri
+- CIMB Niaga, Permata, Danamon
+- BSI, OCBC NISP, Maybank
+- And more...
+
+### E-Wallet
+Popular Indonesian e-wallets:
+- OVO
+- DANA
+- ShopeePay
+- LinkAja
+
+### QRIS
+Universal QR code payment standard:
+- All QRIS-enabled apps
+- Cross-bank compatibility
+- Instant confirmation
+
+### Retail
+Cash payment at retail outlets:
+- Alfamart
+- Indomaret
+- Alfamidi
+
+### Credit Card
+Visa, Mastercard, and JCB support (provider-dependent)
+
+## Provider Interface
+
+All providers implement the same interface:
+
+```typescript
+interface PaymentProvider {
+  readonly id: string;
+  readonly name: string;
+  readonly paymentMethods: PaymentMethod[];
+  readonly capabilities: ProviderCapabilities;
+
+  createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult>;
+  verifyWebhook(data: WebhookData): Promise<boolean>;
+  normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]>;
+  getApiEndpoint(): string;
+  
+  checkStatus?(providerTransactionId: string): Promise<StatusResult>;
+  cancelTransaction?(providerTransactionId: string): Promise<void>;
+  refund?(data: RefundInput): Promise<RefundResult>;
+}
+```
+
+## Multi-Provider Setup
+
+BetterPay supports multiple providers simultaneously:
+
+```typescript
+import { betterPay } from '@betterpay/core';
+import { TripayProvider } from '@betterpay/tripay';
+import { MidtransProvider } from '@betterpay/midtrans';
+
+const pay = betterPay({
+  providers: [
+    new TripayProvider({
+      apiKey: process.env.TRIPAY_API_KEY!,
+      privateKey: process.env.TRIPAY_PRIVATE_KEY!,
+      merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+    new MidtransProvider({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      clientKey: process.env.MIDTRANS_CLIENT_KEY!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+```
+
+## Choosing a Provider
+
+### For Small to Medium Business
+- **Tripay** - Affordable fees, easy integration, good documentation
+- **Duitku** - Low fees, suitable for SMEs
+
+### For Enterprise
+- **Midtrans** - Comprehensive features, enterprise support
+- **Xendit** - Regional coverage, advanced features
+- **DOKU** - Enterprise-grade, advanced fraud detection
+
+### For Specific Use Cases
+- **QRIS-only**: Any provider with QRIS support
+- **Subscription**: Mayar (coming soon)
+- **Multi-country**: Xendit (Indonesia, Philippines, Vietnam)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Integration Guide" href="/docs/providers/tripay">
+    Learn how to integrate Tripay step-by-step
+  </Card>
+
+  <Card title="API Reference" href="/docs/reference">
+    Complete API documentation for all providers
+  </Card>
+</CardGroup>
