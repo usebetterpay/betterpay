@@ -55,3 +55,73 @@ export type {
   BillingInvoiceHandle,
   BillingCycleHandle,
 } from './billing-bridge';
+
+// Security
+export {
+  validateTimestamp,
+  parseTimestampHeader,
+  createTimestampHeader,
+} from './webhook/replay-protection';
+export type { ReplayProtectionOptions, WebhookTimestamp } from './webhook/replay-protection';
+
+export { RateLimiter, createRateLimiter, rateLimitMiddleware } from './security/rate-limiter';
+export type { RateLimitConfig, RateLimitResult } from './security/rate-limiter';
+
+export {
+  CredentialEncryption,
+  createCredentialEncryption,
+  validateMasterKey,
+} from './security/credential-encryption';
+export type { EncryptedValue } from './security/credential-encryption';
+
+export { schemas, validateInput, validateInputStrict, validationMiddleware } from './security/input-validation';
+
+// Errors
+export {
+  BetterPayError,
+  ValidationError,
+  NotFoundError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  RateLimitError,
+  ProviderError,
+  WebhookError,
+  BillingError,
+  DunningError,
+  ReconciliationError,
+  EncryptionError,
+  MigrationError,
+  toBetterPayError,
+  isRetryableError,
+} from './errors/betterpay-error';
+export type { ErrorCode, BetterPayErrorOptions } from './errors/betterpay-error';
+
+// Reconciliation
+export {
+  ReconciliationWorker,
+  createReconciliationWorker,
+} from './reconciliation/reconciliation-worker';
+export type {
+  ReconciliationConfig,
+  ReconciliationResult,
+  ReconciliationRun,
+  TransactionRecord as ReconciliationTransactionRecord,
+  ProviderAdapter,
+} from './reconciliation/reconciliation-worker';
+
+// Logging
+export { Logger, createLogger, createLoggerMiddleware, createErrorLogger } from './logging/logger';
+export type { LogLevel, LogContext, LoggerConfig } from './logging/logger';
+
+// Database
+export {
+  MigrationRunner,
+  createMigrationRunner,
+  generateMigration,
+} from './database/migration-runner';
+export type {
+  MigrationConfig,
+  Migration,
+  MigrationResult,
+} from './database/migration-runner';
