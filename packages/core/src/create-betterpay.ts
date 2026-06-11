@@ -221,10 +221,32 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     logger.debug('Request received', { 
       requestId,
       method: request.method,
-      url: request.url 
+      url: request.url,
+      contentType: request.headers.get('content-type')
     });
 
     try {
+      // Request size limit (10MB default)
+      const contentLength = request.headers.get('content-length');
+      if (contentLength) {
+        const size = parseInt(contentLength, 10);
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (size > maxSize) {
+          logger.warn('Request too large', { 
+            requestId,
+            size,
+            maxSize 
+          });
+          return new Response(JSON.stringify({ 
+            error: 'Request too large',
+            maxSize: '10MB'
+          }), {
+            status: 413,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Rate limiting check
       if (rateLimiter) {
         const clientIp = request.headers.get('x-forwarded-for') ?? 
