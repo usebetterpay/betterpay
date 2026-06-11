@@ -1,0 +1,239 @@
+---
+title: Quick Start
+description: Setup BetterPay dalam 5 menit
+---
+
+Panduan ini akan membantu kamu setup BetterPay dalam 5 menit.
+
+## Prerequisites
+
+- Node.js 18+ 
+- pnpm (recommended) atau npm
+- Akun payment provider (Midtrans/Xendit/Duitku/Pakasir)
+
+## 1. Install Packages
+
+```bash
+pnpm add @betterpay/core @betterpay/midtrans
+```
+
+Atau untuk provider lain:
+
+```bash
+# Xendit
+pnpm add @betterpay/core @betterpay/xendit
+
+# Duitku
+pnpm add @betterpay/core @betterpay/duitku
+
+# Pakasir
+pnpm add @betterpay/core @betterpay/pakasir
+
+# Multiple providers
+pnpm add @betterpay/core @betterpay/midtrans @betterpay/xendit
+```
+
+## 2. Setup Environment Variables
+
+```bash
+# .env
+MIDTRANS_SERVER_KEY=your_server_key_here
+MIDTRANS_CLIENT_KEY=your_client_key_here
+```
+
+<Callout type="info">
+  Dapatkan API keys dari dashboard Midtrans: [https://dashboard.midtrans.com](https://dashboard.midtrans.com)
+</Callout>
+
+## 3. Initialize BetterPay
+
+Buat file `lib/betterpay.ts`:
+
+```typescript
+// lib/betterpay.ts
+import { betterPay } from '@betterpay/core';
+import { midtrans } from '@betterpay/midtrans';
+
+export const pay = betterPay({
+  plugins: [
+    midtrans({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      clientKey: process.env.MIDTRANS_CLIENT_KEY,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+  ],
+});
+```
+
+## 4. Create API Route
+
+### Next.js App Router
+
+```typescript
+// app/api/pay/route.ts
+import { pay } from '@/lib/betterpay';
+import { NextRequest } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const { amount, customerEmail } = await req.json();
+
+  const payment = await pay.createPayment({
+    amount,
+    currency: 'IDR',
+    customerEmail,
+    orderId: `order_${Date.now()}`,
+  });
+
+  return Response.json(payment);
+}
+```
+
+### Hono
+
+```typescript
+// src/routes/pay.ts
+import { Hono } from 'hono';
+import { pay } from '../lib/betterpay';
+
+const app = new Hono();
+
+app.post('/api/pay', async (c) => {
+  const { amount, customerEmail } = await c.req.json();
+
+  const payment = await pay.createPayment({
+    amount,
+    currency: 'IDR',
+    customerEmail,
+    orderId: `order_${Date.now()}`,
+  });
+
+  return c.json(payment);
+});
+
+export default app;
+```
+
+### Express
+
+```typescript
+// src/routes/pay.ts
+import express from 'express';
+import { pay } from '../lib/betterpay';
+
+const router = express.Router();
+
+router.post('/api/pay', async (req, res) => {
+  const { amount, customerEmail } = req.body;
+
+  const payment = await pay.createPayment({
+    amount,
+    currency: 'IDR',
+    customerEmail,
+    orderId: `order_${Date.now()}`,
+  });
+
+  res.json(payment);
+});
+
+export default router;
+```
+
+## 5. Setup Webhook
+
+Payment provider akan mengirim webhook saat pembayaran berhasil/gagal.
+
+```typescript
+// app/api/webhook/midtrans/route.ts
+import { pay } from '@/lib/betterpay';
+import { NextRequest } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const headers = Object.fromEntries(req.headers);
+
+  const result = await pay.handleWebhook('midtrans', { body, headers });
+
+  if (result.success) {
+    console.log('Payment successful:', result.eventName);
+    // Update database, kirim email, dll
+  }
+
+  return Response.json({ received: true });
+}
+```
+
+<Callout type="warning">
+  Pastikan webhook URL kamu accessible dari internet (tidak localhost). Gunakan ngrok atau deploy ke production untuk testing.
+</Callout>
+
+## 6. Test It!
+
+Buat payment pertamamu:
+
+```bash
+curl -X POST http://localhost:3000/api/pay \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 10000,
+    "customerEmail": "test@example.com"
+  }'
+```
+
+Response:
+
+```json
+{
+  "orderId": "order_1234567890",
+  "paymentUrl": "https://app.midtrans.com/snap/v2/...",
+  "providerTransactionId": "midtrans_txn_123",
+  "status": "active"
+}
+```
+
+Buka `paymentUrl` di browser untuk menyelesaikan pembayaran.
+
+## What's Next?
+
+<Cards>
+  <Card title="🔒 Security" href="/docs/core/security">
+    Tambahkan authentication dan authorization
+  </Card>
+  <Card title="💳 Billing" href="/docs/billing/overview">
+    Setup subscription billing
+  </Card>
+  <Card title="🏦 More Providers" href="/docs/providers/overview">
+    Tambahkan provider lain
+  </Card>
+  <Card title="🚀 Production" href="/docs/getting-started/going-live">
+    Checklist sebelum go-live
+  </Card>
+</Cards>
+
+## Troubleshooting
+
+### Error: MIDTRANS_SERVER_KEY is not defined
+
+Pastikan file `.env` ada di root project dan sudah di-load:
+
+```typescript
+// next.config.js
+require('dotenv').config();
+```
+
+### Webhook tidak dipanggil
+
+1. Pastikan webhook URL accessible dari internet
+2. Set webhook URL di dashboard Midtrans
+3. Check logs untuk error signature verification
+
+### Payment tidak muncul di dashboard
+
+1. Pastikan menggunakan sandbox mode untuk testing
+2. Check `isSandbox: true` di config
+3. Verifikasi API keys dari sandbox dashboard
+
+## Need Help?
+
+- 📚 [API Reference](/docs/reference/api-endpoints)
+- 💬 [GitHub Discussions](https://github.com/yourusername/betterpay/discussions)
+- 🐛 [Report Bug](https://github.com/yourusername/betterpay/issues)

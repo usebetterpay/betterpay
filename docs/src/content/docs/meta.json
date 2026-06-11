@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "---Getting Started---",
+    "introduction",
+    "quickstart",
+    "...getting-started",
+    
+    "---Core---",
+    "...core",
+    
+    "---Billing---",
+    "...billing",
+    
+    "---Providers---",
+    "...providers",
+    
+    "---Plugins---",
+    "...plugins",
+    
+    "---Adapters---",
+    "...adapters",
+    
+    "---Integrations---",
+    "...integrations",
+    
+    "---Guides---",
+    "...guides",
+    
+    "---Reference---",
+    "...reference",
+    
+    "---Concepts---",
+    "...concepts",
+    
+    "---Resources---",
+    "...resources"
+  ]
+}

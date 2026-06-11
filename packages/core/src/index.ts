@@ -42,6 +42,12 @@ export type { CircuitState, CircuitBreakerOptions, CircuitBreakerStats } from '.
 export { withRetry } from './utils/retry';
 export type { RetryOptions } from './utils/retry';
 export { generateOrderId, validateOrderId, validateAmount } from './utils/id';
+export {
+  detectEndpointConflicts,
+  validateEndpointPatterns,
+  generateEndpointDocs,
+} from './utils/endpoint-conflict';
+export type { EndpointDefinition, EndpointConflict } from './utils/endpoint-conflict';
 
 // Billing bridge (structural types for billing plugin integration)
 export type {
