@@ -12,6 +12,8 @@ import { createLogger, type Logger } from './logging/logger';
 import { createRateLimiter, type RateLimiter } from './security/rate-limiter';
 import { ReconciliationWorker } from './reconciliation/reconciliation-worker';
 import { BetterPayError } from './errors/betterpay-error';
+import type { SecurityMiddleware, SecurityContext } from './security/middleware';
+import { executeMiddlewareChain } from './security/middleware';
 
 export interface BetterPayOptions {
   /** PostgreSQL connection string or database adapter (future). */
@@ -40,6 +42,16 @@ export interface BetterPayOptions {
   reconciliation?: {
     enabled?: boolean;
     intervalMs?: number;
+  };
+
+  /** Optional: security middleware hooks for authentication, CSRF, and authorization. */
+  middleware?: {
+    /** Middlewares executed before request handling (e.g., auth, CSRF validation). */
+    before?: SecurityMiddleware[];
+    /** Middlewares executed after request handling (e.g., audit logging). */
+    after?: SecurityMiddleware[];
+    /** Error handler for unhandled errors in request processing. */
+    onError?: (error: Error, ctx: SecurityContext) => Response | void | Promise<Response | void>;
   };
 }
 
@@ -225,6 +237,15 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
       contentType: request.headers.get('content-type')
     });
 
+    // Create security context for middleware
+    const securityCtx: SecurityContext = {
+      request,
+      metadata: {
+        requestId,
+        startTime,
+      },
+    };
+
     try {
       // Request size limit (10MB default)
       const contentLength = request.headers.get('content-length');
@@ -268,7 +289,31 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
         }
       }
 
+      // Execute before middlewares (auth, CSRF, etc.)
+      if (options.middleware?.before && options.middleware.before.length > 0) {
+        const middlewareResponse = await executeMiddlewareChain(
+          options.middleware.before,
+          securityCtx
+        );
+        if (middlewareResponse) {
+          logger.debug('Request blocked by middleware', { requestId });
+          return middlewareResponse;
+        }
+      }
+
       const response = await router.handler(request);
+      
+      // Execute after middlewares (audit logging, etc.)
+      if (options.middleware?.after && options.middleware.after.length > 0) {
+        const middlewareResponse = await executeMiddlewareChain(
+          options.middleware.after,
+          securityCtx
+        );
+        if (middlewareResponse) {
+          logger.debug('After middleware returned response', { requestId });
+          return middlewareResponse;
+        }
+      }
       
       const duration = Date.now() - startTime;
       logger.debug('Request completed', { 
@@ -301,6 +346,24 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
         stack: error instanceof Error ? error.stack : undefined,
         duration 
       });
+      
+      // Call custom error handler if provided
+      if (options.middleware?.onError) {
+        try {
+          const customResponse = await options.middleware.onError(
+            error instanceof Error ? error : new Error(String(error)),
+            securityCtx
+          );
+          if (customResponse instanceof Response) {
+            return customResponse;
+          }
+        } catch (handlerError) {
+          logger.error('Error handler failed', {
+            requestId,
+            error: handlerError instanceof Error ? handlerError.message : String(handlerError),
+          });
+        }
+      }
       
       return new Response(JSON.stringify({ 
         error: 'Internal server error',
