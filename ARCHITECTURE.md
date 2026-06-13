@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 5 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay).
+> **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 6 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay).
 >
 > **Status:** All 15 architectural decisions locked via grilling session (see `docs/DESIGN_DECISIONS.md`).
 
@@ -22,7 +22,7 @@
 
 BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, payment reconciliation, dan webhook processing — tanpa user perlu tahu detail API masing-masing provider.
 
-**Foundation:** Bukan greenfield. BetterPay dibangun di atas `@repo/payment-gateway` (wabase) yang sudah production-grade dengan 5 provider terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
+**Foundation:** Bukan greenfield. BetterPay dibangun di atas `@repo/payment-gateway` (wabase) yang sudah production-grade dengan 6 provider terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
 
 **15 Key Decisions (all locked):**
 1. **Framework** (not standalone service) — embed di app user
@@ -251,7 +251,7 @@ betterpay/
 
 ## Payment Provider Layer (from wabase, production-proven)
 
-Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 5 Indonesian payment gateway.
+Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 6 Indonesian payment gateway.
 
 ### Provider Interface
 
@@ -282,6 +282,7 @@ interface PaymentProvider {
 | **Duitku** | `DuitkuAdapter` | `POST /webapi/merchant/v2/inquiry` | Body signature (MD5) | SHA256(merchantCode + amount + orderId + apiKey) |
 | **Pakasir** | `PakasirAdapter` | `POST /api/transaction` | API key in body | Project slug match |
 | **Tripay** | `TripayProvider` | `POST /transaction/create` | `Bearer apiKey` | HMAC-SHA256(merchantCode + merchantRef + amount, privateKey) |
+| **Mayar** | `MayarProvider` | `POST /payment/create` | `Bearer apiKey` | Trust-based (merchantId verification, no HMAC) |
 
 ### Per-Provider Status Mapping
 
@@ -291,6 +292,7 @@ Xendit:    COMPLETED/SUCCEEDED → completed, PENDING/ACTIVE → active, FAILED 
 Duitku:    00 → completed, 01 → failed, 02 → canceled
 Pakasir:   completed/success → completed, pending/processing → active, failed → failed, expired → expired, canceled → canceled
 Tripay:    PAID → completed, UNPAID → pending, EXPIRED → expired, FAILED → failed, REFUND → canceled
+Mayar:     paid/success → completed, unpaid → pending, expired → expired, closed → canceled, failed → failed
 ```
 
 ### Reliability Primitives (all implemented)
@@ -379,6 +381,10 @@ verifyPakasirSignature(payload, signature, projectSlug): boolean
 // Tripay: HMAC-SHA256(merchantCode + merchantRef + amount, privateKey)
 // - Signature IN header (x-callback-signature)
 verifyTripayCallbackSignature(payload, signature, privateKey): boolean
+
+// Mayar: Trust-based verification (merchantId match, no HMAC signature)
+// - No signature header
+verifyMayarWebhook(payload, expectedMerchantId): boolean
 ```
 
 ### Error Taxonomy
@@ -1183,8 +1189,8 @@ const ISO_4217_DECIMALS = {
 │                                                              │
 │  Architecture:  Better Auth (plugin-first, hooks, adapters) │
 │  Domain:        PayKit (plans, subscriptions, entitlements)  │
-│  Providers:     Midtrans + Xendit + Duitku + Pakasir + Tripay│
-│                 (5 provider adapters, all with tests)        │
+│  Providers:     Midtrans + Xendit + Duitku + Pakasir +      │
+│                 Tripay + Mayar (6 adapters, all with tests)  │
 │  Reliability:   Circuit breaker, retry, replay protection,  │
 │                 reconciliation, idempotency, state machine   │
 │  Framework:     Agnostic (Next/Hono/Express/Fastify/Bun/CF) │
@@ -1214,6 +1220,7 @@ const ISO_4217_DECIMALS = {
 │    ❌ Duitku MD5 signature format                            │
 │    ❌ Pakasir project slug verification                      │
 │    ❌ Tripay HMAC-SHA256 signature scheme                    │
+│    ❌ Mayar headless commerce API + trust-based webhooks     │
 │    ❌ How webhooks differ between providers                  │
 │    ❌ How to normalize different payment formats             │
 │    ❌ Circuit breaker / retry / timeout logic                │
@@ -1224,7 +1231,7 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Architecture v5.1 — Credential management added, docs synced with implementation*
+*Architecture v5.2 — Mayar provider added (6 adapters), credential management*
 *Patterns from: Better Auth (architecture) × PayKit (domain) × wabase (payment infra)*
 *Last updated: 2026-06-13*
 *See: docs/DESIGN_DECISIONS.md for full decision log with evidence*
