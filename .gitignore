@@ -6,3 +6,8 @@ dist/
 .env.local
 coverage/
 sample/
+
+# Docs (Fumadocs / Next.js)
+docs/.next/
+docs/.source/
+docs/next-env.d.ts
