@@ -420,9 +420,11 @@ payment_event                   -- Append-only audit log
 payment_webhook_event           -- Webhook dedup + signature audit
 payment_idempotency_key         -- Prevents duplicate creation (24h TTL)
 
+-- Credential storage (AES-256-GCM encrypted)
+payment_gateway_config          -- Encrypted credentials per provider
+
 -- Planned (v2):
 -- payment_reconciliation_job    -- Scheduled provider polls
--- payment_gateway_config        -- Encrypted credentials per provider
 ```
 
 ---
@@ -998,6 +1000,88 @@ export const pay = betterPay({
 
 ---
 
+## Credential Management
+
+Provider API keys and secrets are stored encrypted in PostgreSQL using AES-256-GCM. Two modes:
+
+### Mode 1: Environment Variables (simple, current)
+
+```typescript
+// Direct pass-through — no DB storage needed
+const pay = betterPay({
+  plugins: [
+    midtrans({ serverKey: process.env.MIDTRANS_SERVER_KEY! }),
+    xendit({ apiKey: process.env.XENDIT_API_KEY! }),
+  ],
+});
+```
+
+### Mode 2: Encrypted DB Store (dashboard-ready)
+
+```typescript
+// Store credentials encrypted in PostgreSQL
+const pay = betterPay({
+  database: process.env.DATABASE_URL!,
+  masterKey: process.env.BETTERPAY_MASTER_KEY!, // min 32 chars
+  credentialRepository: repos.credential, // from @betterpay/drizzle-adapter
+  plugins: [midtrans({ serverKey: '...' })], // or load from store
+});
+
+// Runtime: read/write credentials
+await pay.credentialStore.set('midtrans', { serverKey: 'SB-Mid-xxx' });
+const creds = await pay.credentialStore.get('midtrans'); // { serverKey: 'SB-Mid-xxx' }
+const providers = await pay.credentialStore.list();      // ['midtrans', 'xendit']
+await pay.credentialStore.delete('midtrans');
+```
+
+### CLI: `betterpay credentials`
+
+```bash
+# Set credentials (encrypted with BETTERPAY_MASTER_KEY)
+betterpay credentials set midtrans --server-key=SB-Mid-server-xxx
+betterpay credentials set xendit --api-key=xnd_dev_xxx --webhook-secret=whsec_xxx
+
+# List (masked)
+betterpay credentials list
+
+# Get (decrypted)
+betterpay credentials get midtrans
+
+# Delete
+betterpay credentials delete midtrans
+```
+
+### How Encryption Works
+
+```
+BETTERPAY_MASTER_KEY (env var, min 32 chars)
+        │
+        ▼ SHA-256
+   32-byte AES key
+        │
+        ▼ AES-256-GCM
+   { iv, tag, ciphertext }  →  stored in payment_gateway_config.credentials (JSONB)
+```
+
+- Each credential field is encrypted independently with a random 16-byte IV
+- Authentication tag ensures tamper detection
+- Master key never touches the database
+
+### Architecture
+
+```
+CredentialStore (interface)
+├── DefaultCredentialStore  — wraps CredentialEncryption + CredentialRepository
+├── NullCredentialStore     — no-op when no masterKey (credentials from env only)
+└── InMemoryCredentialRepository — for testing
+
+CredentialRepository (interface)
+├── DrizzleCredentialRepository — PostgreSQL via @betterpay/drizzle-adapter
+└── InMemoryCredentialRepository — Map-based, for tests
+```
+
+---
+
 ## Client SDK
 
 ```typescript
@@ -1066,7 +1150,6 @@ payment_idempotency_key         -- Prevents duplicate creation
 
 -- ═══ Planned (v2) ═══
 -- payment_reconciliation_job   -- Scheduled provider polls
--- payment_gateway_config       -- Encrypted credentials per provider
 -- betterpay_product_provider   -- Plan ↔ Provider product mapping
 -- betterpay_notification_log   -- (@betterpay/notification-*)
 ```
@@ -1121,8 +1204,9 @@ const ISO_4217_DECIMALS = {
 │    ✅ Circuit breaker per provider                           │
 │    ✅ Replay attack protection                               │
 │    ✅ Idempotency (no duplicate payments)                    │
-│    ✅ Encrypted credential storage                           │
+│    ✅ Encrypted credential store (AES-256-GCM + CLI)       │
 │    ✅ Append-only audit log                                  │
+│    ✅ ISO 4217 currency utilities                            │
 │                                                              │
 │  Without knowing:                                           │
 │    ❌ Midtrans Snap vs Core API                              │
@@ -1140,7 +1224,7 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Architecture v5.0 — All 15 design decisions locked, docs synced with implementation*
+*Architecture v5.1 — Credential management added, docs synced with implementation*
 *Patterns from: Better Auth (architecture) × PayKit (domain) × wabase (payment infra)*
 *Last updated: 2026-06-13*
 *See: docs/DESIGN_DECISIONS.md for full decision log with evidence*
