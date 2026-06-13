@@ -68,11 +68,11 @@ TRIPAY_MERCHANT_CODE=T0001
 
 ```typescript
 import { betterPay } from '@betterpay/core';
-import { TripayProvider } from '@betterpay/tripay';
+import { tripay } from '@betterpay/tripay';
 
 const pay = betterPay({
-  providers: [
-    new TripayProvider({
+  plugins: [
+    tripay({
       apiKey: process.env.TRIPAY_API_KEY!,
       privateKey: process.env.TRIPAY_PRIVATE_KEY!,
       merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
@@ -86,7 +86,7 @@ const pay = betterPay({
 
 ```typescript
 // Create a payment link
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'tripay',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -137,7 +137,7 @@ Available VA banks:
 **Example:**
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'tripay',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -162,7 +162,7 @@ Available e-wallets:
 **Example:**
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'tripay',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -187,7 +187,7 @@ QRIS codes:
 **Example:**
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'tripay',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -215,7 +215,7 @@ Available retail outlets:
 **Example:**
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'tripay',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -423,7 +423,7 @@ console.log('Paid At:', status.paidAt);
 Use sandbox environment for testing:
 
 ```typescript
-const provider = new TripayProvider({
+const provider = tripay({
   apiKey: process.env.TRIPAY_API_KEY!,
   privateKey: process.env.TRIPAY_PRIVATE_KEY!,
   merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
@@ -474,7 +474,7 @@ TRIPAY_MERCHANT_CODE=production_merchant_code
 Set `isSandbox: false`:
 
 ```typescript
-const provider = new TripayProvider({
+const provider = tripay({
   apiKey: process.env.TRIPAY_API_KEY!,
   privateKey: process.env.TRIPAY_PRIVATE_KEY!,
   merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
@@ -499,7 +499,7 @@ If your server has IP whitelist, add Tripay IP:
 **Invalid API Key**
 ```typescript
 try {
-  const payment = await pay.createPayment({ /* ... */ });
+  const payment = await pay.createTransaction({ /* ... */ });
 } catch (error) {
   if (error.message.includes('Invalid API Key')) {
     console.error('Check your API credentials');
@@ -519,7 +519,7 @@ if (!isValid) {
 **Payment Method Not Available**
 ```typescript
 try {
-  const payment = await pay.createPayment({
+  const payment = await pay.createTransaction({
     paymentMethod: 'INVALID_METHOD',
     // ...
   });
@@ -570,7 +570,7 @@ await db.webhooks.create({
 Set reasonable expiry time:
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   // ...
   expiryMinutes: 60, // 1 hour
 });

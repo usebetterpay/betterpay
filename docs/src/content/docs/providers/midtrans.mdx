@@ -67,11 +67,11 @@ MIDTRANS_CLIENT_KEY=your_client_key_here
 
 ```typescript
 import { betterPay } from '@betterpay/core';
-import { MidtransProvider } from '@betterpay/midtrans';
+import { midtrans } from '@betterpay/midtrans';
 
 const pay = betterPay({
-  providers: [
-    new MidtransProvider({
+  plugins: [
+    midtrans({
       serverKey: process.env.MIDTRANS_SERVER_KEY!,
       clientKey: process.env.MIDTRANS_CLIENT_KEY!,
       isSandbox: process.env.NODE_ENV !== 'production',
@@ -84,7 +84,7 @@ const pay = betterPay({
 
 ```typescript
 // Create a payment link
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'midtrans',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -118,7 +118,7 @@ console.log('Payment URL:', payment.paymentUrl);
 Snap API provides a hosted checkout page with all payment methods:
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'midtrans',
   orderId: 'ORDER-123',
   amount: 150000,
@@ -329,7 +329,7 @@ console.log('Paid At:', status.paidAt);
 Use sandbox environment for testing:
 
 ```typescript
-const provider = new MidtransProvider({
+const provider = midtrans({
   serverKey: process.env.MIDTRANS_SERVER_KEY!,
   clientKey: process.env.MIDTRANS_CLIENT_KEY!,
   isSandbox: true, // Enable sandbox
@@ -378,7 +378,7 @@ MIDTRANS_CLIENT_KEY=production_client_key
 Set `isSandbox: false`:
 
 ```typescript
-const provider = new MidtransProvider({
+const provider = midtrans({
   serverKey: process.env.MIDTRANS_SERVER_KEY!,
   clientKey: process.env.MIDTRANS_CLIENT_KEY!,
   isSandbox: false, // Production mode
@@ -396,7 +396,7 @@ Update webhook URL in Midtrans dashboard to production URL.
 **Invalid Server Key**
 ```typescript
 try {
-  const payment = await pay.createPayment({ /* ... */ });
+  const payment = await pay.createTransaction({ /* ... */ });
 } catch (error) {
   if (error.message.includes('401')) {
     console.error('Check your server key');
@@ -444,7 +444,7 @@ if (existing) {
 If you want to use your own UI:
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   provider: 'midtrans',
   orderId: 'ORDER-123',
   amount: 150000,
