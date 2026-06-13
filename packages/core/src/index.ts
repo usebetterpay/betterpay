@@ -87,6 +87,17 @@ export {
 } from './security/credential-encryption';
 export type { EncryptedValue } from './security/credential-encryption';
 
+export {
+  DefaultCredentialStore,
+  InMemoryCredentialRepository,
+  NullCredentialStore,
+} from './security/credential-store';
+export type {
+  CredentialStore,
+  CredentialRecord,
+  CredentialRepository,
+} from './security/credential-store';
+
 export { schemas, validateInput, validateInputStrict, validationMiddleware } from './security/input-validation';
 
 export {
