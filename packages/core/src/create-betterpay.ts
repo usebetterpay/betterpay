@@ -14,6 +14,12 @@ import { ReconciliationWorker } from './reconciliation/reconciliation-worker';
 import { BetterPayError } from './errors/betterpay-error';
 import type { SecurityMiddleware, SecurityContext } from './security/middleware';
 import { executeMiddlewareChain } from './security/middleware';
+import {
+  DefaultCredentialStore,
+  NullCredentialStore,
+  type CredentialStore,
+  type CredentialRepository,
+} from './security/credential-store';
 
 export interface BetterPayOptions {
   /** PostgreSQL connection string or database adapter (future). */
@@ -43,6 +49,17 @@ export interface BetterPayOptions {
     enabled?: boolean;
     intervalMs?: number;
   };
+
+  /**
+   * Master encryption key for credential storage.
+   * Required if using DB-backed credential store.
+   * Must be at least 32 characters.
+   * Set via env var: BETTERPAY_MASTER_KEY
+   */
+  masterKey?: string;
+
+  /** Optional: credential repository (DB-backed). If provided with masterKey, enables credential store. */
+  credentialRepository?: CredentialRepository;
 
   /** Optional: security middleware hooks for authentication, CSRF, and authorization. */
   middleware?: {
@@ -132,6 +149,9 @@ export interface BetterPayInstance {
 
   /** Reconciliation worker instance (if enabled). */
   reconciliationWorker: ReconciliationWorker | null;
+
+  /** Credential store for encrypted provider secrets. */
+  credentialStore: CredentialStore;
 }
 
 /**
@@ -155,6 +175,16 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
   logger.debug('BetterPay instance initializing', { 
     pluginCount: plugins.length,
     providerCount: providerRegistry.list().length 
+  });
+
+  // ── Credential store ──────────────────────────────────────────────────
+  const credentialStore: CredentialStore =
+    options.masterKey && options.credentialRepository
+      ? new DefaultCredentialStore(options.credentialRepository, options.masterKey)
+      : new NullCredentialStore();
+
+  logger.debug('Credential store', {
+    enabled: !(credentialStore instanceof NullCredentialStore),
   });
 
   // ── Transaction service ────────────────────────────────────────────────
@@ -461,6 +491,7 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     logger,
     rateLimiter,
     reconciliationWorker,
+    credentialStore,
   };
 }
 
