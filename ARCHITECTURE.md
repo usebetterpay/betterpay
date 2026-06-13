@@ -2,19 +2,7 @@
 
 > **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 6 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay, Mayar).
 >
-> **Status:** All 15 architectural decisions locked via grilling session (see `docs/DESIGN_DECISIONS.md`).
-
----
-
-## Documentation Index
-
-| Document | Description |
-|----------|-------------|
-| **ARCHITECTURE.md** (this file) | Complete architecture — three pillars, all layers, implementation details |
-| **[docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md)** | 15 decisions with evidence, options considered, rationale |
-| **[docs/paykit-feature-mapping.md](docs/paykit-feature-mapping.md)** | 182 PayKit features mapped to BetterPay |
-| **[docs/provider-research-2026.md](docs/provider-research-2026.md)** | Provider pricing, APIs, BI regulations, QRIS data |
-| **[COMPARISON.md](COMPARISON.md)** | Better Auth vs BetterPay architecture comparison |
+> **Status:** Production-ready. 18 packages, 6 provider adapters, 443 tests passing.
 
 ---
 
@@ -1001,8 +989,6 @@ export const pay = betterPay({
 
 ### Learn More
 
-- [Security Middleware Examples](docs/SECURITY_MIDDLEWARE.md)
-- [Security Architecture](#security-architecture)
 - [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
 
 ---
@@ -1232,7 +1218,4 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Architecture v5.2 — Mayar provider added (6 adapters), credential management*
-*Patterns from: Better Auth (architecture) × PayKit (domain) × wabase (payment infra)*
 *Last updated: 2026-06-13*
-*See: docs/DESIGN_DECISIONS.md for full decision log with evidence*
