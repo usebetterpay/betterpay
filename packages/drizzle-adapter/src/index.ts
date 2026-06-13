@@ -41,6 +41,8 @@ import { createDrizzleSubscriptionRepo } from './repos/subscription';
 import { createDrizzleEntitlementRepo } from './repos/entitlement';
 import { createDrizzleCustomerRepo } from './repos/customer';
 import { createDrizzleInvoiceRepo } from './repos/invoice';
+import { DrizzleCredentialRepository } from './repos/credential';
+export { DrizzleCredentialRepository } from './repos/credential';
 
 type DrizzleDB = any;
 
@@ -55,5 +57,6 @@ export function createDrizzleRepositories(db: DrizzleDB) {
     entitlement: createDrizzleEntitlementRepo(db),
     customer: createDrizzleCustomerRepo(db),
     invoice: createDrizzleInvoiceRepo(db),
+    credential: new DrizzleCredentialRepository(db),
   };
 }

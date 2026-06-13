@@ -165,3 +165,15 @@ export const paymentIdempotencyKey = pgTable('payment_idempotency_key', {
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ── Credential storage (encrypted AES-256-GCM) ────────────────────────────
+
+export const paymentGatewayConfig = pgTable('payment_gateway_config', {
+  id: text('id').primaryKey(),
+  providerId: text('provider_id').notNull(),
+  credentials: jsonb('credentials').notNull().$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('payment_gateway_config_provider_idx').on(table.providerId),
+]);
