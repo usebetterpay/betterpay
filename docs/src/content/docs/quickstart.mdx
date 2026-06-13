@@ -9,7 +9,7 @@ Panduan ini akan membantu kamu setup BetterPay dalam 5 menit.
 
 - Node.js 18+ 
 - pnpm (recommended) atau npm
-- Akun payment provider (Midtrans/Xendit/Duitku/Pakasir)
+- Akun payment provider (Midtrans/Xendit/Duitku/Pakasir/Tripay)
 
 ## 1. Install Packages
 
@@ -28,6 +28,9 @@ pnpm add @betterpay/core @betterpay/duitku
 
 # Pakasir
 pnpm add @betterpay/core @betterpay/pakasir
+
+# Tripay
+pnpm add @betterpay/core @betterpay/tripay
 
 # Multiple providers
 pnpm add @betterpay/core @betterpay/midtrans @betterpay/xendit
@@ -58,7 +61,6 @@ export const pay = betterPay({
   plugins: [
     midtrans({
       serverKey: process.env.MIDTRANS_SERVER_KEY!,
-      clientKey: process.env.MIDTRANS_CLIENT_KEY,
       isSandbox: process.env.NODE_ENV !== 'production',
     }),
   ],
@@ -77,11 +79,11 @@ import { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   const { amount, customerEmail } = await req.json();
 
-  const payment = await pay.createPayment({
+  const payment = await pay.createTransaction({
+    orderId: `order_${Date.now()}`,
     amount,
     currency: 'IDR',
     customerEmail,
-    orderId: `order_${Date.now()}`,
   });
 
   return Response.json(payment);
@@ -100,11 +102,11 @@ const app = new Hono();
 app.post('/api/pay', async (c) => {
   const { amount, customerEmail } = await c.req.json();
 
-  const payment = await pay.createPayment({
+  const payment = await pay.createTransaction({
+    orderId: `order_${Date.now()}`,
     amount,
     currency: 'IDR',
     customerEmail,
-    orderId: `order_${Date.now()}`,
   });
 
   return c.json(payment);
@@ -125,11 +127,11 @@ const router = express.Router();
 router.post('/api/pay', async (req, res) => {
   const { amount, customerEmail } = req.body;
 
-  const payment = await pay.createPayment({
+  const payment = await pay.createTransaction({
+    orderId: `order_${Date.now()}`,
     amount,
     currency: 'IDR',
     customerEmail,
-    orderId: `order_${Date.now()}`,
   });
 
   res.json(payment);
@@ -151,10 +153,13 @@ export async function POST(req: NextRequest) {
   const body = await req.text();
   const headers = Object.fromEntries(req.headers);
 
-  const result = await pay.handleWebhook('midtrans', { body, headers });
+  const result = await pay.handleWebhook('midtrans', {
+    body,
+    headers: headers as Record<string, string>,
+  });
 
   if (result.success) {
-    console.log('Payment successful:', result.eventName);
+    console.log('Payment successful:', result.transactionId);
     // Update database, kirim email, dll
   }
 

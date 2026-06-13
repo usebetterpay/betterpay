@@ -8,7 +8,7 @@ BetterPay menyediakan API sederhana untuk one-time payments dengan multiple prov
 ## Basic Usage
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -39,7 +39,7 @@ interface Payment {
 ### Virtual Account
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -52,7 +52,7 @@ console.log(payment.vaNumber); // "880812345678"
 ### QRIS
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 50000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -65,7 +65,7 @@ console.log(payment.qrString); // QR code data
 ### E-Wallet
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 75000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -111,7 +111,7 @@ if (result.success) {
 
 ```typescript
 try {
-  const payment = await pay.createPayment({
+  const payment = await pay.createTransaction({
     amount: 100000,
     currency: 'IDR',
     customerEmail: 'user@example.com',
@@ -129,7 +129,7 @@ try {
 ### Midtrans
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -144,7 +144,7 @@ const payment = await pay.createPayment({
 ### Xendit
 
 ```typescript
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   customerEmail: 'user@example.com',
@@ -162,13 +162,13 @@ BetterPay mendukung multiple currencies dengan ISO 4217 standard:
 
 ```typescript
 // IDR (Indonesian Rupiah) - 0 decimals
-await pay.createPayment({
+await pay.createTransaction({
   amount: 100000, // Rp 100,000
   currency: 'IDR',
 });
 
 // USD (US Dollar) - 2 decimals
-await pay.createPayment({
+await pay.createTransaction({
   amount: 1000, // $10.00
   currency: 'USD',
 });
@@ -182,14 +182,14 @@ Gunakan `orderId` yang sama untuk mencegah duplicate payments:
 const orderId = `order_${userId}_${Date.now()}`;
 
 // Request 1
-const payment1 = await pay.createPayment({
+const payment1 = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   orderId,
 });
 
 // Request 2 (dengan orderId yang sama)
-const payment2 = await pay.createPayment({
+const payment2 = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   orderId,

@@ -52,7 +52,7 @@ Sebuah **complete architectural blueprint** untuk BetterPay — billing framewor
 │  └── Webhook idempotency pipeline                               │
 │                                                                   │
 │  Pillar 3: PAYMENT INFRA (from wabase, production-proven)       │
-│  ├── 4 provider adapters (Midtrans, Xendit, Duitku, Pakasir)   │
+│  ├── 5 provider adapters (Midtrans, Xendit, Duitku, Pakasir, Tripay) │
 │  ├── Circuit breaker per provider                               │
 │  ├── Retry with exponential backoff + jitter                    │
 │  ├── Replay protection (timestamp window)                       │
@@ -235,7 +235,7 @@ Week 10: E2E tests + docs site + demo app
 |--------|-----------------|
 | PayKit v0.0.6 source | Domain model, plan DSL, entitlement engine, webhook pipeline |
 | Better Auth v1.6.15 source | Plugin system, adapter factory, better-call, hooks, client SDK |
-| wabase payment-gateway | 4 provider adapters, circuit breaker, reconciliation, state machine |
+| wabase payment-gateway | 5 provider adapters, circuit breaker, reconciliation, state machine |
 | wabase billing system | Subscription lifecycle, invoicing, cron jobs, email templates |
 | Exa: provider comparison | Midtrans/Xendit/DOKU pricing, features, DX ratings |
 | Exa: Midtrans docs | Snap API, Subscription API, GoPay tokenization, payment channels |
