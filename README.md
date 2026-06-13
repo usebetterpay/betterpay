@@ -1,16 +1,92 @@
 # BetterPay
 
-> **Indonesian billing framework** — One API for Midtrans, Xendit, DOKU, Duitku, Pakasir.
-> Plugin-first architecture. Framework-agnostic. Built on production-proven payment infrastructure.
+One API for every Indonesian payment gateway.
+
+[![npm version](https://img.shields.io/npm/v/@betterpay/core?style=flat&colorA=000&colorB=000)](https://www.npmjs.com/package/@betterpay/core)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat&colorA=000&colorB=000)](./LICENSE)
+
+[Documentation](https://github.com/usebetterpay/betterpay/tree/main/docs)
+·
+[Issues](https://github.com/usebetterpay/betterpay/issues)
+
+## Why BetterPay
+
+Indonesia has 6+ payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar — each with different APIs, signature schemes, webhook formats, and status codes. Integrating one takes days. Integrating all of them takes weeks.
+
+BetterPay unifies them under a single API. You write your payment logic once, plug in whichever provider you need, and BetterPay handles signature verification, webhook idempotency, circuit breakers, reconciliation, and status normalization — so you never have to read another payment gateway docs.
+
+## Install
+
+```bash
+pnpm add @betterpay/core @betterpay/midtrans
+```
+
+Or pick your provider:
+
+```bash
+pnpm add @betterpay/core @betterpay/xendit    # Xendit
+pnpm add @betterpay/core @betterpay/duitku    # Duitku
+pnpm add @betterpay/core @betterpay/pakasir   # Pakasir
+pnpm add @betterpay/core @betterpay/tripay    # Tripay
+pnpm add @betterpay/core @betterpay/mayar     # Mayar
+```
+
+## Quick Start
 
 ```typescript
 import { betterPay } from "@betterpay/core";
 import { midtrans } from "@betterpay/midtrans";
-import { xendit } from "@betterpay/xendit";
-import { billing } from "@betterpay/billing";
-import { feature, plan } from "@betterpay/billing";
 
-// Define your plans
+const pay = betterPay({
+  plugins: [
+    midtrans({
+      serverKey: process.env.MIDTRANS_SERVER_KEY!,
+      isSandbox: process.env.NODE_ENV !== "production",
+    }),
+  ],
+});
+
+// Create a payment
+const result = await pay.createTransaction({
+  orderId: "order_123",
+  amount: 150_000,
+  currency: "IDR",
+  customerEmail: "user@example.com",
+});
+// → { paymentUrl, providerTransactionId, status: "active" }
+
+// Handle webhook
+const webhook = await pay.handleWebhook("midtrans", { body, headers });
+// → { success: true, eventName: "payment.completed" }
+```
+
+Mount it on any framework:
+
+```typescript
+// Next.js App Router
+import { payHandler } from "@betterpay/next";
+export const { GET, POST } = payHandler(pay);
+
+// Hono
+app.all("/api/pay/*", (c) => pay.handler(c.req.raw));
+
+// Express
+app.use("/api/pay", (req, res) => pay.handler(req));
+```
+
+## Subscription Billing
+
+Add the billing plugin for plans, subscriptions, entitlements, and invoicing:
+
+```bash
+pnpm add @betterpay/billing
+```
+
+```typescript
+import { betterPay } from "@betterpay/core";
+import { midtrans } from "@betterpay/midtrans";
+import { billing, feature, plan } from "@betterpay/billing";
+
 const messages = feature({ id: "messages", type: "metered" });
 
 const free = plan({
@@ -24,123 +100,134 @@ const pro = plan({
   includes: [messages({ limit: 5_000, reset: "month" })],
 });
 
-// Initialize
-export const pay = betterPay({
-  database: process.env.DATABASE_URL!,
-  products: [free, pro],
+const pay = betterPay({
   plugins: [
     midtrans({ serverKey: process.env.MIDTRANS_SERVER_KEY! }),
-    xendit({ apiKey: process.env.XENDIT_API_KEY! }),
     billing({ products: [free, pro] }),
   ],
 });
 
-// Accept payment
-const result = await pay.subscribe({ planId: "pro", customerId: "user_123" });
-// → { paymentUrl: "https://app.midtrans.com/snap/...", vaNumber: "1234...", qrString: "000201..." }
+// Subscribe
+await pay.billing.subscribe({ customerId: "user_1", planId: "pro" });
 
 // Check entitlement
-const check = await pay.check({ customerId: "user_123", featureId: "messages" });
-// → { allowed: true, balance: { limit: 5000, remaining: 4999, resetAt: Date } }
+await pay.billing.check({ customerId: "user_1", featureId: "messages" });
+// → { allowed: true, balance: { limit: 5000, remaining: 4999 } }
+
+// Report usage
+await pay.billing.report({ customerId: "user_1", featureId: "messages", amount: 1 });
 ```
 
-## Install
+## Providers
+
+| Provider | VA | E-Wallet | QRIS | Credit Card | Retail |
+|----------|:--:|:--------:|:----:|:-----------:|:------:|
+| **Midtrans** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Xendit** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Duitku** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Pakasir** | — | ✅ | ✅ | — | — |
+| **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+Multiple providers can run simultaneously with automatic failover and circuit breaker.
+
+## Frameworks
+
+| Framework | Package |
+|-----------|---------|
+| Next.js (App Router) | `@betterpay/next` |
+| Hono | `@betterpay/hono` |
+| Express | `@betterpay/express` |
+| Bun | `@betterpay/bun` |
+| Cloudflare Workers | `@betterpay/cloudflare` |
+
+All handlers wrap the same core `Request → Response` handler. Zero framework lock-in.
+
+## Credential Management
+
+Store provider API keys encrypted in PostgreSQL (AES-256-GCM):
 
 ```bash
-# Core + one provider (minimum)
-npm install @betterpay/core @betterpay/midtrans
+# Set credentials
+betterpay credentials set midtrans --server-key=SB-Mid-xxx
 
-# Add billing (subscriptions, entitlements, plans)
-npm install @betterpay/billing
+# List (masked)
+betterpay credentials list
 
-# Add more providers
-npm install @betterpay/xendit @betterpay/duitku
-
-# Add notifications
-npm install @betterpay/notification-email @betterpay/notification-whatsapp
+# Get (decrypted)
+betterpay credentials get midtrans
 ```
 
-## Quick Start
-
-```bash
-# Initialize in your project
-npx @betterpay/cli init
-
-# Apply migrations + sync products
-npx @betterpay/cli push
-
-# Check status
-npx @betterpay/cli status
+```typescript
+// Runtime access
+const creds = await pay.credentialStore.get("midtrans");
+// → { serverKey: "SB-Mid-xxx" }
 ```
 
-## Documentation
+Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment variables.
 
-| Document | Description |
-|----------|-------------|
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Complete architecture — three pillars, all layers |
-| **[docs/DESIGN_DECISIONS.md](docs/DESIGN_DECISIONS.md)** | 15 architectural decisions with evidence |
-| **[docs/SUMMARY.md](docs/SUMMARY.md)** | Executive summary of research & architecture |
-| **[docs/paykit-feature-mapping.md](docs/paykit-feature-mapping.md)** | 182 PayKit features mapped to BetterPay |
-| **[docs/provider-research-2026.md](docs/provider-research-2026.md)** | Provider pricing, APIs, regulations |
-| **[COMPARISON.md](COMPARISON.md)** | Better Auth vs BetterPay comparison |
+## Packages
 
-## Supported Providers
+| Package | Description |
+|---------|-------------|
+| `@betterpay/core` | Factory, router, providers, webhooks, security |
+| `@betterpay/billing` | Plans, subscriptions, entitlements, invoices, billing cycles |
+| `@betterpay/midtrans` | Midtrans adapter |
+| `@betterpay/xendit` | Xendit adapter |
+| `@betterpay/duitku` | Duitku adapter |
+| `@betterpay/pakasir` | Pakasir adapter |
+| `@betterpay/tripay` | Tripay adapter |
+| `@betterpay/mayar` | Mayar adapter |
+| `@betterpay/client` | Proxy-based client SDK |
+| `@betterpay/cli` | CLI tools (init, push, status, credentials) |
+| `@betterpay/drizzle-adapter` | PostgreSQL repositories (Drizzle ORM) |
+| `@betterpay/next` | Next.js handler |
+| `@betterpay/hono` | Hono handler |
+| `@betterpay/express` | Express handler |
+| `@betterpay/bun` | Bun handler |
+| `@betterpay/cloudflare` | Cloudflare Workers handler |
+| `@betterpay/notification-email` | Email notification plugin |
+| `@betterpay/notification-whatsapp` | WhatsApp notification plugin |
 
-| Provider | Payment Methods | Subscription API | Settlement |
-|----------|----------------|:---:|:---:|
-| **Midtrans** | VA, e-wallet, QRIS, CC, retail, paylater | ✅ | T+1 to T+3 |
-| **Xendit** | VA, e-wallet, QRIS, CC, retail, direct debit | ✅ (full) | T+1 to T+2 |
-| **DOKU** | VA, e-wallet, QRIS, CC, retail, paylater | ✅ | T+1 to T+5 |
-| **Duitku** | VA (most banks), e-wallet, QRIS, CC, retail | ❌ | T+1 to T+2 |
-| **Pakasir** | QRIS, e-wallet | ❌ | Instant |
+## Features
 
-## Supported Frameworks
-
-| Framework | Handler | Status |
-|-----------|---------|--------|
-| Next.js (App Router) | `@betterpay/next` | Phase 1 |
-| Hono | `@betterpay/hono` | Phase 1 |
-| Express | `@betterpay/express` | Phase 3 |
-| Fastify | `@betterpay/fastify` | Phase 3 |
-| Bun | `@betterpay/bun` | Phase 3 |
-| Cloudflare Workers | `@betterpay/cloudflare` | Phase 3 |
-
-## Key Features
-
-- **🔌 Plugin-first** — Everything is a plugin: providers, notifications, billing, compliance
-- **🇮🇩 Indonesian payment methods** — VA, QRIS, e-wallet, CC, retail, paylater
-- **📋 Subscription management** — Plans, entitlements, billing cycles, dunning
-- **🔄 Auto-fallback** — Priority-based provider selection with circuit breaker
-- **🪝 Webhook pipeline** — Idempotent processing, replay protection, reconciliation
-- **🏗️ Framework-agnostic** — Works with Next.js, Hono, Express, Fastify, Bun, Cloudflare
-- **📱 Client SDK** — Proxy-based with type inference from server config
-- **🧪 Test clock** — Simulate billing cycles without waiting months
+- **Plugin-first** — providers, billing, and notifications are all plugins
+- **Auto-fallback** — priority-based provider selection with circuit breaker per provider
+- **Webhook pipeline** — idempotent processing, replay protection, reconciliation worker
+- **Subscription engine** — 5-state machine, entitlement tracking with lazy reset, billing cycles, dunning
+- **Encrypted credentials** — AES-256-GCM storage for provider API keys
+- **Test clock** — simulate billing cycles without waiting months
+- **Currency utilities** — ISO 4217 minor units, IDR/USD/VND conversion
+- **Security middleware** — auth, CSRF, rate limiting, role-based access, audit logging hooks
 
 ## Architecture
 
-BetterPay is built on three pillars:
-
-1. **Architecture** (from Better Auth) — Plugin system, better-call router, hooks, adapter factory
-2. **Domain model** (from PayKit) — Plans, features, entitlements, subscriptions, webhooks
-3. **Payment infra** (from wabase) — Provider adapters, circuit breaker, reconciliation, state machine
-
 ```
-Your App (Any Framework)
+Your App (Next.js / Hono / Express / Bun / Cloudflare)
         │
-  @betterpay/core          ← Pure Node.js, zero framework deps
+   betterPay({ plugins: [...] })
         │
-  ┌─────┼─────────┐
-  │     │         │
-Midtrans Xendit  Duitku    ← Provider plugins (extracted from wabase)
+   ┌────┼──────┬──────┬──────┬──────┬──────┐
+   │    │      │      │      │      │      │
+  Core  Midtrans Xendit Duitku Pakasir Tripay Mayar   ← Provider plugins
+   │
+   ├── billing          ← Subscription + entitlement plugin
+   ├── notification-*   ← Email / WhatsApp plugins
+   ├── drizzle-adapter  ← PostgreSQL persistence
+   └── client           ← Frontend SDK
 ```
 
-## Status
+## Contributing
 
-🟡 **Architecture complete.** All 15 design decisions locked via grilling session.
-Ready for Phase 1 implementation.
+BetterPay is free and open source under the [MIT License](./LICENSE). Contributions welcome.
 
-See [docs/SUMMARY.md](docs/SUMMARY.md) for the full roadmap.
+- [Report issues](https://github.com/usebetterpay/betterpay/issues)
+- Open pull requests
+
+## Security
+
+If you discover a security vulnerability, please email [ujangas1908@gmail.com](mailto:ujangas1908@gmail.com). All reports will be promptly addressed.
 
 ## License
 
-MIT
+[MIT](./LICENSE) © BetterPay Contributors
