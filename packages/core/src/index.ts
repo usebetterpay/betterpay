@@ -43,6 +43,13 @@ export { withRetry } from './utils/retry';
 export type { RetryOptions } from './utils/retry';
 export { generateOrderId, validateOrderId, validateAmount } from './utils/id';
 export {
+  ISO_4217_DECIMALS,
+  getCurrencyDecimals,
+  toMinorUnits,
+  fromMinorUnits,
+  formatCurrency,
+} from './utils/currency';
+export {
   detectEndpointConflicts,
   validateEndpointPatterns,
   generateEndpointDocs,
