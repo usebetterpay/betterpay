@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture (plugin-first architecture), billing domain model (billing domain model), grounded in production code (production payment gateway with 4 providers: Xendit, Midtrans, Duitku, Pakasir).
+> **Indonesian billing framework** — Plugin-first architecture (plugin-first architecture), billing domain model (billing domain model), grounded in production code (production payment gateway with 5 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay).
 >
 > **Status:** All 15 architectural decisions locked via grilling session (see `docs/DESIGN_DECISIONS.md`).
 
@@ -22,7 +22,7 @@
 
 BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, payment reconciliation, dan webhook processing — tanpa user perlu tahu detail API masing-masing provider.
 
-**Foundation:** Bukan greenfield. BetterPay dibangun di atas `payment gateway core` () yang sudah production-grade dengan 4 provider terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
+**Foundation:** Bukan greenfield. BetterPay dibangun di atas `payment gateway core` () yang sudah production-grade dengan 5 provider terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
 
 **15 Key Decisions (all locked):**
 1. **Framework** (not standalone service) — embed di app user
@@ -69,7 +69,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   └── Test clock / time simulation                                  │
 │                                                                      │
 │   Pillar 3: PAYMENT INFRA (production-proven)          │
-│   ├── Provider adapter pattern (Xendit, Midtrans, Duitku, Pakasir) │
+│   ├── Provider adapter pattern (Xendit, Midtrans, Duitku, Pakasir, Tripay) │
 │   ├── Circuit breaker per provider                                  │
 │   ├── Retry with exponential backoff + jitter                       │
 │   ├── Replay protection (timestamp window)                          │
@@ -81,7 +81,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   └── Encrypted credential storage (AES-256-GCM)                    │
 │                                                                      │
 │   Framework: Agnostic (Next/Hono/Express/Fastify/Bun/Cloudflare)    │
-│   UI: Optional (@betterpay/ui or build your own)                    │
+│   UI: Planned v2 (@betterpay/ui or build your own)                  │
 │   Currency: IDR first (ISO 4217 minor units ready)                  │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
@@ -97,13 +97,13 @@ import { betterPay } from "@betterpay/core";
 import { midtrans } from "@betterpay/midtrans";
 import { xendit } from "@betterpay/xendit";
 import { duitku } from "@betterpay/duitku";
-import { whatsapp } from "@betterpay/notification-whatsapp";
+import { tripay } from "@betterpay/tripay";
+import { billing, feature, plan } from "@betterpay/billing";
+import { notificationWhatsapp } from "@betterpay/notification-whatsapp";
 import { free, pro, enterprise } from "./plans";
 
 export const pay = betterPay({
   database: process.env.DATABASE_URL!,
-
-  products: [free, pro, enterprise],
 
   plugins: [
     midtrans({
@@ -118,7 +118,14 @@ export const pay = betterPay({
       apiKey: process.env.DUITKU_API_KEY!,
       merchantCode: process.env.DUITKU_MERCHANT_CODE!,
     }),
-    whatsapp({ apiKey: process.env.WA_API_KEY! }),
+    tripay({
+      apiKey: process.env.TRIPAY_API_KEY!,
+      merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
+      privateKey: process.env.TRIPAY_PRIVATE_KEY!,
+      isSandbox: process.env.NODE_ENV !== "production",
+    }),
+    billing({ products: [free, pro, enterprise] }),
+    notificationWhatsapp({ apiKey: process.env.WA_API_KEY! }),
   ],
 
   identify: async (request) => {
@@ -130,7 +137,7 @@ export const pay = betterPay({
 
 ```typescript
 // plans.ts
-import { feature, plan } from "@betterpay/core";
+import { feature, plan } from "@betterpay/billing";
 
 const messages = feature({ id: "messages", type: "metered" });
 const aiModels = feature({ id: "ai_models", type: "boolean" });
@@ -171,103 +178,102 @@ betterpay/
 │   │  ═══ Core ═══
 │   ├── core/                        # Framework-agnostic core
 │   │   └── src/
-│   │       ├── api/                 # createPayEndpoint (better-call)
-│   │       ├── cli/                 # npx @betterpay/cli
-│   │       ├── client/              # Client SDK core
-│   │       ├── context/             # PayContext, transaction, async_hooks
-│   │       ├── db/
-│   │       │   ├── adapter/         # Adapter factory (pg, memory)
-│   │       │   ├── schema/          # Core tables
-│   │       │   └── migrations/
-│   │       ├── entitlement/         # Feature gating + usage billing (generic billing SDKs)
-│   │       ├── error/               # Error codes, BetterPayError
-│   │       ├── hooks/               # Before/after hook runner
+│   │       ├── context.ts           # PayContext type
+│   │       ├── plugin.ts            # BetterPayPlugin interface
+│   │       ├── router.ts            # better-call router
+│   │       ├── create-betterpay.ts  # Main factory (betterPay())
+│   │       ├── billing-bridge.ts    # Structural types for billing plugin
+│   │       ├── provider/            # Provider interface + registry
+│   │       ├── transaction/         # Schema + service + state machine
+│   │       ├── webhook/             # Handler + replay protection
+│   │       ├── security/            # Middleware, rate limiter, encryption, validation
+│   │       ├── errors/              # BetterPayError taxonomy
+│   │       ├── reconciliation/      # Reconciliation worker
+│   │       ├── logging/             # Logger system
+│   │       ├── database/            # Migration runner
+│   │       └── utils/               # Circuit breaker, retry, ID generation
+│   │
+│   │  ═══ Billing Plugin ═══
+│   ├── billing/                     # Subscription + entitlement + invoice
+│   │   └── src/
+│   │       ├── schema.ts            # feature(), plan() DSL
+│   │       ├── normalize.ts         # normalizeSchema(), computePlanHash()
+│   │       ├── subscription/        # State machine + service
+│   │       ├── entitlement/         # Check + report with lazy reset
+│   │       ├── customer/            # Customer service
 │   │       ├── invoice/             # Invoice generation
-│   │       ├── payment/             # Payment tracking
-│   │       ├── plugin/              # Plugin loader, schema merger
-│   │       ├── product/             # Plan/product sync + versioning (generic billing SDKs)
-│   │       ├── provider/            # Provider registry + interface
-│   │       ├── subscription/        # Subscription state machine (generic billing SDKs)
-│   │       ├── types/
-│   │       ├── utils/               # ID generation, crypto, date helpers
-│   │       └── webhook/             # Webhook pipeline (generic billing SDKs idempotency)
+│   │       ├── billing-cycle/       # runBillingCycle()
+│   │       ├── cron/                # Cron endpoint + template generator
+│   │       ├── dunning/             # Dunning manager
+│   │       └── test-clock.ts        # Time simulation for testing
 │   │
 │   │  ═══ Provider Plugins ═══
-│   │  (each wraps the proven  adapter)
 │   ├── midtrans/                    # Midtrans Snap adapter
-│   │   └── wraps: MidtransAdapter (from payment gateway core)
 │   ├── xendit/                      # Xendit Payment Sessions adapter
-│   │   └── wraps: XenditAdapter
 │   ├── duitku/                      # Duitku adapter
-│   │   └── wraps: DuitkuAdapter
 │   ├── pakasir/                     # Pakasir adapter
-│   │   └── wraps: PakasirAdapter
+│   ├── tripay/                      # Tripay adapter
 │   │
 │   │  ═══ Notification Plugins ═══
 │   ├── notification-email/
 │   ├── notification-whatsapp/
-│   ├── notification-sms/
-│   │
-│   │  ═══ Compliance Plugins ═══
-│   ├── compliance-ojk/
-│   ├── reconciliation/              # Settlement reconciliation
 │   │
 │   │  ═══ DB Adapters ═══
-│   ├── drizzle-adapter/
-│   ├── memory-adapter/              # For testing
+│   ├── drizzle-adapter/             # PostgreSQL (Drizzle ORM)
 │   │
 │   │  ═══ Framework Handlers ═══
 │   ├── next/                        # Next.js (App Router)
 │   ├── hono/                        # Hono
 │   ├── express/                     # Express
-│   ├── fastify/                     # Fastify
 │   ├── bun/                         # Bun.serve
 │   ├── cloudflare/                  # Cloudflare Workers
 │   │
-│   │  ═══ Client SDKs ═══
-│   ├── client/                      # Core client (fetch-based proxy)
-│   ├── client-react/                # React hooks
-│   ├── client-vue/                  # Vue composables
+│   │  ═══ Tools ═══
+│   ├── cli/                         # npx @betterpay/cli (init, push, status)
+│   ├── client/                      # Core client (fetch-based proxy SDK)
 │   │
-│   │  ═══ Optional UI ═══
-│   └── ui/                          # Pre-built components (optional)
-│       ├── pricing-table/
-│       ├── billing-portal/
-│       ├── checkout-form/
-│       └── invoice-list/
+│   │  ═══ Planned (v2) ═══
+│   ├── notification-sms/            # Planned
+│   ├── compliance-ojk/              # Planned
+│   ├── reconciliation/              # Planned (standalone package; currently in core)
+│   ├── memory-adapter/              # Planned
+│   ├── fastify/                     # Planned
+│   ├── client-react/                # Planned
+│   ├── client-vue/                  # Planned
+│   └── ui/                          # Planned (pricing-table, billing-portal, etc)
 │
-├── docs/
-├── demo/
-├── e2e/
-├── test/
-└── patches/
+├── docs/                            # Fumadocs documentation website
+├── demo/                            # Demo app with all providers + billing
+└── sample/                          # Reference / example projects
 ```
 
 ---
 
 ## Payment Provider Layer (production-proven)
 
-Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 4 Indonesian payment gateway.
+Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 5 Indonesian payment gateway.
 
 ### Provider Interface
 
 ```typescript
-// Already implemented in payment gateway core
+// packages/core/src/provider/interface.ts
 interface PaymentProvider {
-  readonly name: ProviderName;
+  readonly id: string;
+  readonly name: string;
+  readonly paymentMethods: PaymentMethod[];
+  readonly capabilities: ProviderCapabilities;
 
-  createTransaction(params: CreateTransactionParams): Promise<TransactionResult>;
-  checkStatus(providerTransactionId: string): Promise<StatusResult>;
-  cancelTransaction?(providerTransactionId: string): Promise<void>;
-
-  verifyWebhookSignature(payload: string, signature: string): boolean;
-  parseWebhook?(payload: string): CanonicalWebhookEvent;
-
+  createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult>;
+  verifyWebhook(data: WebhookData): Promise<boolean>;
+  normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]>;
   getApiEndpoint(): string;
+
+  checkStatus?(providerTransactionId: string): Promise<StatusResult>;
+  cancelTransaction?(providerTransactionId: string): Promise<void>;
 }
 ```
 
-### Provider Adapters (4 implemented)
+### Provider Adapters (5 implemented)
 
 | Provider | Adapter | API | Auth | Signature |
 |----------|---------|-----|------|-----------|
@@ -275,6 +281,7 @@ interface PaymentProvider {
 | **Xendit** | `XenditAdapter` | `POST /payment_sessions` | `Basic base64(apiKey:)` | Token comparison (x-callback-token header) |
 | **Duitku** | `DuitkuAdapter` | `POST /webapi/merchant/v2/inquiry` | Body signature (MD5) | SHA256(merchantCode + amount + orderId + apiKey) |
 | **Pakasir** | `PakasirAdapter` | `POST /api/transaction` | API key in body | Project slug match |
+| **Tripay** | `TripayProvider` | `POST /transaction/create` | `Bearer apiKey` | HMAC-SHA256(merchantCode + merchantRef + amount, privateKey) |
 
 ### Per-Provider Status Mapping
 
@@ -283,36 +290,31 @@ Midtrans:  capture/settlement → completed, pending → active, deny/failure �
 Xendit:    COMPLETED/SUCCEEDED → completed, PENDING/ACTIVE → active, FAILED → failed, EXPIRED → expired, CANCELLED → canceled
 Duitku:    00 → completed, 01 → failed, 02 → canceled
 Pakasir:   completed/success → completed, pending/processing → active, failed → failed, expired → expired, canceled → canceled
+Tripay:    PAID → completed, UNPAID → pending, EXPIRED → expired, FAILED → failed, REFUND → canceled
 ```
 
 ### Reliability Primitives (all implemented)
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  createTransaction()                                      │
+│  createTransaction() → provider.createPaymentLink()        │
 │  │                                                        │
 │  ├─ validateOrderId()          max 50 chars, [a-zA-Z0-9._~-] │
 │  ├─ validateAmount()           integer, > 0              │
-│  ├─ computeIdempotencyKey()    SHA-256 fingerprint       │
-│  ├─ repository.checkIdempotencyKey()  atomic check       │
 │  │                                                        │
-│  ├─ repository.createTransaction()   status: "pending"   │
-│  ├─ repository.recordEvent()         seq 1: created      │
+│  ├─ transactionService.create()   status: "pending"      │
 │  │                                                        │
 │  ├─ withRetry(                                              │
 │  │    withTimeout(                                          │
 │  │      circuitBreaker.execute(                             │
-│  │        provider.createTransaction()                      │
+│  │        provider.createPaymentLink()                      │
 │  │      )                                                  │
 │  │    )                                                    │
 │  │  )                                                      │
 │  │                                                        │
-│  ├─ repository.updateTransactionStatus()  "active"       │
-│  ├─ repository.recordEvent()         seq 2: activated    │
-│  ├─ repository.setIdempotencyKey()   cache result        │
-│  ├─ repository.createReconciliationJob()  T+5min         │
+│  ├─ transactionService.updateStatus()  "active"          │
 │  │                                                        │
-│  └─ return TransactionResult                              │
+│  └─ return { orderId, paymentUrl, providerTransactionId }│
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -373,38 +375,54 @@ verifyDuitkuSignature(payload, signature, apiKey): boolean
 // Pakasir: Project slug match
 // - Signature IN header (x-signature)
 verifyPakasirSignature(payload, signature, projectSlug): boolean
+
+// Tripay: HMAC-SHA256(merchantCode + merchantRef + amount, privateKey)
+// - Signature IN header (x-callback-signature)
+verifyTripayCallbackSignature(payload, signature, privateKey): boolean
 ```
 
 ### Error Taxonomy
 
 ```typescript
-PaymentError (base)
-├── PaymentValidationError       (400, retryable: false)
-├── PaymentAuthError             (401, retryable: false)
-├── PaymentNotFoundError         (404, retryable: false)
-├── PaymentSignatureError        (401, retryable: false)
-├── PaymentProviderError         (429/5xx, retryable: true)
-├── PaymentTimeoutError          (408, retryable: true)
-├── PaymentRateLimitError        (429, retryable: true)
-├── PaymentCircuitOpenError      (503, retryable: true)
-├── PaymentConflictError         (409, retryable: false)
-├── InvalidStateTransitionError  (400, retryable: false)
-├── PaymentIdempotencyError      (409, retryable: false)
-├── PaymentWebhookError          (400, retryable: false)
-└── PaymentReplayProtectionError (400, retryable: false)
+BetterPayError (base)
+├── ValidationError              (400, VALIDATION_ERROR)
+├── NotFoundError                (404, NOT_FOUND)
+├── UnauthorizedError            (401, UNAUTHORIZED)
+├── ForbiddenError               (403, FORBIDDEN)
+├── ConflictError                (409, CONFLICT)
+├── RateLimitError               (429, RATE_LIMIT_EXCEEDED)
+├── ProviderError                (502, PROVIDER_ERROR, retryable: configurable)
+├── WebhookError                 (400, WEBHOOK_ERROR)
+├── BillingError                 (400, BILLING_ERROR)
+├── DunningError                 (400, DUNNING_ERROR)
+├── ReconciliationError          (500, RECONCILIATION_ERROR)
+├── EncryptionError              (500, ENCRYPTION_ERROR)
+└── MigrationError               (500, MIGRATION_ERROR)
 ```
 
 ### Database Schema (payment tables — , production)
 
 ```sql
--- 6 tables, prefix: payment_
+-- Drizzle adapter: @betterpay/drizzle-adapter (PostgreSQL)
 
-payment_transaction       -- Materialized state of each payment
-payment_event             -- Append-only audit log (every state change)
-payment_webhook_event     -- Webhook dedup + signature audit
-payment_idempotency_key   -- Prevents duplicate creation (24h TTL)
-payment_reconciliation_job -- Scheduled provider polls
-payment_gateway_config    -- Encrypted credentials per provider (AES-256-GCM)
+-- Core billing tables (prefix: betterpay_)
+betterpay_customer              -- Customer data + phone
+betterpay_product               -- Plan definitions (versioned, with hash)
+betterpay_feature               -- Feature definitions (boolean/metered)
+betterpay_product_feature       -- Plan ↔ Feature mapping (join)
+betterpay_subscription          -- Subscription lifecycle (5 states)
+betterpay_entitlement           -- Feature balance tracking (lazy reset)
+betterpay_invoice               -- Invoice records
+
+-- Payment infra tables (prefix: payment_)
+payment_transaction             -- Materialized payment state
+payment_event                   -- Append-only audit log
+payment_webhook_event           -- Webhook dedup + signature audit
+payment_idempotency_key         -- Prevents duplicate creation (24h TTL)
+
+-- Planned (v2):
+-- payment_reconciliation_job    -- Scheduled provider polls
+-- payment_gateway_config        -- Encrypted credentials per provider
 ```
 
 ---
@@ -416,7 +434,7 @@ This layer sits ON TOP of the payment provider layer and adds subscription lifec
 ### Plan & Feature DSL
 
 ```typescript
-import { feature, plan } from "@betterpay/core";
+import { feature, plan } from "@betterpay/billing";
 
 // Define features (what you gate/meter)
 const messages = feature({ id: "messages", type: "metered" });
@@ -447,14 +465,14 @@ export const pro = plan({
 
 ```typescript
 // Check (read-only, lazy reset)
-const result = await pay.api.check({
+const result = await pay.billing.check({
   customerId: "user_123",
   featureId: "messages",
 });
 // → { allowed: true, balance: { limit: 5000, remaining: 4200, resetAt: Date, unlimited: false } }
 
 // Report (deduct, atomic)
-const result = await pay.api.report({
+const result = await pay.billing.report({
   customerId: "user_123",
   featureId: "messages",
   amount: 1,
@@ -474,12 +492,18 @@ const result = await pay.api.report({
          └─────┬─────┘
                │ activate at period end
                ▼
-         ┌───────────┐     upgrade      ┌────────┐
+         ┌───────────┐                   ┌────────┐
          │  active    │ ──────────────▶  │ ended  │
-         │  trialing  │ ◀── resume       └────────┘
-         │  past_due  │ ──────────────▶  ┌────────┐
-         └───────────┘   cancel at end   │canceled│
+         │  past_due  │ ◀── resume       └────────┘
+         └───────────┘   cancel at end   ┌────────┐
+                                         │canceled│
                                          └────────┘
+
+  Valid transitions (from state-machine.ts):
+    scheduled → active, canceled
+    active    → past_due, canceled, ended
+    past_due  → active, canceled, ended
+    ended     → scheduled (re-subscribe)
 ```
 
 **Key transitions:**
@@ -502,15 +526,15 @@ const result = await pay.api.report({
 ```
 Provider webhook → /pay/api/webhook/:provider
   │
-  ├─ 1. provider.verifyWebhookSignature()   (SHA512/HMAC/token)
-  ├─ 2. provider.parseWebhook()              → CanonicalWebhookEvent
-  ├─ 3. validateTimestamp()                  (replay protection, 5min window)
-  ├─ 4. repository.recordWebhook()           (UNIQUE constraint = dedup)
+  ├─ 1. provider.verifyWebhook(data)          (async, returns boolean)
+  ├─ 2. provider.normalizeWebhook(data)       → NormalizedWebhookEvent[]
+  ├─ 3. validateTimestamp()                   (replay protection, 5min window)
+  ├─ 4. repository.recordWebhook()            (UNIQUE constraint = dedup)
   │     └─ If duplicate → return { wasDuplicate: true }
   ├─ 5. Find transaction by orderId
-  ├─ 6. validateTransactionTransition()      (state machine check)
-  ├─ 7. repository.updateTransactionStatus() (apply new status)
-  ├─ 8. repository.recordEvent()             (audit log)
+  ├─ 6. validateTransactionTransition()       (state machine check)
+  ├─ 7. repository.updateTransactionStatus()  (apply new status)
+  ├─ 8. repository.recordEvent()              (audit log)
   └─ 9. Emit customer.updated event
 ```
 
@@ -560,40 +584,30 @@ interface BetterPayPlugin {
 }
 ```
 
-### Provider Plugin Example (wraps proven  adapter)
+### Provider Plugin Example
 
 ```typescript
 // packages/midtrans/src/index.ts
-import { MidtransAdapter } from "payment gateway core/providers/midtrans";
 import type { BetterPayPlugin } from "@betterpay/core";
+import { MidtransProvider } from "./adapter";
 
-export const midtrans = (config: MidtransConfig): BetterPayPlugin => ({
-  id: "midtrans",
-  version: "1.0.0",
+export interface MidtransConfig {
+  serverKey: string;
+  clientKey?: string;
+  isSandbox?: boolean;
+}
 
-  async init(ctx) {
-    // Test connection
-    const adapter = new MidtransAdapter(config);
-    ctx.logger.info(`Midtrans: ${config.isSandbox ? "sandbox" : "production"}`);
-  },
-
-  providers: [new MidtransAdapter(config)],
-
-  schema: {
-    midtransConfig: {
-      fields: {
-        serverKey: { type: "string", required: true },
-        clientKey: { type: "string" },
-        isSandbox: { type: "boolean", defaultValue: false },
-      },
+export function midtrans(config: MidtransConfig): BetterPayPlugin {
+  return {
+    id: "midtrans",
+    version: "0.1.0",
+    providers: [new MidtransProvider(config)],
+    $ERROR_CODES: {
+      MIDTRANS_CREATE_ERROR: { code: "MIDTRANS_CREATE_ERROR", message: "Failed to create Midtrans payment" },
+      MIDTRANS_STATUS_ERROR: { code: "MIDTRANS_STATUS_ERROR", message: "Failed to check Midtrans status" },
     },
-  },
-
-  $ERROR_CODES: {
-    MIDTRANS_CREATE_ERROR: { code: "MIDTRANS_CREATE_ERROR", message: "..." },
-    MIDTRANS_STATUS_ERROR: { code: "MIDTRANS_STATUS_ERROR", message: "..." },
-  },
-});
+  };
+}
 ```
 
 ### Database Hooks
@@ -987,16 +1001,16 @@ export const pay = betterPay({
 ## Client SDK
 
 ```typescript
-// Core client (framework agnostic)
+// Core client (framework agnostic, proxy-based)
 import { createPayClient } from "@betterpay/client";
-const pay = createPayClient({ baseURL: "/pay" });
-await pay.subscribe({ planId: "pro", successUrl: "/success" });
+const client = createPayClient({ baseURL: "/pay" });
 
-// React hooks
-import { useSubscription, useEntitlement } from "@betterpay/client-react";
-const { subscription } = useSubscription();
-const { balance } = useEntitlement("messages");
+// Proxy dispatches unknown methods to /api/kebab-case
+await client.createTransaction({ orderId: "order_1", amount: 199000, customerEmail: "a@b.com" });
+await client.status({ orderId: "order_1" });
 ```
+
+> **Planned (v2):** `@betterpay/client-react` (React hooks), `@betterpay/client-vue` (Vue composables)
 
 ---
 
@@ -1021,15 +1035,11 @@ export function payHandler(pay) {
 
 ---
 
-## Optional UI Package
+## UI Package (Planned v2)
 
 ```tsx
-// @betterpay/ui — use it or build your own
-import { PricingTable, BillingPortal, CheckoutForm } from "@betterpay/ui";
-
-<PricingTable plans={[free, pro, enterprise]} currency="IDR" locale="id-ID" />
-<BillingPortal customer={user} tabs={["subscription", "invoices"]} />
-<CheckoutForm amount={199_000} providers={[midtrans, xendit]} />
+// @betterpay/ui — planned, build your own for now
+// Will include: PricingTable, BillingPortal, CheckoutForm, InvoiceList
 ```
 
 ---
@@ -1037,31 +1047,28 @@ import { PricingTable, BillingPortal, CheckoutForm } from "@betterpay/ui";
 ## Complete Database Schema
 
 ```sql
--- ═══ Core billing tables (from billing domain models) ═══
+-- ═══ Implemented in @betterpay/drizzle-adapter ═══
+
+-- Core billing tables (prefix: betterpay_)
 betterpay_customer              -- Customer data + phone
-betterpay_product               -- Plan definitions (versioned)
-betterpay_product_provider      -- Plan ↔ Provider product mapping
+betterpay_product               -- Plan definitions (versioned, with hash)
 betterpay_feature               -- Feature definitions (boolean/metered)
 betterpay_product_feature       -- Plan ↔ Feature mapping (join)
-betterpay_subscription          -- Subscription lifecycle
-betterpay_subscription_provider -- Sub ↔ Provider sub mapping
-betterpay_entitlement           -- Feature balance tracking
+betterpay_subscription          -- Subscription lifecycle (5 states)
+betterpay_entitlement           -- Feature balance tracking (lazy reset)
 betterpay_invoice               -- Invoice records
-betterpay_payment               -- Actual money movements
-betterpay_webhook_event         -- Webhook idempotency log
 
--- ═══ Payment infra tables (production-proven) ═══
+-- Payment infra tables (prefix: payment_)
 payment_transaction             -- Materialized payment state
 payment_event                   -- Append-only audit log
 payment_webhook_event           -- Webhook dedup + signature audit
 payment_idempotency_key         -- Prevents duplicate creation
-payment_reconciliation_job      -- Scheduled provider polls
-payment_gateway_config          -- Encrypted credentials (AES-256-GCM)
 
--- ═══ Plugin-contributed tables ═══
-betterpay_notification_log      -- (@betterpay/notification-*)
-betterpay_settlement            -- (@betterpay/reconciliation)
-betterpay_ojk_report            -- (@betterpay/compliance-ojk)
+-- ═══ Planned (v2) ═══
+-- payment_reconciliation_job   -- Scheduled provider polls
+-- payment_gateway_config       -- Encrypted credentials per provider
+-- betterpay_product_provider   -- Plan ↔ Provider product mapping
+-- betterpay_notification_log   -- (@betterpay/notification-*)
 ```
 
 ---
@@ -1093,12 +1100,12 @@ const ISO_4217_DECIMALS = {
 │                                                              │
 │  Architecture:   (plugin-first, hooks, adapters) │
 │  Domain:        generic billing SDKs (plans, subscriptions, entitlements)  │
-│  Providers:     Midtrans + Xendit + Duitku + Pakasir        │
-│                 (production-proven adapters )     │
+│  Providers:     Midtrans + Xendit + Duitku + Pakasir + Tripay│
+│                 (5 provider adapters, all with tests)        │
 │  Reliability:   Circuit breaker, retry, replay protection,  │
 │                 reconciliation, idempotency, state machine   │
 │  Framework:     Agnostic (Next/Hono/Express/Fastify/Bun/CF) │
-│  UI:            Optional (@betterpay/ui or build your own)  │
+│  UI:            Planned v2 (@betterpay/ui or build your own)│
 │  Currency:      IDR first (ISO 4217 minor units ready)      │
 │                                                              │
 │  User writes:                                               │
@@ -1121,6 +1128,8 @@ const ISO_4217_DECIMALS = {
 │    ❌ Midtrans Snap vs Core API                              │
 │    ❌ Xendit Payment Sessions API                            │
 │    ❌ Duitku MD5 signature format                            │
+│    ❌ Pakasir project slug verification                      │
+│    ❌ Tripay HMAC-SHA256 signature scheme                    │
 │    ❌ How webhooks differ between providers                  │
 │    ❌ How to normalize different payment formats             │
 │    ❌ Circuit breaker / retry / timeout logic                │
@@ -1131,7 +1140,7 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Architecture v4.0 — All 15 design decisions locked via grilling session*
+*Architecture v5.0 — All 15 design decisions locked, docs synced with implementation*
 *Patterns from:  (architecture) × generic billing SDKs (domain) ×  (payment infra)*
-*Last updated: 2026-06-10*
+*Last updated: 2026-06-13*
 *See: docs/DESIGN_DECISIONS.md for full decision log with evidence*
