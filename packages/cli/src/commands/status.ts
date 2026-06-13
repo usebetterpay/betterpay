@@ -30,7 +30,7 @@ export async function statusCommand(args: string[]): Promise<void> {
     },
     {
       name: 'Providers',
-      packages: ['@betterpay/midtrans', '@betterpay/xendit', '@betterpay/duitku', '@betterpay/pakasir'],
+      packages: ['@betterpay/midtrans', '@betterpay/xendit', '@betterpay/duitku', '@betterpay/pakasir', '@betterpay/tripay'],
     },
     {
       name: 'Billing',
