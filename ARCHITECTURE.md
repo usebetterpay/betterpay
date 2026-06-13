@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 6 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay, Mayar).
+> **Indonesian billing framework** — Plugin-first architecture, subscription billing, 6 payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar.
 >
 > **Status:** Production-ready. 18 packages, 6 provider adapters, 443 tests passing.
 
@@ -10,7 +10,7 @@
 
 BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, payment reconciliation, dan webhook processing — tanpa user perlu tahu detail API masing-masing provider.
 
-**Foundation:** Bukan greenfield. BetterPay dibangun di atas `@repo/payment-gateway` (wabase) yang sudah production-grade dengan 6 provider adapter terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
+**Foundation:** Bukan greenfield. Provider adapters diekstrak dari production-grade payment gateway yang sudah teruji dengan state machine, circuit breaker, reconciliation worker, dan replay protection.
 
 **15 Key Decisions (all locked):**
 1. **Framework** (not standalone service) — embed di app user
@@ -22,7 +22,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 7. **Plugin-based notifications** — core fires events, plugins send
 8. **Proxy client SDK** — type inference dari server instance
 9. **Transaction record matching** — DB as source of truth
-10. **Extract providers, rewrite rest** — wabase adapters + new framework
+10. **Extract providers, rewrite rest** — battle-tested adapters + new framework core
 11. **Full test pyramid + test clock** — time simulation for billing
 12. **Layered: core + billing plugin** — progressive complexity
 13. **Single merchant** — multi-tenancy = user's responsibility
@@ -37,7 +37,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         BetterPay                                    │
 │                                                                      │
-│   Pillar 1: ARCHITECTURE (from Better Auth)                         │
+│   Pillar 1: ARCHITECTURE (plugin-first)                             │
 │   ├── Plugin-first design                                           │
 │   ├── better-call type-safe API router                              │
 │   ├── Hook system (before/after with matchers)                      │
@@ -47,7 +47,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   ├── Multi-framework handlers                                      │
 │   └── Client SDK + framework adapters                               │
 │                                                                      │
-│   Pillar 2: DOMAIN MODEL (from PayKit)                              │
+│   Pillar 2: DOMAIN MODEL (subscriptions + entitlements)             │
 │   ├── Plan & Feature DSL (feature(), plan())                        │
 │   ├── Entitlement engine (lazy reset, stacked CTE)                  │
 │   ├── Subscription state machine (5 states)                         │
@@ -56,7 +56,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   ├── Webhook idempotency pipeline                                  │
 │   └── Test clock / time simulation                                  │
 │                                                                      │
-│   Pillar 3: PAYMENT INFRA (from wabase, production-proven)          │
+│   Pillar 3: PAYMENT INFRA (production-proven)                       │
 │   ├── Provider adapter pattern (Xendit, Midtrans, Duitku, Pakasir, Tripay) │
 │   ├── Circuit breaker per provider                                  │
 │   ├── Retry with exponential backoff + jitter                       │
@@ -238,7 +238,7 @@ betterpay/
 
 ---
 
-## Payment Provider Layer (from wabase, production-proven)
+## Payment Provider Layer
 
 Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 6 Indonesian payment gateway.
 
@@ -395,7 +395,7 @@ BetterPayError (base)
 └── MigrationError               (500, MIGRATION_ERROR)
 ```
 
-### Database Schema (payment tables — from wabase, production)
+### Database Schema (payment tables)
 
 ```sql
 -- Drizzle adapter: @betterpay/drizzle-adapter (PostgreSQL)
@@ -424,7 +424,7 @@ payment_gateway_config          -- Encrypted credentials per provider
 
 ---
 
-## Billing Domain Layer (from PayKit patterns)
+## Billing Domain Layer
 
 This layer sits ON TOP of the payment provider layer and adds subscription lifecycle, entitlement tracking, and product management.
 
@@ -537,7 +537,7 @@ Provider webhook → /pay/api/webhook/:provider
 
 ---
 
-## Plugin System (from Better Auth)
+## Plugin System
 
 ### BetterPayPlugin Interface
 
@@ -1174,8 +1174,8 @@ const ISO_4217_DECIMALS = {
 ┌─────────────────────────────────────────────────────────────┐
 │                      BetterPay                               │
 │                                                              │
-│  Architecture:  Better Auth (plugin-first, hooks, adapters) │
-│  Domain:        PayKit (plans, subscriptions, entitlements)  │
+│  Architecture:  Plugin-first, hooks, adapters                │
+│  Domain:        Plans, subscriptions, entitlements           │
 │  Providers:     Midtrans + Xendit + Duitku + Pakasir +      │
 │                 Tripay + Mayar (6 adapters, all with tests)  │
 │  Reliability:   Circuit breaker, retry, replay protection,  │
