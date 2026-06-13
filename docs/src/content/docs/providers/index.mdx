@@ -114,18 +114,18 @@ BetterPay supports multiple providers simultaneously:
 
 ```typescript
 import { betterPay } from '@betterpay/core';
-import { TripayProvider } from '@betterpay/tripay';
-import { MidtransProvider } from '@betterpay/midtrans';
+import { tripay } from '@betterpay/tripay';
+import { midtrans } from '@betterpay/midtrans';
 
 const pay = betterPay({
-  providers: [
-    new TripayProvider({
+  plugins: [
+    tripay({
       apiKey: process.env.TRIPAY_API_KEY!,
       privateKey: process.env.TRIPAY_PRIVATE_KEY!,
       merchantCode: process.env.TRIPAY_MERCHANT_CODE!,
       isSandbox: process.env.NODE_ENV !== 'production',
     }),
-    new MidtransProvider({
+    midtrans({
       serverKey: process.env.MIDTRANS_SERVER_KEY!,
       clientKey: process.env.MIDTRANS_CLIENT_KEY!,
       isSandbox: process.env.NODE_ENV !== 'production',

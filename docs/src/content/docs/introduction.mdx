@@ -46,7 +46,7 @@ const pay = betterPay({
 });
 
 // Create payment
-const payment = await pay.createPayment({
+const payment = await pay.createTransaction({
   amount: 100000,
   currency: 'IDR',
   customerEmail: 'user@example.com',

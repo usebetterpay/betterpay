@@ -117,7 +117,7 @@ try {
     customerEmail: 'user@example.com',
   });
 } catch (error) {
-  if (error instanceof PaymentError) {
+  if (error instanceof BetterPayError) {
     console.error('Payment failed:', error.message);
     console.error('Error code:', error.code);
   }
