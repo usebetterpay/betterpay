@@ -21,6 +21,18 @@ BetterPay supports multiple Indonesian payment providers through a unified adapt
   <Card title="Xendit" href="/docs/providers/xendit">
     Regional payment platform with extensive payment method coverage
   </Card>
+
+  <Card title="Duitku" href="#duitku">
+    Indonesian payment gateway with VA, QRIS, and e-wallet support
+  </Card>
+
+  <Card title="Pakasir" href="#pakasir">
+    Simple Indonesian payment gateway for small businesses
+  </Card>
+
+  <Card title="Mayar" href="#mayar">
+    Headless commerce platform with payment, invoicing, and membership
+  </Card>
 </Cards>
 
 ### Coming Soon
@@ -116,6 +128,7 @@ BetterPay supports multiple providers simultaneously:
 import { betterPay } from '@betterpay/core';
 import { tripay } from '@betterpay/tripay';
 import { midtrans } from '@betterpay/midtrans';
+import { mayar } from '@betterpay/mayar';
 
 const pay = betterPay({
   plugins: [
@@ -128,6 +141,11 @@ const pay = betterPay({
     midtrans({
       serverKey: process.env.MIDTRANS_SERVER_KEY!,
       clientKey: process.env.MIDTRANS_CLIENT_KEY!,
+      isSandbox: process.env.NODE_ENV !== 'production',
+    }),
+    mayar({
+      apiKey: process.env.MAYAR_API_KEY!,
+      merchantId: process.env.MAYAR_MERCHANT_ID!,
       isSandbox: process.env.NODE_ENV !== 'production',
     }),
   ],
@@ -143,11 +161,12 @@ const pay = betterPay({
 ### For Enterprise
 - **Midtrans** - Comprehensive features, enterprise support
 - **Xendit** - Regional coverage, advanced features
+- **Mayar** - All-in-one platform (payment + invoicing + membership)
 - **DOKU** - Enterprise-grade, advanced fraud detection
 
 ### For Specific Use Cases
 - **QRIS-only**: Any provider with QRIS support
-- **Subscription**: Mayar (coming soon)
+- **Subscription**: Mayar (membership API built-in)
 - **Multi-country**: Xendit (Indonesia, Philippines, Vietnam)
 
 ## Next Steps

@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 6 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay).
+> **Indonesian billing framework** — Plugin-first architecture (Better Auth pattern), billing domain model (PayKit pattern), grounded in production code (wabase payment-gateway with 6 providers: Xendit, Midtrans, Duitku, Pakasir, Tripay, Mayar).
 >
 > **Status:** All 15 architectural decisions locked via grilling session (see `docs/DESIGN_DECISIONS.md`).
 
@@ -22,7 +22,7 @@
 
 BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, payment reconciliation, dan webhook processing — tanpa user perlu tahu detail API masing-masing provider.
 
-**Foundation:** Bukan greenfield. BetterPay dibangun di atas `@repo/payment-gateway` (wabase) yang sudah production-grade dengan 6 provider terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
+**Foundation:** Bukan greenfield. BetterPay dibangun di atas `@repo/payment-gateway` (wabase) yang sudah production-grade dengan 6 provider adapter terintegrasi, state machine, circuit breaker, reconciliation worker, dan replay protection.
 
 **15 Key Decisions (all locked):**
 1. **Framework** (not standalone service) — embed di app user
@@ -213,6 +213,7 @@ betterpay/
 │   ├── duitku/                      # Duitku adapter
 │   ├── pakasir/                     # Pakasir adapter
 │   ├── tripay/                      # Tripay adapter
+│   ├── mayar/                       # Mayar adapter
 │   │
 │   │  ═══ Notification Plugins ═══
 │   ├── notification-email/
@@ -273,7 +274,7 @@ interface PaymentProvider {
 }
 ```
 
-### Provider Adapters (5 implemented)
+### Provider Adapters (6 implemented)
 
 | Provider | Adapter | API | Auth | Signature |
 |----------|---------|-----|------|-----------|
