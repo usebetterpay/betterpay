@@ -1,0 +1,35 @@
+{
+  "name": "@betterpay/sumopod",
+  "version": "0.1.0",
+  "description": "SumoPod payment adapter for BetterPay",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:sandbox": "vitest run __tests__/sandbox.integration.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "betterpay",
+    "sumopod",
+    "payment-gateway",
+    "indonesia"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@betterpay/core": "file:../core"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
+  }
+}
