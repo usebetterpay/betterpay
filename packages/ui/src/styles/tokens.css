@@ -1,0 +1,36 @@
+/**
+ * Optional semantic token hints for consumers who do not already run shadcn theme CSS.
+ * Prefer mapping these to your app design tokens.
+ */
+:root {
+  --bp-radius: 0.5rem;
+  --bp-background: oklch(0.99 0 0);
+  --bp-foreground: oklch(0.18 0.02 250);
+  --bp-card: oklch(1 0 0);
+  --bp-card-foreground: oklch(0.18 0.02 250);
+  --bp-primary: oklch(0.35 0.08 230);
+  --bp-primary-foreground: oklch(0.99 0 0);
+  --bp-muted: oklch(0.96 0.01 250);
+  --bp-muted-foreground: oklch(0.5 0.02 250);
+  --bp-border: oklch(0.9 0.01 250);
+  --bp-destructive: oklch(0.55 0.2 25);
+  --bp-success: oklch(0.45 0.12 150);
+  --bp-warning: oklch(0.65 0.14 75);
+  --bp-ring: oklch(0.45 0.08 230);
+}
+
+.dark {
+  --bp-background: oklch(0.16 0.02 250);
+  --bp-foreground: oklch(0.96 0.01 250);
+  --bp-card: oklch(0.2 0.02 250);
+  --bp-card-foreground: oklch(0.96 0.01 250);
+  --bp-primary: oklch(0.72 0.08 210);
+  --bp-primary-foreground: oklch(0.16 0.02 250);
+  --bp-muted: oklch(0.24 0.02 250);
+  --bp-muted-foreground: oklch(0.7 0.02 250);
+  --bp-border: oklch(0.3 0.02 250);
+  --bp-destructive: oklch(0.65 0.18 25);
+  --bp-success: oklch(0.7 0.12 150);
+  --bp-warning: oklch(0.78 0.12 85);
+  --bp-ring: oklch(0.72 0.08 210);
+}

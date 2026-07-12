@@ -179,6 +179,7 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/tripay` | Tripay adapter |
 | `@betterpay/mayar` | Mayar adapter |
 | `@betterpay/client` | Proxy-based client SDK |
+| `@betterpay/ui` | React billing UI (pricing, portal, invoices, usage) |
 | `@betterpay/cli` | CLI tools (init, push, status, credentials) |
 | `@betterpay/drizzle-adapter` | PostgreSQL repositories (Drizzle ORM) |
 | `@betterpay/next` | Next.js handler |
