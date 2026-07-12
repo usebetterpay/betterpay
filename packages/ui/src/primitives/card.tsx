@@ -2,21 +2,29 @@ import * as React from 'react';
 import { cn } from '../lib/cn';
 
 /**
- * Presentational card (base-nova structure). No Base UI primitive required.
+ * Surface container. Prefer flat ring over heavy shadow.
+ * Use only when grouping is the right affordance (not every block needs a card).
  */
 function Card({
   className,
   size = 'default',
+  elevated = false,
   ...props
-}: React.ComponentProps<'div'> & { size?: 'default' | 'sm' }) {
+}: React.ComponentProps<'div'> & {
+  size?: 'default' | 'sm';
+  elevated?: boolean;
+}) {
   return (
     <div
       data-slot="card"
       data-size={size}
       className={cn(
-        'group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10',
-        'has-data-[slot=card-footer]:pb-0',
+        'group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card text-card-foreground',
+        'ring-1 ring-border',
+        elevated ? 'shadow-sm' : 'shadow-xs',
+        size === 'default' && 'py-4',
         size === 'sm' && 'gap-3 py-3 text-sm',
+        'has-data-[slot=card-footer]:pb-0',
         className,
       )}
       {...props}
@@ -29,7 +37,8 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-header"
       className={cn(
-        'grid auto-rows-min items-start gap-1 px-4 has-data-[slot=card-action]:grid-cols-[1fr_auto]',
+        'grid auto-rows-min items-start gap-1 px-4',
+        'has-data-[slot=card-action]:grid-cols-[1fr_auto]',
         className,
       )}
       {...props}
@@ -41,7 +50,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-title"
-      className={cn('text-base leading-snug font-medium', className)}
+      className={cn('text-[0.9375rem] leading-snug font-semibold tracking-tight', className)}
       {...props}
     />
   );
@@ -51,7 +60,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-description"
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-sm leading-relaxed text-muted-foreground', className)}
       {...props}
     />
   );
@@ -75,7 +84,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-footer"
-      className={cn('flex items-center gap-2 border-t bg-muted/50 p-4', className)}
+      className={cn(
+        'flex items-center gap-2 border-t border-border bg-muted/40 px-4 py-3',
+        className,
+      )}
       {...props}
     />
   );

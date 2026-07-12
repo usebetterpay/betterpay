@@ -17,21 +17,21 @@ export interface PaymentStatusBannerProps {
 }
 
 const ICONS: Record<PaymentCalloutStatus, React.ReactNode> = {
-  success: <CheckCircle2Icon className="size-5 shrink-0" aria-hidden />,
-  failed: <AlertCircleIcon className="size-5 shrink-0" aria-hidden />,
-  past_due: <AlertCircleIcon className="size-5 shrink-0" aria-hidden />,
-  pending: <ClockIcon className="size-5 shrink-0" aria-hidden />,
+  success: <CheckCircle2Icon className="size-4 shrink-0" aria-hidden />,
+  failed: <AlertCircleIcon className="size-4 shrink-0" aria-hidden />,
+  past_due: <AlertCircleIcon className="size-4 shrink-0" aria-hidden />,
+  pending: <ClockIcon className="size-4 shrink-0" aria-hidden />,
 };
 
+/** Full-border tinted surfaces (no side-stripe accents). */
 const TONE_CLASS: Record<PaymentCalloutStatus, string> = {
   success:
-    'border-[color-mix(in_oklch,var(--bp-success,#2f6f4e)_35%,transparent)] bg-[color-mix(in_oklch,var(--bp-success,#2f6f4e)_10%,transparent)] text-[var(--bp-success,#2f6f4e)]',
+    'border-success/25 bg-[color-mix(in_oklch,var(--success)_10%,var(--background))] text-success',
   failed:
-    'border-[color-mix(in_oklch,var(--bp-destructive,#c23b2a)_35%,transparent)] bg-[color-mix(in_oklch,var(--bp-destructive,#c23b2a)_10%,transparent)] text-[var(--bp-destructive,#c23b2a)]',
+    'border-destructive/25 bg-[color-mix(in_oklch,var(--destructive)_9%,var(--background))] text-destructive',
   past_due:
-    'border-[color-mix(in_oklch,var(--bp-warning,#b8860b)_35%,transparent)] bg-[color-mix(in_oklch,var(--bp-warning,#b8860b)_12%,transparent)] text-[var(--bp-warning,#8a6500)]',
-  pending:
-    'border-[var(--bp-border,#e2e8f0)] bg-[var(--bp-muted,#f1f3f5)] text-[var(--bp-foreground,#111)]',
+    'border-warning/30 bg-[color-mix(in_oklch,var(--warning)_12%,var(--background))] text-warning',
+  pending: 'border-border bg-muted text-foreground',
 };
 
 export function PaymentStatusBanner({
@@ -51,28 +51,28 @@ export function PaymentStatusBanner({
       data-slot="payment-status-banner"
       role="status"
       className={cn(
-        'flex items-start gap-3 rounded-md border px-4 py-3',
+        'flex items-start gap-3 rounded-lg border px-3.5 py-3 shadow-xs',
         TONE_CLASS[status],
         className,
       )}
     >
-      {ICONS[status]}
+      <span className="mt-0.5">{ICONS[status]}</span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="text-sm font-medium text-current">{heading}</p>
         {description ? (
-          <p className="text-sm opacity-90 text-[var(--bp-foreground,#111)]">{description}</p>
+          <p className="text-sm leading-relaxed text-foreground/85">{description}</p>
         ) : null}
         {action ? <div className="mt-1">{action}</div> : null}
       </div>
       {dismissible ? (
         <Button
           variant="ghost"
-          size="icon"
-          className="size-8 shrink-0"
+          size="icon-sm"
+          className="shrink-0 text-current opacity-70 hover:opacity-100"
           aria-label="Dismiss"
           onClick={onDismiss}
         >
-          <XIcon className="size-4" />
+          <XIcon />
         </Button>
       ) : null}
     </div>

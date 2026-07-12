@@ -49,12 +49,13 @@ export function BillingPortal({
   title = 'Billing',
 }: BillingPortalProps) {
   return (
-    <div data-slot="billing-portal" className={cn('mx-auto flex w-full max-w-4xl flex-col gap-6', className)}>
+    <div
+      data-slot="billing-portal"
+      className={cn('mx-auto flex w-full max-w-4xl flex-col gap-7 font-sans', className)}
+    >
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <p className="text-sm text-[var(--bp-muted-foreground,#64748b)]">
-          Manage plan, usage, and invoices.
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        <p className="text-sm text-muted-foreground">Plan, usage, and invoices for this account.</p>
       </header>
 
       {callout ? (

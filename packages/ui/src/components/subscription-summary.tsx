@@ -60,13 +60,13 @@ export function SubscriptionSummary({
         <dl className="grid gap-3 sm:grid-cols-2">
           {nextAmount ? (
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-[var(--bp-muted-foreground,#64748b)]">Next charge</dt>
+              <dt className="text-xs text-muted-foreground">Next charge</dt>
               <dd className="text-sm font-medium tabular-nums">{nextAmount}</dd>
             </div>
           ) : null}
           {periodEnd ? (
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-[var(--bp-muted-foreground,#64748b)]">
+              <dt className="text-xs text-muted-foreground">
                 {subscription.cancelAtPeriodEnd ? 'Ends on' : 'Renews on'}
               </dt>
               <dd className="text-sm font-medium">{periodEnd}</dd>
@@ -74,7 +74,7 @@ export function SubscriptionSummary({
           ) : null}
           {subscription.paymentMethodLabel ? (
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <dt className="text-xs text-[var(--bp-muted-foreground,#64748b)]">Payment method</dt>
+              <dt className="text-xs text-muted-foreground">Payment method</dt>
               <dd className="text-sm font-medium">{subscription.paymentMethodLabel}</dd>
             </div>
           ) : null}
@@ -82,7 +82,7 @@ export function SubscriptionSummary({
         {subscription.cancelAtPeriodEnd ? (
           <>
             <Separator />
-            <p className="text-sm text-[var(--bp-muted-foreground,#64748b)]">
+            <p className="text-sm text-muted-foreground">
               Access continues until the period ends. You will not be charged again.
             </p>
           </>

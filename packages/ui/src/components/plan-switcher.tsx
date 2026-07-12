@@ -78,10 +78,10 @@ export function PlanSwitcher({
                   onClick={() => setSelected(plan.id)}
                   className={cn(
                     'flex w-full items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors',
-                    'focus-visible:ring-2 focus-visible:ring-[var(--bp-ring,currentColor)] focus-visible:outline-none',
+                    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                     active
-                      ? 'border-[var(--bp-primary,#0f3d4c)] bg-[color-mix(in_oklch,var(--bp-primary,#0f3d4c)_6%,transparent)]'
-                      : 'border-[var(--bp-border,#e2e8f0)] hover:bg-[var(--bp-muted,#f8fafc)]',
+                      ? 'border-primary bg-[color-mix(in_oklch,var(--bp-primary,#0f3d4c)_6%,transparent)]'
+                      : 'border-border hover:bg-muted',
                   )}
                 >
                   <div className="flex min-w-0 flex-col gap-1">
@@ -91,7 +91,7 @@ export function PlanSwitcher({
                       {plan.recommended ? <Badge tone="default">Recommended</Badge> : null}
                     </div>
                     {plan.description ? (
-                      <span className="text-xs text-[var(--bp-muted-foreground,#64748b)]">
+                      <span className="text-xs text-muted-foreground">
                         {plan.description}
                       </span>
                     ) : null}
@@ -105,10 +105,11 @@ export function PlanSwitcher({
           })}
         </ul>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" size="sm" onClick={() => handleOpenChange(false)}>
             Keep current
           </Button>
           <Button
+            size="sm"
             disabled={selected === currentPlanId}
             onClick={() => {
               onConfirm?.(selected);

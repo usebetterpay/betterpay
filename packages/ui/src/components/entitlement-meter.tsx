@@ -42,8 +42,8 @@ export function EntitlementMeter({
             className={cn(
               'text-xs font-medium tabular-nums',
               warn
-                ? 'text-[var(--bp-warning,#8a6500)]'
-                : 'text-[var(--bp-muted-foreground,#64748b)]',
+                ? 'text-warning'
+                : 'text-muted-foreground',
             )}
           >
             {percentLabel}
@@ -53,7 +53,7 @@ export function EntitlementMeter({
       <CardContent className="flex flex-col gap-2">
         <div
           data-slot="entitlement-meter-track"
-          className="h-2 w-full overflow-hidden rounded-full bg-[var(--bp-muted,#e2e8f0)]"
+          className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
           role="meter"
           aria-valuemin={0}
           aria-valuemax={unlimited ? undefined : limit}
@@ -63,16 +63,14 @@ export function EntitlementMeter({
           <div
             data-slot="entitlement-meter-fill"
             className={cn(
-              'h-full rounded-full transition-[width]',
-              warn
-                ? 'bg-[var(--bp-warning,#b8860b)]'
-                : 'bg-[var(--bp-primary,#0f3d4c)]',
+              'h-full rounded-full transition-[width] duration-[var(--duration,180ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',
+              warn ? 'bg-warning' : 'bg-primary',
               unlimited && 'w-0',
             )}
             style={unlimited ? undefined : { width: `${ratio * 100}%` }}
           />
         </div>
-        <div className="flex items-center justify-between gap-2 text-xs text-[var(--bp-muted-foreground,#64748b)]">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>
             {remaining == null
               ? 'Remaining: unlimited'

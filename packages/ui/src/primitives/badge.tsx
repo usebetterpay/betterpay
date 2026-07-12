@@ -5,14 +5,16 @@ import { cn } from '../lib/cn';
 import type { BadgeTone } from '../lib/status';
 
 /**
- * shadcn base-nova Badge using Base UI `useRender` (supports `render` composition).
- * BetterPay also accepts `tone` for domain status mapping.
+ * Status / meta badge. Prefer `tone` for domain status; `variant` for chrome.
+ * Composition via Base UI useRender (`render` prop).
  */
 const badgeVariants = cva(
   [
-    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden',
-    'rounded-full border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all',
-    'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
+    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1',
+    'rounded-md border border-transparent px-1.5 text-[0.6875rem] font-medium tracking-wide',
+    'whitespace-nowrap uppercase transition-colors',
+    'duration-[var(--duration-fast,120ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     '[&>svg]:pointer-events-none [&>svg]:size-3',
   ].join(' '),
   {
@@ -20,15 +22,18 @@ const badgeVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground',
         secondary: 'bg-secondary text-secondary-foreground',
-        destructive: 'bg-destructive/10 text-destructive',
-        outline: 'border-border text-foreground',
-        ghost: 'hover:bg-muted hover:text-muted-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
-        // Domain tones (BetterPay status)
-        success: 'bg-[color-mix(in_oklch,var(--success)_18%,transparent)] text-[var(--success)]',
-        warning: 'bg-[color-mix(in_oklch,var(--warning)_18%,transparent)] text-[var(--warning)]',
-        danger: 'bg-destructive/10 text-destructive',
-        muted: 'border-border bg-muted text-muted-foreground',
+        outline: 'border-border bg-card text-foreground',
+        ghost: 'text-muted-foreground',
+        // Domain tones
+        success:
+          'border-transparent bg-[color-mix(in_oklch,var(--success)_14%,var(--background))] text-success',
+        warning:
+          'border-transparent bg-[color-mix(in_oklch,var(--warning)_16%,var(--background))] text-warning',
+        danger:
+          'border-transparent bg-[color-mix(in_oklch,var(--destructive)_12%,var(--background))] text-destructive',
+        muted: 'border-border bg-muted text-muted-foreground normal-case tracking-normal',
+        info:
+          'border-transparent bg-[color-mix(in_oklch,var(--info)_12%,var(--background))] text-[var(--info)]',
       },
     },
     defaultVariants: {
@@ -37,7 +42,10 @@ const badgeVariants = cva(
   },
 );
 
-const TONE_TO_VARIANT: Record<BadgeTone, NonNullable<VariantProps<typeof badgeVariants>['variant']>> = {
+const TONE_TO_VARIANT: Record<
+  BadgeTone,
+  NonNullable<VariantProps<typeof badgeVariants>['variant']>
+> = {
   default: 'default',
   success: 'success',
   warning: 'warning',

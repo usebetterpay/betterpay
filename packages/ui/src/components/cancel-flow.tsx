@@ -77,7 +77,7 @@ export function CancelFlow({
           {reasons.map((reason) => (
             <label
               key={reason.id}
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-[var(--bp-border,#e2e8f0)] px-3 py-2 text-sm has-[:checked]:border-[var(--bp-primary,#0f3d4c)]"
+              className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm has-[:checked]:border-primary"
             >
               <input
                 type="radio"
@@ -85,18 +85,19 @@ export function CancelFlow({
                 value={reason.id}
                 checked={reasonId === reason.id}
                 onChange={() => setReasonId(reason.id)}
-                className="size-4 accent-[var(--bp-primary,#0f3d4c)]"
+                className="size-4 accent-primary"
               />
               {reason.label}
             </label>
           ))}
         </fieldset>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" size="sm" onClick={() => handleOpenChange(false)}>
             Keep subscription
           </Button>
           <Button
             variant="destructive"
+            size="sm"
             onClick={() => {
               onConfirm?.({ reasonId });
               handleOpenChange(false);

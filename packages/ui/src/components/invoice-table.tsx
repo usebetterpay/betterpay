@@ -51,7 +51,7 @@ export function InvoiceTable({
         {invoices.length === 0 ? (
           <p
             data-slot="invoice-table-empty"
-            className="px-5 pb-5 text-sm text-[var(--bp-muted-foreground,#64748b)]"
+            className="px-5 pb-5 text-sm text-muted-foreground"
           >
             {emptyMessage}
           </p>

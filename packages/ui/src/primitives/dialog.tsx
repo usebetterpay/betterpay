@@ -7,8 +7,9 @@ import { cn } from '../lib/cn';
 import { Button } from './button';
 
 /**
- * shadcn base-nova Dialog on Base UI.
- * Triggers use `render={<Button />}` — never `asChild`.
+ * Modal surface (Base UI). Prefer inline flows when possible;
+ * dialogs for confirmations and multi-step plan changes.
+ * Triggers: <DialogTrigger render={<Button />}>
  */
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
@@ -32,8 +33,8 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-black/10 transition-opacity duration-100 supports-backdrop-filter:backdrop-blur-xs',
-        'data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0',
+        'fixed inset-0 z-50 bg-[oklch(0.22_0.03_240/0.36)]',
+        'transition-opacity duration-[var(--duration,180ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',
         'data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
         className,
       )}
@@ -42,7 +43,6 @@ function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
   );
 }
 
-/** @deprecated Prefer DialogOverlay — alias for older call sites. */
 const DialogBackdrop = DialogOverlay;
 
 function DialogContent({
@@ -59,10 +59,12 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4',
-          'rounded-xl bg-popover p-4 text-sm text-popover-foreground shadow-lg outline-none ring-1 ring-foreground/10',
-          'sm:max-w-lg',
-          'data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
+          'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2',
+          'gap-4 rounded-lg bg-popover p-5 text-sm text-popover-foreground shadow-md outline-none',
+          'ring-1 ring-border sm:max-w-lg',
+          'transition-[opacity,transform] duration-[var(--duration,180ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',
+          'data-[ending-style]:scale-[0.98] data-[ending-style]:opacity-0',
+          'data-[starting-style]:scale-[0.98] data-[starting-style]:opacity-0',
           className,
         )}
         {...props}
@@ -75,7 +77,7 @@ function DialogContent({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="absolute top-2 right-2"
+                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
                 aria-label="Close"
               />
             }
@@ -89,14 +91,13 @@ function DialogContent({
   );
 }
 
-/** Alias used by BetterPay domain components. */
 const DialogPopup = DialogContent;
 
 function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 pr-8', className)}
+      className={cn('flex flex-col gap-1.5 pr-8', className)}
       {...props}
     />
   );
@@ -114,14 +115,16 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        'flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end',
         className,
       )}
       {...props}
     >
       {children}
       {showCloseButton ? (
-        <DialogPrimitive.Close render={<Button variant="outline" />}>Close</DialogPrimitive.Close>
+        <DialogPrimitive.Close render={<Button variant="outline" size="sm" />}>
+          Close
+        </DialogPrimitive.Close>
       ) : null}
     </div>
   );
@@ -131,7 +134,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-base leading-none font-medium', className)}
+      className={cn('text-base font-semibold tracking-tight', className)}
       {...props}
     />
   );
@@ -141,7 +144,7 @@ function DialogDescription({ className, ...props }: DialogPrimitive.Description.
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-sm text-muted-foreground', className)}
+      className={cn('text-sm leading-relaxed text-muted-foreground', className)}
       {...props}
     />
   );

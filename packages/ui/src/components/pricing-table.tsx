@@ -11,11 +11,11 @@ import { Button } from '../primitives/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../primitives/card';
 import { Switch } from '../primitives/switch';
 
-const shellVariants = cva('mx-auto flex w-full max-w-5xl flex-col gap-8', {
+const shellVariants = cva('mx-auto flex w-full max-w-5xl flex-col font-sans', {
   variants: {
     density: {
       comfortable: 'gap-8',
-      compact: 'gap-6',
+      compact: 'gap-5',
     },
   },
   defaultVariants: { density: 'comfortable' },
@@ -58,29 +58,36 @@ export function PricingTable({
 
   return (
     <section data-slot="pricing-table" className={cn(shellVariants({ density }), className)}>
-      <header className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex max-w-xl flex-col gap-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-[var(--bp-foreground,#111)]">
+      <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex max-w-xl flex-col gap-1.5">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             {title}
           </h2>
           {description ? (
-            <p className="text-sm text-[var(--bp-muted-foreground,#64748b)]">{description}</p>
+            <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className={cn(!yearly && 'font-medium')}>Monthly</span>
+        <div
+          className="flex items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-2 text-sm ring-1 ring-border"
+          data-slot="pricing-interval"
+        >
+          <span className={cn('text-muted-foreground', !yearly && 'font-medium text-foreground')}>
+            Monthly
+          </span>
           <Switch
             checked={yearly}
             onCheckedChange={(checked) => setInterval(checked ? 'year' : 'month')}
             aria-label="Bill yearly"
           />
-          <span className={cn(yearly && 'font-medium')}>Yearly</span>
+          <span className={cn('text-muted-foreground', yearly && 'font-medium text-foreground')}>
+            Yearly
+          </span>
         </div>
       </header>
 
       <div
         className={cn(
-          'grid gap-4',
+          'grid gap-3 md:gap-4',
           plans.length === 1 && 'md:grid-cols-1',
           plans.length === 2 && 'md:grid-cols-2',
           plans.length >= 3 && 'md:grid-cols-3',
@@ -96,10 +103,10 @@ export function PricingTable({
             <Card
               key={plan.id}
               data-slot="pricing-plan"
+              elevated={Boolean(plan.recommended)}
               className={cn(
                 'relative h-full',
-                plan.recommended &&
-                  'border-[var(--bp-primary,#0f3d4c)] ring-1 ring-[var(--bp-primary,#0f3d4c)]',
+                plan.recommended && 'ring-2 ring-primary/35',
               )}
             >
               <CardHeader>
@@ -113,29 +120,28 @@ export function PricingTable({
                 </div>
                 {plan.description ? <CardDescription>{plan.description}</CardDescription> : null}
               </CardHeader>
-              <CardContent className="flex flex-1 flex-col gap-6">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-semibold tracking-tight tabular-nums">
+              <CardContent className="flex flex-1 flex-col gap-5">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[1.75rem] font-semibold tracking-tight tabular-nums sm:text-3xl">
                     {priceLabel}
                   </span>
-                  <span className="text-sm text-[var(--bp-muted-foreground,#64748b)]">{period}</span>
+                  <span className="text-sm text-muted-foreground">{period}</span>
                 </div>
-                <ul className="flex flex-col gap-2.5" data-slot="pricing-features">
+                <ul className="flex flex-col gap-2" data-slot="pricing-features">
                   {plan.features.map((feature) => (
-                    <li key={feature.id} className="flex items-start gap-2 text-sm">
+                    <li key={feature.id} className="flex items-start gap-2 text-sm leading-snug">
                       <CheckIcon
                         className={cn(
                           'mt-0.5 size-4 shrink-0',
                           feature.included === false
-                            ? 'text-[var(--bp-muted-foreground,#94a3b8)] opacity-40'
-                            : 'text-[var(--bp-success,#2f6f4e)]',
+                            ? 'text-muted-foreground/50'
+                            : 'text-success',
                         )}
                         aria-hidden
                       />
                       <span
                         className={cn(
-                          feature.included === false &&
-                            'text-[var(--bp-muted-foreground,#94a3b8)] line-through',
+                          feature.included === false && 'text-muted-foreground line-through',
                         )}
                       >
                         {feature.label}
