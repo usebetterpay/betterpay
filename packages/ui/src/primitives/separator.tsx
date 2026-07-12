@@ -1,22 +1,27 @@
-import * as React from 'react';
+'use client';
+
+import { Separator as SeparatorPrimitive } from '@base-ui/react/separator';
 import { cn } from '../lib/cn';
 
-export function Separator({
+/**
+ * shadcn base-nova Separator on Base UI.
+ */
+function Separator({
   className,
   orientation = 'horizontal',
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { orientation?: 'horizontal' | 'vertical' }) {
+}: SeparatorPrimitive.Props) {
   return (
-    <div
+    <SeparatorPrimitive
       data-slot="separator"
-      role="separator"
-      aria-orientation={orientation}
+      orientation={orientation}
       className={cn(
-        'shrink-0 bg-[var(--bp-border,#e2e8f0)]',
-        orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px',
+        'shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch',
         className,
       )}
       {...props}
     />
   );
 }
+
+export { Separator };

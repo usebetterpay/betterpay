@@ -38,10 +38,14 @@ Map to badge/banner variants; do not invent parallel status taxonomies.
 
 ## Composition
 
+- Style preset: **shadcn `base-nova`** (`packages/ui/components.json`)
 - Product components compose primitives (`Button`, `Card`, `Dialog`, …)
 - Base UI slotting: `render` prop (never Radix `asChild`)
+  - Dialog trigger: `<DialogTrigger render={<Button />}>…</DialogTrigger>`
+  - Button as link: `<Button render={<Link href="…" />} nativeButton={false}>…</Button>`
 - Every semantic node: `data-slot="…"`
 - Variants via CVA; consumer `className` wins via `cn()`
+- Badge uses Base UI `useRender` / `mergeProps` for composition
 
 ## Do / Don’t
 

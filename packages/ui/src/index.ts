@@ -27,12 +27,13 @@ export type {
 
 // Primitives
 export { Button, buttonVariants, type ButtonProps } from './primitives/button';
-export { Badge, badgeVariants, type BadgeProps } from './primitives/badge';
+export { Badge, badgeVariants } from './primitives/badge';
 export {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
+  CardAction,
   CardContent,
   CardFooter,
 } from './primitives/card';
@@ -40,7 +41,9 @@ export {
   Dialog,
   DialogTrigger,
   DialogPortal,
+  DialogOverlay,
   DialogBackdrop,
+  DialogContent,
   DialogPopup,
   DialogClose,
   DialogTitle,
@@ -54,9 +57,11 @@ export {
   Table,
   TableHeader,
   TableBody,
+  TableFooter,
   TableRow,
   TableHead,
   TableCell,
+  TableCaption,
 } from './primitives/table';
 
 // Domain components
