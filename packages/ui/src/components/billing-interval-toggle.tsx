@@ -13,7 +13,7 @@ export interface BillingIntervalToggleProps {
 }
 
 /**
- * Monthly / Yearly control. Full-width on narrow containers; compact on wide.
+ * Monthly / Yearly control. Controlled Switch (coss/Base UI pattern).
  */
 export function BillingIntervalToggle({
   value,
@@ -49,7 +49,9 @@ export function BillingIntervalToggle({
 
       <Switch
         checked={yearly}
-        onCheckedChange={(checked) => onChange(checked ? 'year' : 'month')}
+        onCheckedChange={(checked) => {
+          onChange(checked ? 'year' : 'month');
+        }}
         aria-label={switchLabel}
       />
 

@@ -217,3 +217,65 @@
 @container (min-width: 24rem) {
   /* reserved for host bridges if needed */
 }
+
+/* ── Switch (coss-aligned geometry; pure CSS so visuals always work) ──
+ * Size via --thumb-size. Track = 2×thumb − 2px, height = thumb + 2px.
+ * Base UI stamps data-checked / data-unchecked on Root and Thumb.
+ */
+[data-slot='switch'] {
+  --thumb-size: 1.25rem;
+  height: calc(var(--thumb-size) + 2px);
+  width: calc(var(--thumb-size) * 2 - 2px);
+  border-radius: 9999px;
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+  background-color: var(--input);
+}
+
+@media (min-width: 640px) {
+  [data-slot='switch']:not([data-size='sm']) {
+    --thumb-size: 1rem;
+  }
+}
+
+[data-slot='switch'][data-size='sm'] {
+  --thumb-size: 0.875rem;
+}
+
+[data-slot='switch'][data-checked] {
+  background-color: var(--primary);
+}
+
+[data-slot='switch'][data-unchecked] {
+  background-color: var(--input);
+}
+
+[data-slot='switch-thumb'] {
+  height: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--thumb-size);
+  background-color: var(--background);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.08);
+  transform-origin: left center;
+  translate: 0 0;
+  transition:
+    translate 0.15s ease,
+    border-radius 0.15s ease,
+    scale 0.1s 0.1s ease,
+    transform-origin 0.15s ease;
+}
+
+[data-slot='switch-thumb'][data-checked] {
+  transform-origin: var(--thumb-size) 50%;
+  translate: calc(var(--thumb-size) - 4px) 0;
+}
+
+[data-slot='switch-thumb'][data-unchecked] {
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='switch'],
+  [data-slot='switch-thumb'] {
+    transition: none;
+  }
+}
