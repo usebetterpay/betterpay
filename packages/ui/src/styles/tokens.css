@@ -218,17 +218,19 @@
   /* reserved for host bridges if needed */
 }
 
-/* ── Switch (coss-aligned geometry; pure CSS so visuals always work) ──
- * Size via --thumb-size. Track = 2×thumb − 2px, height = thumb + 2px.
- * Base UI stamps data-checked / data-unchecked on Root and Thumb.
+/* ── Switch safety net (coss geometry) ───────────────────────────────
+ * Base UI stamps data-checked / data-unchecked on Root + Thumb.
+ * Use transform (not CSS `translate` prop) so Tailwind transform utils
+ * and our styles don't fight. !important beats stale utility order.
  */
 [data-slot='switch'] {
   --thumb-size: 1.25rem;
+  box-sizing: border-box;
   height: calc(var(--thumb-size) + 2px);
   width: calc(var(--thumb-size) * 2 - 2px);
   border-radius: 9999px;
-  transition: background-color 200ms ease, box-shadow 200ms ease;
   background-color: var(--input);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 @media (min-width: 640px) {
@@ -241,41 +243,46 @@
   --thumb-size: 0.875rem;
 }
 
-[data-slot='switch'][data-checked] {
-  background-color: var(--primary);
+[data-slot='switch'][data-checked],
+[data-slot='switch'][aria-checked='true'] {
+  background-color: var(--primary) !important;
 }
 
-[data-slot='switch'][data-unchecked] {
-  background-color: var(--input);
+[data-slot='switch'][data-unchecked],
+[data-slot='switch'][aria-checked='false'] {
+  background-color: var(--input) !important;
 }
 
 [data-slot='switch-thumb'] {
+  box-sizing: border-box;
+  display: block;
   height: 100%;
-  aspect-ratio: 1;
-  border-radius: var(--thumb-size);
+  width: var(--thumb-size);
+  min-width: var(--thumb-size);
+  aspect-ratio: 1 / 1;
+  border-radius: 9999px;
   background-color: var(--background);
-  box-shadow: 0 1px 2px oklch(0 0 0 / 0.08);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.1);
   transform-origin: left center;
-  translate: 0 0;
-  transition:
-    translate 0.15s ease,
-    border-radius 0.15s ease,
-    scale 0.1s 0.1s ease,
-    transform-origin 0.15s ease;
+  transform: translateX(0);
+  transition: transform 0.15s ease;
 }
 
-[data-slot='switch-thumb'][data-checked] {
-  transform-origin: var(--thumb-size) 50%;
-  translate: calc(var(--thumb-size) - 4px) 0;
+[data-slot='switch-thumb'][data-checked],
+[data-slot='switch'][data-checked] [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='true'] [data-slot='switch-thumb'] {
+  transform: translateX(calc(var(--thumb-size) - 4px)) !important;
 }
 
-[data-slot='switch-thumb'][data-unchecked] {
-  translate: 0 0;
+[data-slot='switch-thumb'][data-unchecked],
+[data-slot='switch'][data-unchecked] [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='false'] [data-slot='switch-thumb'] {
+  transform: translateX(0) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-slot='switch'],
   [data-slot='switch-thumb'] {
-    transition: none;
+    transition: none !important;
   }
 }
