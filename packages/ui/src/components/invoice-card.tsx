@@ -15,7 +15,7 @@ export interface InvoiceCardProps extends React.ComponentProps<'div'> {
 }
 
 /**
- * Single invoice row for mobile lists or dense stacks.
+ * Single invoice surface for mobile lists or dense stacks.
  * Pair with InvoiceTable for desktop history.
  */
 export function InvoiceCard({
@@ -32,29 +32,35 @@ export function InvoiceCard({
     <div
       data-slot="invoice-card"
       className={cn(
-        'flex items-center gap-3 rounded-lg border border-border bg-card text-card-foreground shadow-xs',
+        'flex flex-col gap-3 rounded-lg border border-border bg-card text-card-foreground shadow-none',
         'transition-colors duration-[var(--duration-fast,120ms)] hover:bg-muted/40',
-        compact ? 'p-3' : 'gap-4 p-4',
+        // Stack on very narrow; row when there is room
+        'xs:flex-row xs:items-center sm:flex-row sm:items-center',
+        compact ? 'p-3' : 'p-4',
         className,
       )}
       {...props}
     >
-      <div
-        data-slot="invoice-card-icon"
-        className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
-      >
-        <FileTextIcon className="size-5" aria-hidden />
-      </div>
-
-      <div data-slot="invoice-card-body" className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-sm font-medium">{invoice.number}</span>
-          <Badge tone={status.tone}>{status.label}</Badge>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <div
+          data-slot="invoice-card-icon"
+          className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
+        >
+          <FileTextIcon className="size-5" aria-hidden />
         </div>
-        <span className="text-xs text-muted-foreground">{formatDisplayDate(invoice.issuedAt)}</span>
+
+        <div data-slot="invoice-card-body" className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-sm font-medium">{invoice.number}</span>
+            <Badge tone={status.tone}>{status.label}</Badge>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {formatDisplayDate(invoice.issuedAt)}
+          </span>
+        </div>
       </div>
 
-      <div className="flex shrink-0 flex-col items-end gap-1.5">
+      <div className="flex shrink-0 items-center justify-between gap-3 ps-[3.25rem] sm:flex-col sm:items-end sm:justify-center sm:gap-1.5 sm:ps-0">
         <span className="text-sm font-medium tabular-nums">
           {formatMoney(invoice.amount, { currency })}
         </span>

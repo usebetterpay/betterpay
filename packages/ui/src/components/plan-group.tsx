@@ -161,7 +161,7 @@ export function PlanGroupIntervalToggle({ className }: { className?: string }) {
         type="button"
         onClick={selectMonth}
         className={cn(
-          'rounded-md px-1.5 py-0.5 transition-colors',
+          'min-h-9 rounded-md px-2 py-1 transition-colors',
           !yearly
             ? 'font-medium text-foreground'
             : 'text-muted-foreground hover:text-foreground',
@@ -180,7 +180,7 @@ export function PlanGroupIntervalToggle({ className }: { className?: string }) {
         type="button"
         onClick={selectYear}
         className={cn(
-          'rounded-md px-1.5 py-0.5 transition-colors',
+          'min-h-9 rounded-md px-2 py-1 transition-colors',
           yearly
             ? 'font-medium text-foreground'
             : 'text-muted-foreground hover:text-foreground',

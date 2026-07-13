@@ -2,8 +2,7 @@ import * as React from 'react';
 import { cn } from '../lib/cn';
 
 /**
- * Surface container. Prefer flat ring over heavy shadow.
- * Use only when grouping is the right affordance (not every block needs a card).
+ * Surface container. Flat ring by default; shadow only when elevated.
  */
 function Card({
   className,
@@ -20,7 +19,6 @@ function Card({
       data-size={size}
       className={cn(
         'group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card text-card-foreground',
-        // Flat surfaces: ring for edge, shadow only when elevated (no muddy drop on CTAs)
         'ring-1 ring-border shadow-none',
         elevated && 'shadow-xs',
         size === 'default' && 'py-4',
@@ -86,7 +84,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-footer"
       className={cn(
-        'flex items-center gap-2 border-t border-border bg-muted/40 px-4 py-3',
+        // Stack on very narrow, row from sm — full-width CTAs when stacked
+        'flex flex-col gap-2 border-t border-border bg-muted/40 px-4 py-3',
+        'sm:flex-row sm:items-center sm:flex-wrap',
+        '[&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto',
         className,
       )}
       {...props}

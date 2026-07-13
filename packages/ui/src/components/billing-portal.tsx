@@ -57,11 +57,16 @@ export function BillingPortal({
   return (
     <div
       data-slot="billing-portal"
-      className={cn('mx-auto flex w-full max-w-4xl flex-col gap-7 font-sans', className)}
+      className={cn(
+        'mx-auto flex w-full max-w-4xl flex-col gap-6 font-sans sm:gap-7',
+        className,
+      )}
     >
       <header className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
-        <p className="text-sm text-muted-foreground">Plan, usage, and invoices for this account.</p>
+        <p className="text-sm text-muted-foreground">
+          Plan, usage, and invoices for this account.
+        </p>
       </header>
 
       {callout ? (
@@ -74,29 +79,41 @@ export function BillingPortal({
         />
       ) : null}
 
-      <SubscriptionSummary subscription={subscription} />
+      <SubscriptionSummary
+        subscription={subscription}
+        onUpgrade={
+          plans.length > 0 && onChangePlan
+            ? undefined // plan change lives in PlanSwitcher action row
+            : undefined
+        }
+      />
 
       {plans.length > 0 || onCancel ? (
-        <div className="flex flex-wrap items-center gap-2" data-slot="billing-portal-actions">
+        <div
+          className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
+          data-slot="billing-portal-actions"
+        >
           {plans.length > 0 ? (
             <PlanSwitcher
               plans={plans}
               currentPlanId={subscription.planId}
               interval={subscription.interval === 'custom' ? 'month' : subscription.interval}
               onConfirm={onChangePlan}
+              className="w-full sm:w-auto"
             />
           ) : null}
           {onCancel ? (
-            <CancelFlow planName={subscription.planName} onConfirm={onCancel} />
+            <CancelFlow
+              planName={subscription.planName}
+              onConfirm={onCancel}
+              className="w-full sm:w-auto"
+            />
           ) : null}
         </div>
       ) : null}
 
       {entitlements.length > 0 ? (
-        <UsageSummary
-          entitlements={entitlements}
-          periodLabel={usagePeriodLabel}
-        />
+        <UsageSummary entitlements={entitlements} periodLabel={usagePeriodLabel} />
       ) : null}
 
       {invoiceLayout === 'cards' ? (
@@ -109,7 +126,10 @@ export function BillingPortal({
           <div className="hidden md:block">
             <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
           </div>
-          <section className="flex flex-col gap-3 md:hidden" data-slot="billing-portal-invoices-mobile">
+          <section
+            className="flex flex-col gap-3 md:hidden"
+            data-slot="billing-portal-invoices-mobile"
+          >
             <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
             <InvoiceCardList invoices={invoices} onDownload={onDownloadInvoice} />
           </section>

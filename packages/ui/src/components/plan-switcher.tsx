@@ -59,12 +59,15 @@ export function PlanSwitcher({
       >
         {triggerLabel}
       </DialogTrigger>
-      <DialogPopup className="max-w-md">
+      <DialogPopup className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <ul data-slot="plan-switcher-list" className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
+        <ul
+          data-slot="plan-switcher-list"
+          className="flex max-h-[min(50vh,20rem)] flex-col gap-2 overflow-y-auto overscroll-contain pe-0.5"
+        >
           {plans.map((plan) => {
             const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
             const currency = plan.currency ?? 'IDR';
@@ -77,27 +80,30 @@ export function PlanSwitcher({
                   data-slot="plan-switcher-option"
                   onClick={() => setSelected(plan.id)}
                   className={cn(
-                    'flex w-full items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors',
+                    'flex w-full min-h-14 items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                     active
-                      ? 'border-primary bg-[color-mix(in_oklch,var(--bp-primary,#0f3d4c)_6%,transparent)]'
+                      ? 'border-primary bg-[color-mix(in_oklch,var(--primary)_6%,transparent)]'
                       : 'border-border hover:bg-muted',
                   )}
                 >
-                  <div className="flex min-w-0 flex-col gap-1">
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{plan.name}</span>
                       {isCurrent ? <Badge tone="muted">Current</Badge> : null}
                       {plan.recommended ? <Badge tone="default">Recommended</Badge> : null}
                     </div>
                     {plan.description ? (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="line-clamp-2 text-xs text-muted-foreground">
                         {plan.description}
                       </span>
                     ) : null}
                   </div>
                   <span className="shrink-0 text-sm font-medium tabular-nums">
                     {formatMoney(amount, { currency })}
+                    <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+                      {interval === 'year' ? '/yr' : '/mo'}
+                    </span>
                   </span>
                 </button>
               </li>
@@ -105,11 +111,10 @@ export function PlanSwitcher({
           })}
         </ul>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Keep current
           </Button>
           <Button
-            size="sm"
             disabled={selected === currentPlanId}
             onClick={() => {
               onConfirm?.(selected);

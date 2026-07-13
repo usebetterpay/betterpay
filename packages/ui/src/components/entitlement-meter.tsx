@@ -22,15 +22,13 @@ export function EntitlementMeter({
   const remainingRatio = unlimited || limit <= 0 ? 1 : Math.max(0, 1 - ratio);
   const warn = !unlimited && remainingRatio <= warnAt;
 
-  const percentLabel = unlimited
-    ? 'Unlimited'
-    : `${Math.round(ratio * 100)}% used`;
+  const percentLabel = unlimited ? 'Unlimited' : `${Math.round(ratio * 100)}% used`;
 
   return (
     <Card data-slot="entitlement-meter" className={cn(className)}>
       <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="text-sm font-medium">{entitlement.label}</CardTitle>
             <CardDescription>
               {unlimited
@@ -40,10 +38,8 @@ export function EntitlementMeter({
           </div>
           <span
             className={cn(
-              'text-xs font-medium tabular-nums',
-              warn
-                ? 'text-warning'
-                : 'text-muted-foreground',
+              'shrink-0 text-xs font-medium tabular-nums',
+              warn ? 'text-warning' : 'text-muted-foreground',
             )}
           >
             {percentLabel}
@@ -53,7 +49,7 @@ export function EntitlementMeter({
       <CardContent className="flex flex-col gap-2">
         <div
           data-slot="entitlement-meter-track"
-          className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+          className="h-2 w-full overflow-hidden rounded-full bg-muted sm:h-1.5"
           role="meter"
           aria-valuemin={0}
           aria-valuemax={unlimited ? undefined : limit}
@@ -70,7 +66,7 @@ export function EntitlementMeter({
             style={unlimited ? undefined : { width: `${ratio * 100}%` }}
           />
         </div>
-        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           <span>
             {remaining == null
               ? 'Remaining: unlimited'

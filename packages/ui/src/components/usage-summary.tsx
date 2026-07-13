@@ -42,13 +42,15 @@ export function UsageSummary({
   return (
     <Card data-slot="usage-summary" className={cn(className)}>
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1">
             <CardTitle className="text-sm font-semibold">{title}</CardTitle>
             {description ? <CardDescription>{description}</CardDescription> : null}
           </div>
           {periodLabel ? (
-            <span className="text-xs font-medium text-muted-foreground">{periodLabel}</span>
+            <span className="shrink-0 text-xs font-medium text-muted-foreground">
+              {periodLabel}
+            </span>
           ) : null}
         </div>
       </CardHeader>
@@ -71,7 +73,7 @@ export function UsageSummary({
               <Button
                 variant="ghost"
                 size="sm"
-                className="self-start"
+                className="w-full justify-center sm:w-auto sm:self-start sm:justify-start"
                 onClick={() => setExpanded((v) => !v)}
                 aria-expanded={expanded}
               >

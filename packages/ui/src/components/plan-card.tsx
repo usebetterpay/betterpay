@@ -66,17 +66,17 @@ function PlanCard({
         {...props}
       >
         <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle>{plan.name}</CardTitle>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <CardTitle className="min-w-0 flex-1">{plan.name}</CardTitle>
             {plan.badge || plan.recommended ? (
-              <Badge tone={plan.recommended ? 'default' : 'muted'}>
+              <Badge tone={plan.recommended ? 'default' : 'muted'} className="shrink-0">
                 {plan.badge ?? 'Recommended'}
               </Badge>
             ) : null}
           </div>
           {plan.description ? <CardDescription>{plan.description}</CardDescription> : null}
         </CardHeader>
-        <CardContent className="flex flex-1 flex-col gap-5">
+        <CardContent className="flex flex-1 flex-col gap-4 sm:gap-5">
           <PlanCardPrice amount={amount} currency={currency} period={period} />
           <PlanCardFeatures features={plan.features} />
         </CardContent>
@@ -133,10 +133,10 @@ function PlanCardPrice({
   return (
     <div
       data-slot="plan-card-price"
-      className={cn('flex items-baseline gap-1.5', className)}
+      className={cn('flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5', className)}
       {...props}
     >
-      <span className="text-[1.75rem] font-semibold tracking-tight tabular-nums sm:text-3xl">
+      <span className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
         {formatMoney(amount, { currency })}
       </span>
       {period ? <span className="text-sm text-muted-foreground">{period}</span> : null}

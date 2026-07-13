@@ -67,7 +67,7 @@ export function CancelFlow({
       >
         {triggerLabel}
       </DialogTrigger>
-      <DialogPopup className="max-w-md">
+      <DialogPopup className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{body}</DialogDescription>
@@ -77,7 +77,7 @@ export function CancelFlow({
           {reasons.map((reason) => (
             <label
               key={reason.id}
-              className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm has-[:checked]:border-primary"
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
             >
               <input
                 type="radio"
@@ -85,19 +85,18 @@ export function CancelFlow({
                 value={reason.id}
                 checked={reasonId === reason.id}
                 onChange={() => setReasonId(reason.id)}
-                className="size-4 accent-primary"
+                className="size-4 shrink-0 accent-primary"
               />
-              {reason.label}
+              <span className="min-w-0 flex-1 leading-snug">{reason.label}</span>
             </label>
           ))}
         </fieldset>
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={() => handleOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Keep subscription
           </Button>
           <Button
             variant="destructive"
-            size="sm"
             onClick={() => {
               onConfirm?.({ reasonId });
               handleOpenChange(false);

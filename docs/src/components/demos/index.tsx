@@ -25,19 +25,32 @@ import {
   demoSubscription,
 } from './sample-data';
 
+/** Full-width shell so mobile preview isn't capped by demo wrappers. */
+function DemoShell({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={className ?? 'w-full min-w-0 max-w-full'}>{children}</div>;
+}
+
 export function DemoPlanCard() {
   return (
-    <PlanCard
-      plan={demoPlans[1]}
-      interval="month"
-      onSelect={(id, interval) => console.log('select', id, interval)}
-    />
+    <DemoShell className="w-full max-w-sm">
+      <PlanCard
+        plan={demoPlans[1]}
+        interval="month"
+        onSelect={(id, interval) => console.log('select', id, interval)}
+      />
+    </DemoShell>
   );
 }
 
 export function DemoPlanGroup() {
   return (
-    <div className="w-full max-w-5xl">
+    <DemoShell>
       <PlanGroup
         plans={demoPlans}
         title="Choose a plan"
@@ -45,101 +58,105 @@ export function DemoPlanGroup() {
         defaultInterval="month"
         onSelectPlan={(id, interval) => console.log(id, interval)}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoPricingTable() {
   return (
-    <div className="w-full max-w-5xl">
+    <DemoShell>
       <PricingTable
         plans={demoPlans}
         title="Simple pricing"
         description="Switch monthly or yearly anytime."
         onSelectPlan={(id, interval) => console.log(id, interval)}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoPlanComparison() {
   return (
-    <div className="w-full max-w-4xl">
+    <DemoShell>
       <PlanComparison
         plans={demoPlans}
         interval="month"
         onSelectPlan={(id) => console.log(id)}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoSubscriptionSummary() {
   return (
-    <div className="w-full max-w-lg">
+    <DemoShell className="w-full max-w-lg">
       <SubscriptionSummary
         subscription={demoSubscription}
         onUpgrade={() => console.log('upgrade')}
         onCancel={() => console.log('cancel')}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoPlanSwitcher() {
   return (
-    <PlanSwitcher
-      plans={demoPlans}
-      currentPlanId="pro"
-      interval="month"
-      onConfirm={(id) => console.log('confirm', id)}
-    />
+    <DemoShell>
+      <PlanSwitcher
+        plans={demoPlans}
+        currentPlanId="pro"
+        interval="month"
+        onConfirm={(id) => console.log('confirm', id)}
+      />
+    </DemoShell>
   );
 }
 
 export function DemoCancelFlow() {
   return (
-    <CancelFlow
-      planName="Pro"
-      onConfirm={({ reasonId }) => console.log('cancel', reasonId)}
-    />
+    <DemoShell>
+      <CancelFlow
+        planName="Pro"
+        onConfirm={({ reasonId }) => console.log('cancel', reasonId)}
+      />
+    </DemoShell>
   );
 }
 
 export function DemoEntitlementMeter() {
   return (
-    <div className="w-full max-w-md">
+    <DemoShell className="w-full max-w-md">
       <EntitlementMeter entitlement={demoEntitlements[0]} />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoUsageSummary() {
   return (
-    <div className="w-full max-w-lg">
+    <DemoShell className="w-full max-w-lg">
       <UsageSummary
         entitlements={demoEntitlements}
         periodLabel="12 days left in cycle"
         collapseAfter={2}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoInvoiceTable() {
   return (
-    <div className="w-full max-w-3xl">
+    <DemoShell className="w-full max-w-3xl">
       <InvoiceTable
         invoices={demoInvoices}
         onDownload={(id) => console.log('download', id)}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoInvoiceCard() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-3">
+    <DemoShell className="flex w-full max-w-lg flex-col gap-3">
       <InvoiceCard
         invoice={demoInvoices[0]}
         onDownload={(id) => console.log(id)}
@@ -148,13 +165,13 @@ export function DemoInvoiceCard() {
         invoices={demoInvoices}
         onDownload={(id) => console.log(id)}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoPaymentStatusBanner() {
   return (
-    <div className="flex w-full max-w-lg flex-col gap-3">
+    <DemoShell className="flex w-full max-w-lg flex-col gap-3">
       <PaymentStatusBanner
         status="success"
         description="Invoice INV-2026-001 paid via BCA VA."
@@ -174,13 +191,13 @@ export function DemoPaymentStatusBanner() {
         dismissible
         onDismiss={() => console.log('dismiss')}
       />
-    </div>
+    </DemoShell>
   );
 }
 
 export function DemoBillingPortal() {
   return (
-    <div className="w-full max-w-3xl">
+    <DemoShell className="w-full max-w-3xl">
       <BillingPortal
         subscription={demoSubscription}
         plans={demoPlans}
@@ -195,6 +212,6 @@ export function DemoBillingPortal() {
         onCancel={({ reasonId }) => console.log('cancel', reasonId)}
         onDownloadInvoice={(id) => console.log('dl', id)}
       />
-    </div>
+    </DemoShell>
   );
 }
