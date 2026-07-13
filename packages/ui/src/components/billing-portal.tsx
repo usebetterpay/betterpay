@@ -92,7 +92,7 @@ export function BillingPortal({
 
       {plans.length > 0 || onCancel ? (
         <div
-          className="flex w-full min-w-0 flex-col gap-2 @sm:flex-row @sm:flex-wrap @sm:items-center"
+          className="flex flex-wrap items-center gap-2"
           data-slot="billing-portal-actions"
         >
           {plans.length > 0 ? (
@@ -101,15 +101,10 @@ export function BillingPortal({
               currentPlanId={subscription.planId}
               interval={subscription.interval === 'custom' ? 'month' : subscription.interval}
               onConfirm={onChangePlan}
-              className="w-full min-w-0 @sm:w-auto"
             />
           ) : null}
           {onCancel ? (
-            <CancelFlow
-              planName={subscription.planName}
-              onConfirm={onCancel}
-              className="w-full min-w-0 @sm:w-auto"
-            />
+            <CancelFlow planName={subscription.planName} onConfirm={onCancel} />
           ) : null}
         </div>
       ) : null}

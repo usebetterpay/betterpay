@@ -84,10 +84,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-footer"
       className={cn(
-        // Stack on very narrow, row from sm — full-width CTAs when stacked
-        'flex flex-col gap-2 border-t border-border bg-muted/40 px-4 py-3',
-        'sm:flex-row sm:items-center sm:flex-wrap',
-        '[&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto',
+        'flex flex-wrap items-center gap-2 border-t border-border bg-muted/40 px-4 py-3',
         className,
       )}
       {...props}

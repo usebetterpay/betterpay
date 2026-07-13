@@ -26,11 +26,13 @@ export function PreviewFrame({ name }: { name: string }) {
     <div
       data-preview-theme={theme}
       className={cn(
-        'bp-preview-surface min-h-screen w-full p-4 sm:p-6',
+        'bp-preview-surface min-h-screen w-full p-5 sm:p-8',
         theme === 'dark' && 'dark',
       )}
     >
-      <Demo />
+      <div className="mx-auto w-full max-w-5xl">
+        <Demo />
+      </div>
     </div>
   );
 }

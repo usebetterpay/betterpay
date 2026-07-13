@@ -104,10 +104,10 @@ export function PlanGroup({
         {...props}
       >
         {(title || description || showIntervalToggle) && (
-          <header className="flex w-full min-w-0 flex-col items-stretch gap-3 @md:flex-row @md:items-end @md:justify-between @md:gap-4">
+          <header className="flex w-full min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
             <div className="flex min-w-0 max-w-xl flex-col gap-1.5">
               {title ? (
-                <h2 className="text-lg font-semibold tracking-tight text-foreground @sm:text-xl @md:text-2xl">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                   {title}
                 </h2>
               ) : null}
@@ -118,7 +118,7 @@ export function PlanGroup({
               ) : null}
             </div>
             {showIntervalToggle ? (
-              <PlanGroupIntervalToggle className="w-full shrink-0 @md:w-auto" />
+              <PlanGroupIntervalToggle className="shrink-0 self-start sm:self-end" />
             ) : null}
           </header>
         )}

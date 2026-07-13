@@ -13,7 +13,7 @@ export interface BillingIntervalToggleProps {
 }
 
 /**
- * Monthly / Yearly control. Controlled Switch (coss/Base UI pattern).
+ * Compact Monthly / Yearly control (content-sized, never full-bleed).
  */
 export function BillingIntervalToggle({
   value,
@@ -28,8 +28,7 @@ export function BillingIntervalToggle({
       data-slot="billing-interval-toggle"
       data-interval={value}
       className={cn(
-        'inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-lg bg-muted/60 px-2.5 py-2 text-sm ring-1 ring-border',
-        'sm:w-auto sm:justify-start sm:gap-3 sm:px-3',
+        'inline-flex w-fit max-w-full shrink-0 items-center gap-2 rounded-lg bg-muted/60 px-2.5 py-1.5 text-sm ring-1 ring-border',
         className,
       )}
     >
@@ -38,10 +37,10 @@ export function BillingIntervalToggle({
         onClick={() => onChange('month')}
         aria-pressed={!yearly}
         className={cn(
-          'min-h-9 shrink-0 rounded-md px-2 py-1 transition-colors',
+          'rounded-md px-1.5 py-0.5 text-sm transition-colors',
           !yearly
-            ? 'font-semibold text-foreground'
-            : 'font-normal text-muted-foreground hover:text-foreground',
+            ? 'font-medium text-foreground'
+            : 'text-muted-foreground hover:text-foreground',
         )}
       >
         Monthly
@@ -49,9 +48,7 @@ export function BillingIntervalToggle({
 
       <Switch
         checked={yearly}
-        onCheckedChange={(checked) => {
-          onChange(checked ? 'year' : 'month');
-        }}
+        onCheckedChange={(checked) => onChange(checked ? 'year' : 'month')}
         aria-label={switchLabel}
       />
 
@@ -60,10 +57,10 @@ export function BillingIntervalToggle({
         onClick={() => onChange('year')}
         aria-pressed={yearly}
         className={cn(
-          'min-h-9 shrink-0 rounded-md px-2 py-1 transition-colors',
+          'rounded-md px-1.5 py-0.5 text-sm transition-colors',
           yearly
-            ? 'font-semibold text-foreground'
-            : 'font-normal text-muted-foreground hover:text-foreground',
+            ? 'font-medium text-foreground'
+            : 'text-muted-foreground hover:text-foreground',
         )}
       >
         Yearly

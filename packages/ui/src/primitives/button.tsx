@@ -22,8 +22,6 @@ const buttonVariants = cva(
     'disabled:pointer-events-none disabled:opacity-45',
     'aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/25',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-    // Expand touch target without growing visual size
-    'pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11',
     'shadow-none',
   ].join(' '),
   {
@@ -40,18 +38,18 @@ const buttonVariants = cva(
           'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/30',
         'destructive-outline':
           'border-border bg-card text-destructive hover:bg-destructive/10 hover:border-destructive/30',
-        link: 'h-auto rounded-none px-0 text-primary underline-offset-4 hover:underline after:hidden',
+        link: 'h-auto rounded-none px-0 text-primary underline-offset-4 hover:underline',
       },
       size: {
-        // Mobile-first: slightly taller, denser from sm
-        default: 'h-10 min-h-10 px-3.5 text-sm sm:h-9 sm:min-h-9',
-        xs: 'h-8 min-h-8 gap-1 rounded-md px-2 text-xs sm:h-7 sm:min-h-7 [&_svg:not([class*="size-"])]:size-3',
-        sm: 'h-9 min-h-9 gap-1.5 px-3 text-[0.8125rem] sm:h-8 sm:min-h-8 [&_svg:not([class*="size-"])]:size-3.5',
-        lg: 'h-11 min-h-11 gap-2 px-4 text-sm sm:h-10 sm:min-h-10',
-        icon: 'size-10 sm:size-9',
-        'icon-xs': 'size-8 sm:size-7 [&_svg:not([class*="size-"])]:size-3',
-        'icon-sm': 'size-9 sm:size-8 [&_svg:not([class*="size-"])]:size-3.5',
-        'icon-lg': 'size-11 sm:size-10',
+        // Compact product density (closer to coss / base-nova)
+        default: 'h-9 min-h-9 px-3.5 text-sm',
+        xs: 'h-7 min-h-7 gap-1 rounded-md px-2 text-xs [&_svg:not([class*="size-"])]:size-3',
+        sm: 'h-8 min-h-8 gap-1.5 px-3 text-[0.8125rem] [&_svg:not([class*="size-"])]:size-3.5',
+        lg: 'h-10 min-h-10 gap-2 px-4 text-sm',
+        icon: 'size-9',
+        'icon-xs': 'size-7 [&_svg:not([class*="size-"])]:size-3',
+        'icon-sm': 'size-8 [&_svg:not([class*="size-"])]:size-3.5',
+        'icon-lg': 'size-10',
       },
     },
     defaultVariants: {

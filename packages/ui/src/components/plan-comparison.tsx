@@ -75,7 +75,8 @@ function CellValue({ value }: { value: ComparisonCell }) {
 }
 
 /**
- * Feature × plan comparison matrix for marketing / docs pricing pages.
+ * Feature × plan comparison matrix.
+ * Native table + horizontal scroll — simpler than CSS grid role=table.
  */
 export function PlanComparison({
   plans,
@@ -102,7 +103,7 @@ export function PlanComparison({
       <div
         data-slot="plan-comparison-empty"
         className={cn(
-          'rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground shadow-none ring-1 ring-border',
+          'rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground',
           className,
         )}
         {...props}
@@ -114,116 +115,99 @@ export function PlanComparison({
 
   const rows = features ?? deriveFeatures(plans);
 
-  const gridCols = {
-    gridTemplateColumns: `minmax(8.5rem,1.2fr) repeat(${plans.length}, minmax(6.5rem,1fr))`,
-  } as const;
-
   return (
     <div
       data-slot="plan-comparison"
-      className={cn('@container flex w-full min-w-0 flex-col gap-3', className)}
+      className={cn('flex w-full min-w-0 flex-col gap-3', className)}
       {...props}
     >
       {showIntervalToggle ? (
-        <div className="flex w-full min-w-0 justify-stretch @md:justify-end">
-          <BillingIntervalToggle
-            value={interval}
-            onChange={setIntervalValue}
-            className="w-full @md:w-auto"
-          />
+        <div className="flex justify-end">
+          <BillingIntervalToggle value={interval} onChange={setIntervalValue} />
         </div>
       ) : null}
 
-      <div
-        role="table"
-        aria-label={ariaLabel}
-        className="w-full min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border"
-      >
-        <div
-          role="rowgroup"
-          className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]"
-        >
-          <div
-            role="row"
-            className="grid w-max min-w-[28rem] border-b border-border bg-muted/40 @lg:w-full @lg:min-w-0"
-            style={gridCols}
-          >
-            <div
-              role="columnheader"
-              className="sticky left-0 z-10 bg-muted/95 p-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm"
-            >
-              Feature
-            </div>
-            {plans.map((plan) => {
-              const currency = plan.currency ?? currencyFallback;
-              const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
-              return (
-                <div
-                  key={plan.id}
-                  role="columnheader"
-                  className={cn(
-                    'flex flex-col items-center gap-2 border-l border-border p-2.5 text-center sm:p-3',
-                    plan.recommended && 'bg-primary/5',
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-center gap-1.5">
-                    <span className="text-sm font-semibold">{plan.name}</span>
-                    {plan.recommended ? <Badge tone="default">Popular</Badge> : null}
-                  </div>
-                  <span className="text-sm font-medium tabular-nums">
-                    {formatMoney(amount, { currency })}
-                    <span className="font-normal text-muted-foreground">
-                      {interval === 'year' ? '/yr' : '/mo'}
-                    </span>
-                  </span>
-                  {onSelectPlan ? (
-                    <Button
-                      size="xs"
-                      variant={plan.recommended ? 'default' : 'outline'}
-                      onClick={() => onSelectPlan(plan.id)}
-                    >
-                      {plan.ctaLabel ?? 'Select'}
-                    </Button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-
-          {rows.map((row, i) => (
-            <div
-              key={row.id}
-              role="row"
-              className={cn(
-                'grid w-max min-w-[28rem] border-b border-border last:border-b-0 @lg:w-full @lg:min-w-0',
-                i % 2 === 1 && 'bg-muted/20',
-              )}
-              style={gridCols}
-            >
-              <div
-                role="cell"
+      <div className="w-full min-w-0 overflow-x-auto rounded-lg border border-border bg-card [-webkit-overflow-scrolling:touch]">
+        <table className="w-full min-w-[32rem] border-collapse text-sm" aria-label={ariaLabel}>
+          <thead>
+            <tr className="border-b border-border bg-muted/40">
+              <th
+                scope="col"
+                className="sticky left-0 z-10 w-[9rem] bg-muted/95 px-3 py-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm sm:w-[11rem]"
+              >
+                Feature
+              </th>
+              {plans.map((plan) => {
+                const currency = plan.currency ?? currencyFallback;
+                const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
+                return (
+                  <th
+                    key={plan.id}
+                    scope="col"
+                    className={cn(
+                      'min-w-[7.5rem] border-l border-border px-3 py-3 text-center font-normal',
+                      plan.recommended && 'bg-primary/5',
+                    )}
+                  >
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className="flex flex-wrap items-center justify-center gap-1.5">
+                        <span className="text-sm font-semibold text-foreground">{plan.name}</span>
+                        {plan.recommended ? <Badge tone="default">Popular</Badge> : null}
+                      </div>
+                      <span className="text-sm font-medium tabular-nums text-foreground">
+                        {formatMoney(amount, { currency })}
+                        <span className="font-normal text-muted-foreground">
+                          {interval === 'year' ? '/yr' : '/mo'}
+                        </span>
+                      </span>
+                      {onSelectPlan ? (
+                        <Button
+                          size="xs"
+                          variant={plan.recommended ? 'default' : 'outline'}
+                          onClick={() => onSelectPlan(plan.id)}
+                        >
+                          {plan.ctaLabel ?? 'Select'}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr
+                key={row.id}
                 className={cn(
-                  'sticky left-0 z-10 max-w-[10rem] p-2.5 text-left text-sm text-foreground @sm:max-w-none @sm:p-3',
-                  i % 2 === 1 ? 'bg-muted/90 backdrop-blur-sm' : 'bg-card/95 backdrop-blur-sm',
+                  'border-b border-border last:border-b-0',
+                  i % 2 === 1 && 'bg-muted/20',
                 )}
               >
-                {row.label}
-              </div>
-              {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  role="cell"
+                <th
+                  scope="row"
                   className={cn(
-                    'flex items-center justify-center border-l border-border p-2.5 sm:p-3',
-                    plan.recommended && 'bg-primary/[0.03]',
+                    'sticky left-0 z-10 px-3 py-2.5 text-left text-sm font-normal text-foreground backdrop-blur-sm',
+                    i % 2 === 1 ? 'bg-muted/90' : 'bg-card/95',
                   )}
                 >
-                  <CellValue value={row.values[plan.id] ?? false} />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+                  {row.label}
+                </th>
+                {plans.map((plan) => (
+                  <td
+                    key={plan.id}
+                    className={cn(
+                      'border-l border-border px-3 py-2.5 text-center',
+                      plan.recommended && 'bg-primary/[0.03]',
+                    )}
+                  >
+                    <CellValue value={row.values[plan.id] ?? false} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
