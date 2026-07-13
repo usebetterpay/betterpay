@@ -71,10 +71,16 @@ export function CreditsPage() {
                     void run(async () => {
                       const res = await api.buyPack(pack.id);
                       setState(res.snapshot);
+                      if (
+                        res.payment?.paymentUrl &&
+                        !res.payment.paymentUrl.includes('simulate.local')
+                      ) {
+                        window.open(res.payment.paymentUrl, '_blank');
+                      }
                     })
                   }
                 >
-                  Buy with QRIS
+                  Pay with sandbox
                 </Button>
               </CardFooter>
             </Card>

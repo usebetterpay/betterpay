@@ -12,7 +12,7 @@ export function PlansPage() {
         <h1 className="page-title">Plans</h1>
         <p className="page-desc">
           Payment use case: <strong>buy plan</strong> — monthly/yearly allowance of AI credits.
-          Paid plans create a pending QRIS payment (simulate from Helpers).
+          Paid plans open a real sandbox checkout (SumoPod QRIS or Midtrans).
         </p>
       </div>
 
@@ -39,6 +39,9 @@ export function PlansPage() {
           void run(async () => {
             const res = await api.buyPlan(planId, interval);
             setState(res.snapshot);
+            if (res.payment?.paymentUrl && !res.payment.paymentUrl.includes('simulate.local')) {
+              window.open(res.payment.paymentUrl, '_blank');
+            }
           });
         }}
       />

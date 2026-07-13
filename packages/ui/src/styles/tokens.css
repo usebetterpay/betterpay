@@ -218,17 +218,27 @@
   /* reserved for host bridges if needed */
 }
 
-/* ── Switch safety net (coss geometry) ───────────────────────────────
+/* ── Switch (coss geometry + single-axis motion) ─────────────────────
  * Base UI stamps data-checked / data-unchecked on Root + Thumb.
- * Use transform (not CSS `translate` prop) so Tailwind transform utils
- * and our styles don't fight. !important beats stale utility order.
+ *
+ * Track: h = thumb+2px, w = thumb*2-2px, padding 1px each side.
+ * Free travel = w − 2·pad − thumb = thumb − 4px  →  translateX(thumb − 4px).
+ *
+ * IMPORTANT: motion is ONLY here (transform). Do not also apply Tailwind
+ * translate-x / translate on the thumb — both stack and the knob flies out.
  */
 [data-slot='switch'] {
   --thumb-size: 1.25rem;
   box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
   height: calc(var(--thumb-size) + 2px);
   width: calc(var(--thumb-size) * 2 - 2px);
+  min-width: calc(var(--thumb-size) * 2 - 2px);
+  padding: 1px;
   border-radius: 9999px;
+  overflow: hidden;
+  flex-shrink: 0;
   background-color: var(--input);
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -245,44 +255,46 @@
 
 [data-slot='switch'][data-checked],
 [data-slot='switch'][aria-checked='true'] {
-  background-color: var(--primary) !important;
+  background-color: var(--primary);
 }
 
 [data-slot='switch'][data-unchecked],
 [data-slot='switch'][aria-checked='false'] {
-  background-color: var(--input) !important;
+  background-color: var(--input);
 }
 
 [data-slot='switch-thumb'] {
   box-sizing: border-box;
   display: block;
-  height: 100%;
+  height: var(--thumb-size);
   width: var(--thumb-size);
   min-width: var(--thumb-size);
-  aspect-ratio: 1 / 1;
+  max-width: var(--thumb-size);
   border-radius: 9999px;
   background-color: var(--background);
-  box-shadow: 0 1px 2px oklch(0 0 0 / 0.1);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.12);
+  /* Reset any Tailwind translate / transform utilities */
+  translate: none;
+  transform: translate3d(0, 0, 0);
   transform-origin: left center;
-  transform: translateX(0);
   transition: transform 0.15s ease;
 }
 
 [data-slot='switch-thumb'][data-checked],
-[data-slot='switch'][data-checked] [data-slot='switch-thumb'],
-[data-slot='switch'][aria-checked='true'] [data-slot='switch-thumb'] {
-  transform: translateX(calc(var(--thumb-size) - 4px)) !important;
+[data-slot='switch'][data-checked] > [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='true'] > [data-slot='switch-thumb'] {
+  transform: translate3d(calc(var(--thumb-size) - 4px), 0, 0);
 }
 
 [data-slot='switch-thumb'][data-unchecked],
-[data-slot='switch'][data-unchecked] [data-slot='switch-thumb'],
-[data-slot='switch'][aria-checked='false'] [data-slot='switch-thumb'] {
-  transform: translateX(0) !important;
+[data-slot='switch'][data-unchecked] > [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='false'] > [data-slot='switch-thumb'] {
+  transform: translate3d(0, 0, 0);
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-slot='switch'],
   [data-slot='switch-thumb'] {
-    transition: none !important;
+    transition: none;
   }
 }

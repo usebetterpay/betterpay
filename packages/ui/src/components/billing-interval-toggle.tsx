@@ -14,6 +14,7 @@ export interface BillingIntervalToggleProps {
 
 /**
  * Compact Monthly / Yearly control (content-sized, never full-bleed).
+ * Labels stay put; only the switch thumb moves inside an overflow-hidden track.
  */
 export function BillingIntervalToggle({
   value,
@@ -28,7 +29,8 @@ export function BillingIntervalToggle({
       data-slot="billing-interval-toggle"
       data-interval={value}
       className={cn(
-        'inline-flex w-fit max-w-full shrink-0 items-center gap-2 rounded-lg bg-muted/60 px-2.5 py-1.5 text-sm ring-1 ring-border',
+        'inline-flex w-fit max-w-full shrink-0 items-center gap-2.5',
+        'rounded-full bg-muted/70 px-3 py-1.5 text-sm ring-1 ring-border/80',
         className,
       )}
     >
@@ -37,7 +39,7 @@ export function BillingIntervalToggle({
         onClick={() => onChange('month')}
         aria-pressed={!yearly}
         className={cn(
-          'rounded-md px-1.5 py-0.5 text-sm transition-colors',
+          'whitespace-nowrap rounded-md px-1 py-0.5 text-sm transition-colors',
           !yearly
             ? 'font-medium text-foreground'
             : 'text-muted-foreground hover:text-foreground',
@@ -47,9 +49,11 @@ export function BillingIntervalToggle({
       </button>
 
       <Switch
+        size="sm"
         checked={yearly}
         onCheckedChange={(checked) => onChange(checked ? 'year' : 'month')}
         aria-label={switchLabel}
+        className="shrink-0"
       />
 
       <button
@@ -57,7 +61,7 @@ export function BillingIntervalToggle({
         onClick={() => onChange('year')}
         aria-pressed={yearly}
         className={cn(
-          'rounded-md px-1.5 py-0.5 text-sm transition-colors',
+          'whitespace-nowrap rounded-md px-1 py-0.5 text-sm transition-colors',
           yearly
             ? 'font-medium text-foreground'
             : 'text-muted-foreground hover:text-foreground',

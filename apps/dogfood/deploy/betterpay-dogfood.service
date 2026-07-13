@@ -1,5 +1,5 @@
 [Unit]
-Description=BetterPay dogfood (Acme AI credit dashboard)
+Description=BetterPay demo (Acme AI credit dashboard)
 After=network.target
 
 [Service]
@@ -10,6 +10,8 @@ Environment=HOME=/home/ujang
 Environment=DOGFOOD_API_PORT=8791
 Environment=DOGFOOD_HOST=127.0.0.1
 Environment=NODE_ENV=production
+Environment=PUBLIC_ORIGIN=https://demo.betterpay.dev
+EnvironmentFile=-/home/ujang/projects/apps/usebetterpay/betterpay/apps/dogfood/.env
 ExecStart=/home/ujang/.nvm/versions/node/v24.18.0/bin/tsx server/index.ts
 Restart=always
 RestartSec=3

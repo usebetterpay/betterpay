@@ -12,7 +12,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@betterpay/core": "workspace:^",
+    "@betterpay/midtrans": "workspace:^",
+    "@betterpay/sumopod": "workspace:^",
+    "@betterpay/tripay": "workspace:^",
     "@betterpay/ui": "workspace:^",
+    "@betterpay/xendit": "workspace:^",
     "@hono/node-server": "^1.14.0",
     "hono": "^4.7.0",
     "react": "^19.1.0",

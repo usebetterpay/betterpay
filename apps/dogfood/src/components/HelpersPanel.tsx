@@ -1,5 +1,5 @@
 import { Button, Badge } from '@betterpay/ui';
-import { api } from '../lib/api';
+import { api, type ProviderId, type Snapshot } from '../lib/api';
 import { useDogfood } from '../lib/state';
 
 const TEMPLATES = [
@@ -9,18 +9,54 @@ const TEMPLATES = [
   { id: 'pro_heavy', label: 'Pro + pack' },
 ] as const;
 
+const GATEWAYS: Array<{
+  id: ProviderId;
+  label: string;
+  statusKey: keyof NonNullable<Snapshot['providers']>;
+}> = [
+  { id: 'sumopod', label: 'SumoPod QRIS', statusKey: 'sumopod' },
+  { id: 'midtrans', label: 'Midtrans', statusKey: 'midtrans' },
+  { id: 'xendit', label: 'Xendit', statusKey: 'xendit' },
+  { id: 'tripay', label: 'Tripay', statusKey: 'tripay' },
+];
+
+function gatewayHint(ps: NonNullable<Snapshot['providers']>): string {
+  const parts: string[] = [];
+  if (ps.sumopod.configured) {
+    parts.push(
+      `SumoPod${ps.sumopod.sandbox ? ' sandbox' : ''}${ps.sumopod.webhookAuth ? ' · webhook auth' : ''}`,
+    );
+  }
+  if (ps.midtrans.configured) {
+    parts.push(`Midtrans${ps.midtrans.sandbox ? ' sandbox' : ' live'}`);
+  }
+  if (ps.xendit?.configured) {
+    parts.push(`Xendit${ps.xendit.webhookAuth ? ' · webhook auth' : ''}`);
+  }
+  if (ps.tripay?.configured) {
+    parts.push(`Tripay${ps.tripay.sandbox ? ' sandbox' : ' live'}`);
+  }
+  if (ps.duitku && !ps.duitku.configured) {
+    parts.push('Duitku needs API keys');
+  } else if (ps.duitku?.configured) {
+    parts.push('Duitku ready (not wired yet)');
+  }
+  return parts.length ? parts.join(' · ') + '.' : 'No gateways configured in .env.';
+}
+
 export function HelpersPanel() {
   const { state, setState, run } = useDogfood();
   if (!state) return null;
 
   const pending = state.payments.filter((p) => p.status === 'pending');
+  const ps = state.providers;
 
   return (
-    <aside className="dogfood-helpers" aria-label="Dogfood helpers">
+    <aside className="dogfood-helpers" aria-label="Demo helpers">
       <div className="helper-section">
         <h2>Helpers</h2>
         <p className="muted" style={{ margin: 0 }}>
-          Templates & simulators for AI credit use cases. Not shown in production apps.
+          Seed state & burn credits. Checkout uses real sandbox gateways.
         </p>
       </div>
 
@@ -103,19 +139,35 @@ export function HelpersPanel() {
       </div>
 
       <div className="helper-section">
-        <h2>Payment mode</h2>
+        <h2>Gateway</h2>
         <div className="helper-row">
-          <Button
-            size="sm"
-            variant={state.paymentMode === 'simulate' ? 'default' : 'outline'}
-            onClick={() =>
-              void run(async () => {
-                setState(await api.paymentMode('simulate'));
-              })
-            }
-          >
-            Simulate
-          </Button>
+          {GATEWAYS.map((g) => {
+            const st = ps?.[g.statusKey] as
+              | { configured?: boolean }
+              | undefined;
+            const configured = st?.configured !== false;
+            return (
+              <Button
+                key={g.id}
+                size="sm"
+                variant={state.provider === g.id ? 'default' : 'outline'}
+                disabled={Boolean(ps) && st?.configured === false}
+                onClick={() =>
+                  void run(async () => {
+                    setState(await api.setProvider(g.id));
+                  })
+                }
+              >
+                {g.label}
+                {!configured ? ' · off' : ''}
+              </Button>
+            );
+          })}
+        </div>
+        <p className="muted" style={{ marginTop: '0.45rem' }}>
+          {ps ? gatewayHint(ps) : 'Loading gateway status…'}
+        </p>
+        <div className="helper-row" style={{ marginTop: '0.35rem' }}>
           <Button
             size="sm"
             variant={state.paymentMode === 'live' ? 'default' : 'outline'}
@@ -125,13 +177,20 @@ export function HelpersPanel() {
               })
             }
           >
-            Live QRIS
+            Live sandbox
+          </Button>
+          <Button
+            size="sm"
+            variant={state.paymentMode === 'simulate' ? 'default' : 'outline'}
+            onClick={() =>
+              void run(async () => {
+                setState(await api.paymentMode('simulate'));
+              })
+            }
+          >
+            Simulate only
           </Button>
         </div>
-        <p className="muted" style={{ marginTop: '0.45rem' }}>
-          Live mode is a stub URL until SumoPod keys are wired. Simulate marks payments paid
-          instantly.
-        </p>
       </div>
 
       <div className="helper-section">
@@ -143,24 +202,38 @@ export function HelpersPanel() {
         ) : (
           pending.map((p) => (
             <div key={p.id} style={{ marginTop: '0.55rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Badge variant="warning">{p.kind === 'plan' ? 'Plan' : 'Credit'}</Badge>
+                <Badge variant="outline">{p.provider ?? '—'}</Badge>
                 <span style={{ fontSize: '0.8rem' }}>{p.label}</span>
               </div>
               <div className="helper-row">
+                {p.paymentUrl && !p.paymentUrl.includes('simulate.local') && (
+                  <Button size="sm" onClick={() => window.open(p.paymentUrl, '_blank')}>
+                    Open checkout
+                  </Button>
+                )}
                 <Button
                   size="sm"
+                  variant="outline"
                   onClick={() =>
                     void run(async () => {
                       setState(await api.simulatePayment(p.id, 'paid'));
                     })
                   }
                 >
-                  Simulate paid
+                  Mark paid
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() =>
                     void run(async () => {
                       setState(await api.simulatePayment(p.id, 'failed'));

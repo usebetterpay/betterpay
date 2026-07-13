@@ -35,9 +35,24 @@ importers:
 
   apps/dogfood:
     dependencies:
+      '@betterpay/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@betterpay/midtrans':
+        specifier: workspace:^
+        version: link:../../packages/midtrans
+      '@betterpay/sumopod':
+        specifier: workspace:^
+        version: link:../../packages/sumopod
+      '@betterpay/tripay':
+        specifier: workspace:^
+        version: link:../../packages/tripay
       '@betterpay/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      '@betterpay/xendit':
+        specifier: workspace:^
+        version: link:../../packages/xendit
       '@hono/node-server':
         specifier: ^1.14.0
         version: 1.19.14(hono@4.12.31)

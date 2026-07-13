@@ -19,7 +19,7 @@ export function PaymentsPage() {
         <h1 className="page-title">Payments</h1>
         <p className="page-desc">
           Two kinds: <strong>plan</strong> (subscribe/upgrade) and <strong>credit_pack</strong>{' '}
-          (top-up). Provider path: SumoPod QRIS (simulated by default).
+          (top-up). Checkout: real SumoPod / Midtrans sandbox links.
         </p>
       </div>
 
@@ -56,22 +56,21 @@ export function PaymentsPage() {
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               {p.status === 'pending' && (
                 <>
+                  {p.paymentUrl && !p.paymentUrl.includes('simulate.local') && (
+                    <Button size="sm" onClick={() => window.open(p.paymentUrl, '_blank')}>
+                      Open checkout
+                    </Button>
+                  )}
                   <Button
                     size="sm"
+                    variant="outline"
                     onClick={() =>
                       void run(async () => {
                         setState(await api.simulatePayment(p.id, 'paid'));
                       })
                     }
                   >
-                    Simulate paid
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => window.open(p.paymentUrl, '_blank')}
-                  >
-                    Open QRIS link
+                    Mark paid
                   </Button>
                 </>
               )}

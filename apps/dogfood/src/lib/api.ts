@@ -1,3 +1,11 @@
+export type ProviderId = 'sumopod' | 'midtrans' | 'xendit' | 'tripay';
+
+export type ProviderStatus = {
+  configured: boolean;
+  sandbox: boolean;
+  webhookAuth?: boolean;
+};
+
 export type Snapshot = {
   customerId: string;
   customerName: string;
@@ -19,6 +27,8 @@ export type Snapshot = {
     amountIdr: number;
     status: 'pending' | 'paid' | 'failed' | 'expired';
     paymentUrl: string;
+    provider?: ProviderId | 'simulate';
+    providerTransactionId?: string;
     createdAt: string;
     paidAt?: string;
     label: string;
@@ -30,6 +40,16 @@ export type Snapshot = {
     description?: string;
   } | null;
   paymentMode: 'simulate' | 'live';
+  provider: ProviderId;
+  providers?: {
+    defaultProvider: string;
+    publicOrigin: string;
+    sumopod: ProviderStatus;
+    midtrans: ProviderStatus;
+    xendit: ProviderStatus;
+    tripay: ProviderStatus;
+    duitku?: ProviderStatus;
+  };
   activity: Array<{ at: string; message: string }>;
   catalog: {
     plans: unknown[];
@@ -147,6 +167,11 @@ export const api = {
     req<{ payment: Snapshot['payments'][0]; snapshot: Snapshot }>('/buy-pack', {
       method: 'POST',
       body: JSON.stringify({ packId }),
+    }),
+  setProvider: (provider: ProviderId) =>
+    req<Snapshot>('/provider', {
+      method: 'POST',
+      body: JSON.stringify({ provider }),
     }),
   simulatePayment: (paymentId: string, outcome: 'paid' | 'failed' | 'expired' = 'paid') =>
     req<Snapshot>('/simulate-payment', {

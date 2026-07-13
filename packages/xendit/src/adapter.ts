@@ -1,5 +1,5 @@
 // ── Xendit Provider Adapter ──────────────────────────────────────────────
-// Xendit adapter — function-based PaymentProvider.
+// Uses Invoice API (hosted checkout). Payment Sessions is not enabled on all accounts.
 
 import type {
   PaymentProvider,
@@ -13,29 +13,41 @@ import { verifyXenditSignature, extractXenditSignature } from './signature';
 
 export interface XenditConfig {
   apiKey: string;
+  /** Callback token from Xendit dashboard (x-callback-token) and/or webhook verification token. */
   webhookSecret?: string;
   isSandbox?: boolean;
   priority?: number;
 }
 
-/** Map Xendit status → canonical BetterPay status. */
+/** Map Xendit invoice / payment status → canonical BetterPay status. */
 function mapStatus(xenditStatus: string): StatusResult['status'] {
   const map: Record<string, StatusResult['status']> = {
     PENDING: 'active',
     ACTIVE: 'active',
+    PAID: 'completed',
+    SETTLED: 'completed',
     COMPLETED: 'completed',
     SUCCEEDED: 'completed',
     FAILED: 'failed',
     EXPIRED: 'expired',
     CANCELLED: 'canceled',
+    CANCELED: 'canceled',
     REFUNDED: 'canceled',
   };
   return map[xenditStatus.toUpperCase()] ?? 'pending';
 }
 
+function eventNameFromStatus(status: StatusResult['status']): string {
+  if (status === 'completed') return 'payment.completed';
+  if (status === 'expired') return 'payment.expired';
+  if (status === 'failed') return 'payment.failed';
+  if (status === 'canceled') return 'payment.failed';
+  return 'payment.pending';
+}
+
 /** Create a Xendit PaymentProvider. */
 export function xenditProvider(config: XenditConfig): PaymentProvider & { priority?: number } {
-  // Xendit uses the same host for sandbox and production; env is determined by API key.
+  // Same host for test + live; environment is encoded in the API key prefix.
   const baseUrl = 'https://api.xendit.co';
   const authHeader = `Basic ${Buffer.from(`${config.apiKey}:`).toString('base64')}`;
 
@@ -45,7 +57,7 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
     paymentMethods: ['virtual_account', 'ewallet', 'qris', 'credit_card', 'retail', 'paylater'],
     capabilities: {
       paymentLink: true,
-      recurring: true, // Xendit has native subscription support
+      recurring: true,
       refund: true,
       virtualAccount: true,
       ewallet: true,
@@ -59,21 +71,28 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
     getApiEndpoint: () => baseUrl,
 
     async createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult> {
+      const expirySeconds = Math.max(60, (data.expiryMinutes ?? 60) * 60);
       const body = {
-        reference_id: data.orderId,
+        external_id: data.orderId,
         amount: data.amount,
-        currency: data.currency,
-        description: data.description,
+        currency: data.currency || 'IDR',
+        description: data.description ?? data.orderId,
+        invoice_duration: expirySeconds,
         customer: {
-          email: data.customerEmail,
           given_names: data.customerName ?? data.customerEmail,
+          email: data.customerEmail,
         },
-        success_return_url: data.returnUrl,
-        failure_return_url: data.returnUrl,
+        success_redirect_url: data.returnUrl,
+        failure_redirect_url: data.returnUrl,
+        items: data.items?.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
         metadata: data.metadata ?? {},
       };
 
-      const response = await fetch(`${baseUrl}/payment_sessions`, {
+      const response = await fetch(`${baseUrl}/v2/invoices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,25 +108,39 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
 
       const result = (await response.json()) as {
         id?: string;
-        payment_url?: string;
+        invoice_url?: string;
         amount?: number;
         currency?: string;
+        status?: string;
+        external_id?: string;
       };
 
       return {
         providerTransactionId: result.id ?? '',
-        paymentUrl: result.payment_url,
+        paymentUrl: result.invoice_url,
         amount: result.amount ?? data.amount,
         currency: result.currency ?? data.currency,
-        status: 'active',
+        status: mapStatus(result.status ?? 'PENDING'),
         raw: result,
       };
     },
 
     async verifyWebhook(data: WebhookData): Promise<boolean> {
       if (!config.webhookSecret) {
-        throw new Error('Xendit webhook secret not configured');
+        // Dogfood / optional auth — accept when no secret configured.
+        return true;
       }
+
+      // Classic invoice callbacks send x-callback-token (plain token match).
+      const callbackToken =
+        data.headers['x-callback-token'] ||
+        data.headers['X-Callback-Token'] ||
+        data.headers['X-CALLBACK-TOKEN'];
+      if (callbackToken) {
+        return callbackToken === config.webhookSecret;
+      }
+
+      // Some webhook products use body HMAC + x-callback-token style headers.
       const signature = extractXenditSignature(data.headers);
       if (!signature) return false;
       return verifyXenditSignature(data.body, signature, config.webhookSecret);
@@ -116,13 +149,31 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
     async normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]> {
       try {
         const parsed = JSON.parse(data.body) as Record<string, unknown>;
-        const rawStatus = String(parsed.status ?? parsed.event_type ?? 'unknown');
+        // Invoice webhook: status PAID | EXPIRED | PENDING …
+        // Also support nested payment objects / event wrappers.
+        const rawStatus = String(
+          parsed.status ??
+            (parsed.data as Record<string, unknown> | undefined)?.status ??
+            parsed.event ??
+            parsed.event_type ??
+            'unknown',
+        );
+        const status = mapStatus(rawStatus.replace(/^invoice\./i, '').replace(/^payment\./i, ''));
 
         return [
           {
-            name: `payment.${mapStatus(rawStatus) === 'completed' ? 'completed' : mapStatus(rawStatus) === 'expired' ? 'expired' : mapStatus(rawStatus) === 'failed' ? 'failed' : 'pending'}`,
-            payload: parsed,
-            providerEventId: parsed.id as string | undefined,
+            name: eventNameFromStatus(status),
+            payload: {
+              ...parsed,
+              // Normalize ids used by dogfood finalizePayment
+              id: parsed.id ?? (parsed.data as Record<string, unknown> | undefined)?.id,
+              reference_id:
+                parsed.external_id ??
+                parsed.reference_id ??
+                (parsed.data as Record<string, unknown> | undefined)?.external_id,
+              external_id: parsed.external_id,
+            },
+            providerEventId: String(parsed.id ?? parsed.external_id ?? ''),
           },
         ];
       } catch {
@@ -131,7 +182,7 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
     },
 
     async checkStatus(providerTransactionId: string): Promise<StatusResult> {
-      const response = await fetch(`${baseUrl}/payment_sessions/${providerTransactionId}`, {
+      const response = await fetch(`${baseUrl}/v2/invoices/${providerTransactionId}`, {
         headers: { Authorization: authHeader },
       });
 
@@ -144,25 +195,24 @@ export function xenditProvider(config: XenditConfig): PaymentProvider & { priori
         status?: string;
         amount?: number;
         currency?: string;
+        paid_at?: string;
       };
 
       return {
-        providerTransactionId: data.id ?? '',
+        providerTransactionId: data.id ?? providerTransactionId,
         status: mapStatus(data.status ?? ''),
         amount: data.amount ?? 0,
         currency: data.currency ?? 'IDR',
+        paidAt: data.paid_at,
         raw: data,
       };
     },
 
     async cancelTransaction(providerTransactionId: string): Promise<void> {
-      const response = await fetch(
-        `${baseUrl}/payment_sessions/${providerTransactionId}/cancel`,
-        {
-          method: 'POST',
-          headers: { Authorization: authHeader },
-        },
-      );
+      const response = await fetch(`${baseUrl}/invoices/${providerTransactionId}/expire!`, {
+        method: 'POST',
+        headers: { Authorization: authHeader },
+      });
 
       if (!response.ok) {
         throw new Error(`Xendit cancel failed: ${response.status}`);

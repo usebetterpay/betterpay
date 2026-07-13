@@ -82,7 +82,7 @@ export const PACKS: PackDef[] = [
     id: 'pack_100',
     name: '+100 credits',
     credits: 100,
-    amountIdr: 9_000,
+    amountIdr: 10_000, // SumoPod sandbox minimum
     description: 'Small top-up when you are almost out.',
   },
   {

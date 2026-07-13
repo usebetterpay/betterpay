@@ -7,10 +7,12 @@ import {
   type PackId,
   type PlanId,
 } from './catalog.js';
+import { PROVIDER_LABELS, type ProviderId } from './providers.js';
 
 export type PaymentKind = 'plan' | 'credit_pack';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'expired';
 export type SubStatus = 'active' | 'past_due' | 'canceled' | 'scheduled' | 'ended';
+export type PaymentProviderTag = ProviderId | 'simulate';
 
 export interface Payment {
   id: string;
@@ -20,8 +22,14 @@ export interface Payment {
   creditsGranted: number;
   amountIdr: number;
   status: PaymentStatus;
-  /** Fake SumoPod-style checkout URL (simulate mode). */
+  /** Hosted checkout URL from the payment provider. */
   paymentUrl: string;
+  /** Provider used to create the link. */
+  provider: PaymentProviderTag;
+  /** Our order id sent to the provider. */
+  orderId?: string;
+  /** Provider-side transaction / payment id. */
+  providerTransactionId?: string;
   createdAt: string;
   paidAt?: string;
   label: string;
@@ -61,7 +69,10 @@ export interface DogfoodState {
     title?: string;
     description?: string;
   } | null;
+  /** Always live sandbox when keys are present; simulate is dev-only fallback. */
   paymentMode: 'simulate' | 'live';
+  /** Active checkout provider for new payments. */
+  provider: ProviderId;
   activity: Array<{ at: string; message: string }>;
 }
 
@@ -94,9 +105,10 @@ function baseState(): DogfoodState {
     callout: {
       status: 'pending',
       title: 'Welcome to Acme AI',
-      description: 'Dogfood dashboard — buy a plan or top up credits. Helpers on the right.',
+      description: 'Demo dashboard — buy a plan or top up credits via sandbox QRIS.',
     },
-    paymentMode: 'simulate',
+    paymentMode: 'live',
+    provider: 'sumopod',
     activity: [{ at: new Date().toISOString(), message: 'Seeded Free plan (100 credits/mo)' }],
   };
 }
@@ -154,7 +166,7 @@ export function getSnapshot() {
         nextAmount: state.interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount,
         currency: 'IDR',
         currentPeriodEnd: state.currentPeriodEnd,
-        paymentMethodLabel: 'SumoPod QRIS',
+        paymentMethodLabel: PROVIDER_LABELS[state.provider],
         cancelAtPeriodEnd: state.cancelAtPeriodEnd,
       },
       entitlement: {
@@ -289,6 +301,12 @@ export function setPaymentMode(mode: 'simulate' | 'live') {
   return getSnapshot();
 }
 
+export function setProvider(provider: ProviderId) {
+  state.provider = provider;
+  pushActivity(`Provider → ${PROVIDER_LABELS[provider]}`);
+  return getSnapshot();
+}
+
 export function burnCredits(amount: number) {
   const n = Math.max(0, Math.floor(amount));
   if (n <= 0) return getSnapshot();
@@ -358,6 +376,10 @@ function createPendingPayment(input: {
   creditsGranted: number;
   amountIdr: number;
   label: string;
+  paymentUrl: string;
+  provider: Payment['provider'];
+  orderId?: string;
+  providerTransactionId?: string;
 }): Payment {
   const id = nextId('pay');
   const payment: Payment = {
@@ -368,29 +390,45 @@ function createPendingPayment(input: {
     creditsGranted: input.creditsGranted,
     amountIdr: input.amountIdr,
     status: 'pending',
-    paymentUrl: `https://pay.sumopod.example/qris/${id}`,
+    paymentUrl: input.paymentUrl,
+    provider: input.provider,
+    orderId: input.orderId,
+    providerTransactionId: input.providerTransactionId,
     createdAt: new Date().toISOString(),
     label: input.label,
   };
   state.payments.unshift(payment);
   state.callout = {
     status: 'pending',
-    title: 'QRIS payment pending',
+    title: 'Payment pending',
     description:
-      state.paymentMode === 'simulate'
-        ? `${input.label} · use Helpers → Simulate paid`
-        : `${input.label} · open payment link (live SumoPod)`,
+      input.provider === 'simulate'
+        ? `${input.label} · Helpers → Simulate paid`
+        : `${input.label} · open checkout link to pay (sandbox)`,
   };
-  pushActivity(`Payment created: ${input.label} (Rp ${input.amountIdr.toLocaleString('id-ID')})`);
+  pushActivity(
+    `Payment created (${input.provider}): ${input.label} (Rp ${input.amountIdr.toLocaleString('id-ID')})`,
+  );
   return payment;
 }
 
-export function buyPlan(planId: PlanId, interval: 'month' | 'year' = 'month') {
+export type CreateLinkFn = (args: {
+  orderId: string;
+  amount: number;
+  label: string;
+  customerEmail: string;
+  customerName: string;
+}) => Promise<{ paymentUrl: string; providerTransactionId: string; provider: Payment['provider'] }>;
+
+export async function buyPlan(
+  planId: PlanId,
+  interval: 'month' | 'year' = 'month',
+  createLink?: CreateLinkFn,
+) {
   const plan = getPlan(planId);
   if (!plan) throw new Error(`Unknown plan: ${planId}`);
   state.interval = interval;
   if (plan.monthlyAmount === 0) {
-    // Free — instant
     state.planId = 'free';
     state.subscriptionStatus = 'active';
     state.subscriptionId = nextId('sub');
@@ -406,36 +444,102 @@ export function buyPlan(planId: PlanId, interval: 'month' | 'year' = 'month') {
     return { payment: null, snapshot: getSnapshot() };
   }
   const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
+  const label = `${plan.name} (${interval})`;
+  const orderId = nextId('ord');
+  let link: Awaited<ReturnType<CreateLinkFn>>;
+  if (createLink && state.paymentMode === 'live') {
+    link = await createLink({
+      orderId,
+      amount,
+      label,
+      customerEmail: state.customerEmail,
+      customerName: state.customerName,
+    });
+  } else {
+    link = {
+      paymentUrl: `https://pay.simulate.local/${orderId}`,
+      providerTransactionId: orderId,
+      provider: 'simulate',
+    };
+  }
   const payment = createPendingPayment({
     kind: 'plan',
     planId,
     creditsGranted: plan.creditsPerPeriod,
     amountIdr: amount,
-    label: `${plan.name} (${interval})`,
+    label,
+    paymentUrl: link.paymentUrl,
+    provider: link.provider,
+    orderId,
+    providerTransactionId: link.providerTransactionId,
   });
-  // Mark subscription scheduled until paid
   state.subscriptionStatus = 'scheduled';
   return { payment, snapshot: getSnapshot() };
 }
 
-export function buyPack(packId: PackId) {
+export async function buyPack(packId: PackId, createLink?: CreateLinkFn) {
   const pack = getPack(packId);
   if (!pack) throw new Error(`Unknown pack: ${packId}`);
+  const orderId = nextId('ord');
+  let link: Awaited<ReturnType<CreateLinkFn>>;
+  if (createLink && state.paymentMode === 'live') {
+    link = await createLink({
+      orderId,
+      amount: pack.amountIdr,
+      label: pack.name,
+      customerEmail: state.customerEmail,
+      customerName: state.customerName,
+    });
+  } else {
+    link = {
+      paymentUrl: `https://pay.simulate.local/${orderId}`,
+      providerTransactionId: orderId,
+      provider: 'simulate',
+    };
+  }
   const payment = createPendingPayment({
     kind: 'credit_pack',
     packId,
     creditsGranted: pack.credits,
     amountIdr: pack.amountIdr,
     label: pack.name,
+    paymentUrl: link.paymentUrl,
+    provider: link.provider,
+    orderId,
+    providerTransactionId: link.providerTransactionId,
   });
   return { payment, snapshot: getSnapshot() };
 }
 
-export function simulatePayment(paymentId: string, outcome: 'paid' | 'failed' | 'expired') {
-  const payment = state.payments.find((p) => p.id === paymentId);
+/** Finalize a pending payment by local id or provider transaction id. */
+export function finalizePayment(
+  ref: { paymentId?: string; providerTransactionId?: string; orderId?: string },
+  outcome: 'paid' | 'failed' | 'expired',
+) {
+  const payment = state.payments.find((p) => {
+    if (ref.paymentId && p.id === ref.paymentId) return true;
+    if (
+      ref.providerTransactionId &&
+      p.providerTransactionId &&
+      p.providerTransactionId === ref.providerTransactionId
+    )
+      return true;
+    if (ref.orderId && p.orderId && p.orderId === ref.orderId) return true;
+    return false;
+  });
   if (!payment) throw new Error('Payment not found');
-  if (payment.status !== 'pending') throw new Error('Payment already finalized');
+  if (payment.status !== 'pending') {
+    // Idempotent: already finalized
+    return getSnapshot();
+  }
+  return applyPaymentOutcome(payment, outcome);
+}
 
+export function simulatePayment(paymentId: string, outcome: 'paid' | 'failed' | 'expired') {
+  return finalizePayment({ paymentId }, outcome);
+}
+
+function applyPaymentOutcome(payment: Payment, outcome: 'paid' | 'failed' | 'expired') {
   payment.status = outcome;
   if (outcome === 'paid') {
     payment.paidAt = new Date().toISOString();
