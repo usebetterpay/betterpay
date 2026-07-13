@@ -1,0 +1,163 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "betterpay",
+  "homepage": "https://betterpay-docs.pages.dev",
+  "items": [
+    {
+      "name": "plan-card",
+      "title": "Plan Card",
+      "description": "Compound card for a single pricing plan",
+      "url": "https://betterpay-docs.pages.dev/r/plan-card.json"
+    },
+    {
+      "name": "plan-group",
+      "title": "Plan Group",
+      "description": "Interval context and plan grid",
+      "url": "https://betterpay-docs.pages.dev/r/plan-group.json"
+    },
+    {
+      "name": "pricing-table",
+      "title": "Pricing Table",
+      "description": "Opinionated pricing section",
+      "url": "https://betterpay-docs.pages.dev/r/pricing-table.json"
+    },
+    {
+      "name": "plan-comparison",
+      "title": "Plan Comparison",
+      "description": "Feature × plan comparison matrix",
+      "url": "https://betterpay-docs.pages.dev/r/plan-comparison.json"
+    },
+    {
+      "name": "subscription-summary",
+      "title": "Subscription Summary",
+      "description": "Current plan status and next charge",
+      "url": "https://betterpay-docs.pages.dev/r/subscription-summary.json"
+    },
+    {
+      "name": "plan-switcher",
+      "title": "Plan Switcher",
+      "description": "Dialog to change plan",
+      "url": "https://betterpay-docs.pages.dev/r/plan-switcher.json"
+    },
+    {
+      "name": "cancel-flow",
+      "title": "Cancel Flow",
+      "description": "Cancel subscription confirmation",
+      "url": "https://betterpay-docs.pages.dev/r/cancel-flow.json"
+    },
+    {
+      "name": "entitlement-meter",
+      "title": "Entitlement Meter",
+      "description": "Single feature usage meter",
+      "url": "https://betterpay-docs.pages.dev/r/entitlement-meter.json"
+    },
+    {
+      "name": "usage-summary",
+      "title": "Usage Summary",
+      "description": "Multi-meter usage panel",
+      "url": "https://betterpay-docs.pages.dev/r/usage-summary.json"
+    },
+    {
+      "name": "invoice-table",
+      "title": "Invoice Table",
+      "description": "Desktop invoice history",
+      "url": "https://betterpay-docs.pages.dev/r/invoice-table.json"
+    },
+    {
+      "name": "invoice-card",
+      "title": "Invoice Card",
+      "description": "Mobile invoice row",
+      "url": "https://betterpay-docs.pages.dev/r/invoice-card.json"
+    },
+    {
+      "name": "payment-status-banner",
+      "title": "Payment Status Banner",
+      "description": "Payment status callout",
+      "url": "https://betterpay-docs.pages.dev/r/payment-status-banner.json"
+    },
+    {
+      "name": "billing-portal",
+      "title": "Billing Portal",
+      "description": "Composed billing page layout",
+      "url": "https://betterpay-docs.pages.dev/r/billing-portal.json"
+    },
+    {
+      "name": "utils",
+      "title": "Utils",
+      "description": "cn() helper",
+      "url": "https://betterpay-docs.pages.dev/r/utils.json"
+    },
+    {
+      "name": "money",
+      "title": "Money",
+      "description": "formatMoney helpers",
+      "url": "https://betterpay-docs.pages.dev/r/money.json"
+    },
+    {
+      "name": "dates",
+      "title": "Dates",
+      "description": "formatDisplayDate",
+      "url": "https://betterpay-docs.pages.dev/r/dates.json"
+    },
+    {
+      "name": "status",
+      "title": "Status",
+      "description": "Status presentation maps",
+      "url": "https://betterpay-docs.pages.dev/r/status.json"
+    },
+    {
+      "name": "use-controllable-state",
+      "title": "useControllableState",
+      "description": "Controlled/uncontrolled state hook",
+      "url": "https://betterpay-docs.pages.dev/r/use-controllable-state.json"
+    },
+    {
+      "name": "button",
+      "title": "Button",
+      "description": "Base UI button",
+      "url": "https://betterpay-docs.pages.dev/r/button.json"
+    },
+    {
+      "name": "badge",
+      "title": "Badge",
+      "description": "Status badge",
+      "url": "https://betterpay-docs.pages.dev/r/badge.json"
+    },
+    {
+      "name": "card",
+      "title": "Card",
+      "description": "Card surface",
+      "url": "https://betterpay-docs.pages.dev/r/card.json"
+    },
+    {
+      "name": "dialog",
+      "title": "Dialog",
+      "description": "Base UI dialog",
+      "url": "https://betterpay-docs.pages.dev/r/dialog.json"
+    },
+    {
+      "name": "switch",
+      "title": "Switch",
+      "description": "Base UI switch",
+      "url": "https://betterpay-docs.pages.dev/r/switch.json"
+    },
+    {
+      "name": "separator",
+      "title": "Separator",
+      "description": "Base UI separator",
+      "url": "https://betterpay-docs.pages.dev/r/separator.json"
+    },
+    {
+      "name": "table",
+      "title": "Table",
+      "description": "Table primitives",
+      "url": "https://betterpay-docs.pages.dev/r/table.json"
+    },
+    {
+      "name": "billing-ui-types",
+      "title": "Billing UI Types",
+      "description": "Shared view-model types",
+      "url": "https://betterpay-docs.pages.dev/r/billing-ui-types.json"
+    }
+  ]
+}

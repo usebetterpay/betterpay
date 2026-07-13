@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "badge",
+  "type": "registry:ui",
+  "title": "Badge",
+  "description": "Status badge",
+  "dependencies": [
+    "@base-ui/react",
+    "class-variance-authority"
+  ],
+  "registryDependencies": [
+    "https://betterpay-docs.pages.dev/r/utils.json",
+    "https://betterpay-docs.pages.dev/r/status.json"
+  ],
+  "files": [
+    {
+      "path": "src/primitives/badge.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/badge.tsx",
+      "content": "import { mergeProps } from '@base-ui/react/merge-props';\nimport { useRender } from '@base-ui/react/use-render';\nimport { cva, type VariantProps } from 'class-variance-authority';\nimport { cn } from '@/lib/utils';\nimport type { BadgeTone } from '@/lib/status';\n\n/**\n * Status / meta badge. Prefer `tone` for domain status; `variant` for chrome.\n * Composition via Base UI useRender (`render` prop).\n */\nconst badgeVariants = cva(\n  [\n    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1',\n    'rounded-md border border-transparent px-1.5 text-[0.6875rem] font-medium tracking-wide',\n    'whitespace-nowrap uppercase transition-colors',\n    'duration-[var(--duration-fast,120ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',\n    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',\n    '[&>svg]:pointer-events-none [&>svg]:size-3',\n  ].join(' '),\n  {\n    variants: {\n      variant: {\n        default: 'bg-primary text-primary-foreground',\n        secondary: 'bg-secondary text-secondary-foreground',\n        outline: 'border-border bg-card text-foreground',\n        ghost: 'text-muted-foreground',\n        // Domain tones\n        success:\n          'border-transparent bg-[color-mix(in_oklch,var(--success)_14%,var(--background))] text-success',\n        warning:\n          'border-transparent bg-[color-mix(in_oklch,var(--warning)_16%,var(--background))] text-warning',\n        danger:\n          'border-transparent bg-[color-mix(in_oklch,var(--destructive)_12%,var(--background))] text-destructive',\n        muted: 'border-border bg-muted text-muted-foreground normal-case tracking-normal',\n        info:\n          'border-transparent bg-[color-mix(in_oklch,var(--info)_12%,var(--background))] text-[var(--info)]',\n      },\n    },\n    defaultVariants: {\n      variant: 'default',\n    },\n  },\n);\n\nconst TONE_TO_VARIANT: Record<\n  BadgeTone,\n  NonNullable<VariantProps<typeof badgeVariants>['variant']>\n> = {\n  default: 'default',\n  success: 'success',\n  warning: 'warning',\n  danger: 'danger',\n  muted: 'muted',\n};\n\nfunction Badge({\n  className,\n  variant,\n  tone,\n  render,\n  ...props\n}: useRender.ComponentProps<'span'> &\n  VariantProps<typeof badgeVariants> & {\n    tone?: BadgeTone;\n  }) {\n  const resolved = variant ?? (tone ? TONE_TO_VARIANT[tone] : 'default');\n\n  return useRender({\n    defaultTagName: 'span',\n    props: mergeProps<'span'>(\n      {\n        className: cn(badgeVariants({ variant: resolved }), className),\n      },\n      props,\n    ),\n    render,\n    state: {\n      slot: 'badge',\n      variant: resolved,\n    },\n  });\n}\n\nexport { Badge, badgeVariants };\n"
+    }
+  ]
+}

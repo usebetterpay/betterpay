@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "card",
+  "type": "registry:ui",
+  "title": "Card",
+  "description": "Card surface",
+  "dependencies": [],
+  "registryDependencies": [
+    "https://betterpay-docs.pages.dev/r/utils.json"
+  ],
+  "files": [
+    {
+      "path": "src/primitives/card.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/card.tsx",
+      "content": "import * as React from 'react';\nimport { cn } from '@/lib/utils';\n\n/**\n * Surface container. Prefer flat ring over heavy shadow.\n * Use only when grouping is the right affordance (not every block needs a card).\n */\nfunction Card({\n  className,\n  size = 'default',\n  elevated = false,\n  ...props\n}: React.ComponentProps<'div'> & {\n  size?: 'default' | 'sm';\n  elevated?: boolean;\n}) {\n  return (\n    <div\n      data-slot=\"card\"\n      data-size={size}\n      className={cn(\n        'group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card text-card-foreground',\n        'ring-1 ring-border',\n        elevated ? 'shadow-sm' : 'shadow-xs',\n        size === 'default' && 'py-4',\n        size === 'sm' && 'gap-3 py-3 text-sm',\n        'has-data-[slot=card-footer]:pb-0',\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nfunction CardHeader({ className, ...props }: React.ComponentProps<'div'>) {\n  return (\n    <div\n      data-slot=\"card-header\"\n      className={cn(\n        'grid auto-rows-min items-start gap-1 px-4',\n        'has-data-[slot=card-action]:grid-cols-[1fr_auto]',\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nfunction CardTitle({ className, ...props }: React.ComponentProps<'div'>) {\n  return (\n    <div\n      data-slot=\"card-title\"\n      className={cn('text-[0.9375rem] leading-snug font-semibold tracking-tight', className)}\n      {...props}\n    />\n  );\n}\n\nfunction CardDescription({ className, ...props }: React.ComponentProps<'div'>) {\n  return (\n    <div\n      data-slot=\"card-description\"\n      className={cn('text-sm leading-relaxed text-muted-foreground', className)}\n      {...props}\n    />\n  );\n}\n\nfunction CardAction({ className, ...props }: React.ComponentProps<'div'>) {\n  return (\n    <div\n      data-slot=\"card-action\"\n      className={cn('col-start-2 row-span-2 row-start-1 self-start justify-self-end', className)}\n      {...props}\n    />\n  );\n}\n\nfunction CardContent({ className, ...props }: React.ComponentProps<'div'>) {\n  return <div data-slot=\"card-content\" className={cn('px-4', className)} {...props} />;\n}\n\nfunction CardFooter({ className, ...props }: React.ComponentProps<'div'>) {\n  return (\n    <div\n      data-slot=\"card-footer\"\n      className={cn(\n        'flex items-center gap-2 border-t border-border bg-muted/40 px-4 py-3',\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport {\n  Card,\n  CardHeader,\n  CardFooter,\n  CardTitle,\n  CardAction,\n  CardDescription,\n  CardContent,\n};\n"
+    }
+  ]
+}

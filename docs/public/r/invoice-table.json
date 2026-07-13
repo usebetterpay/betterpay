@@ -1,0 +1,25 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "invoice-table",
+  "type": "registry:block",
+  "title": "Invoice Table",
+  "description": "Desktop invoice history",
+  "dependencies": [],
+  "registryDependencies": [
+    "https://betterpay-docs.pages.dev/r/button.json",
+    "https://betterpay-docs.pages.dev/r/badge.json",
+    "https://betterpay-docs.pages.dev/r/card.json",
+    "https://betterpay-docs.pages.dev/r/table.json",
+    "https://betterpay-docs.pages.dev/r/money.json",
+    "https://betterpay-docs.pages.dev/r/dates.json",
+    "https://betterpay-docs.pages.dev/r/status.json"
+  ],
+  "files": [
+    {
+      "path": "src/components/invoice-table.tsx",
+      "type": "registry:component",
+      "target": "components/betterpay/invoice-table.tsx",
+      "content": "import { cn } from '@/lib/utils';\nimport { formatDisplayDate } from '@/lib/dates';\nimport { formatMoney } from '@/lib/money';\nimport { invoiceStatusPresentation } from '@/lib/status';\nimport type { InvoiceView } from '@/types/billing-ui';\nimport { Badge } from '@/components/ui/badge';\nimport { Button } from '@/components/ui/button';\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';\nimport {\n  Table,\n  TableBody,\n  TableCell,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from '@/components/ui/table';\n\nexport interface InvoiceTableProps {\n  invoices: InvoiceView[];\n  title?: string;\n  description?: string;\n  emptyMessage?: string;\n  onDownload?: (invoiceId: string) => void;\n  className?: string;\n}\n\nexport function InvoiceTable({\n  invoices,\n  title = 'Invoices',\n  description = 'Billing history for this account.',\n  emptyMessage = 'No invoices yet.',\n  onDownload,\n  className,\n}: InvoiceTableProps) {\n  return (\n    <Card data-slot=\"invoice-table\" className={cn(className)}>\n      <CardHeader>\n        <CardTitle>{title}</CardTitle>\n        {description ? <CardDescription>{description}</CardDescription> : null}\n      </CardHeader>\n      <CardContent className=\"px-0 pb-0 sm:px-0\">\n        {invoices.length === 0 ? (\n          <p\n            data-slot=\"invoice-table-empty\"\n            className=\"px-5 pb-5 text-sm text-muted-foreground\"\n          >\n            {emptyMessage}\n          </p>\n        ) : (\n          <Table>\n            <TableHeader>\n              <TableRow>\n                <TableHead>Date</TableHead>\n                <TableHead>Number</TableHead>\n                <TableHead>Status</TableHead>\n                <TableHead className=\"text-right\">Amount</TableHead>\n                {onDownload ? <TableHead className=\"text-right\"> </TableHead> : null}\n              </TableRow>\n            </TableHeader>\n            <TableBody>\n              {invoices.map((invoice) => {\n                const status = invoiceStatusPresentation(invoice.status);\n                const currency = invoice.currency ?? 'IDR';\n                return (\n                  <TableRow key={invoice.id}>\n                    <TableCell>{formatDisplayDate(invoice.issuedAt)}</TableCell>\n                    <TableCell className=\"font-medium\">{invoice.number}</TableCell>\n                    <TableCell>\n                      <Badge tone={status.tone}>{status.label}</Badge>\n                    </TableCell>\n                    <TableCell className=\"text-right tabular-nums\">\n                      {formatMoney(invoice.amount, { currency })}\n                    </TableCell>\n                    {onDownload ? (\n                      <TableCell className=\"text-right\">\n                        <Button\n                          variant=\"ghost\"\n                          size=\"sm\"\n                          onClick={() => onDownload(invoice.id)}\n                          disabled={!invoice.downloadUrl && !onDownload}\n                        >\n                          Download\n                        </Button>\n                      </TableCell>\n                    ) : null}\n                  </TableRow>\n                );\n              })}\n            </TableBody>\n          </Table>\n        )}\n      </CardContent>\n    </Card>\n  );\n}\n"
+    }
+  ]
+}

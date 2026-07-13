@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "pages:build": "pnpm build",
+    "registry:build": "node scripts/build-registry.mjs",
+    "pages:build": "pnpm registry:build && pnpm build",
     "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-docs"
   },
   "dependencies": {

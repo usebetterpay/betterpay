@@ -6,10 +6,7 @@ description: React billing components for BetterPay — pricing, portal, invoice
 `@betterpay/ui` is the presentational React layer for BetterPay billing surfaces. Drop components into your app, pass domain-shaped props, and wire callbacks to `@betterpay/billing` or your own API.
 
 <div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
-  <CopyCommandButton
-    command="pnpm add @betterpay/ui"
-    copyCommand="pnpm add @betterpay/ui"
-  />
+  <CopyCommandButton registryName="pricing-table" />
 </div>
 
 <ComponentPreview
@@ -42,9 +39,19 @@ Billing UI is deceptively hard: interval toggles, status vocabulary, IDR formatt
 
 ## Install
 
+**Option A — package (recommended for apps using the monorepo):**
+
 ```bash title="Terminal"
 pnpm add @betterpay/ui
 ```
+
+**Option B — shadcn registry (copy source into your app):**
+
+```bash title="Terminal"
+npx shadcn@latest add https://betterpay-docs.pages.dev/r/pricing-table.json
+```
+
+Registry index: [https://betterpay-docs.pages.dev/r/index.json](https://betterpay-docs.pages.dev/r/index.json)
 
 ```ts title="Optional theme CSS"
 import '@betterpay/ui/styles.css';
