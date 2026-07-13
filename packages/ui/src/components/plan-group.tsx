@@ -23,14 +23,17 @@ export function usePlanGroup(): PlanGroupContextValue {
   return ctx;
 }
 
-// Always single column on phones; multi-col only from md/xl up.
-const planGroupGrid = cva('grid grid-cols-1 gap-3 md:gap-4', {
+/**
+ * Grid uses @container breakpoints so layout follows the component width
+ * (docs mobile preview frames, sidebars), not only the browser viewport.
+ */
+const planGroupGrid = cva('grid w-full min-w-0 grid-cols-1 gap-3 @md:gap-4', {
   variants: {
     columns: {
-      1: 'md:grid-cols-1',
-      2: 'md:grid-cols-2',
-      3: 'sm:grid-cols-2 lg:grid-cols-3',
-      4: 'sm:grid-cols-2 xl:grid-cols-4',
+      1: 'grid-cols-1',
+      2: '@md:grid-cols-2',
+      3: '@sm:grid-cols-2 @xl:grid-cols-3',
+      4: '@sm:grid-cols-2 @lg:grid-cols-3 @2xl:grid-cols-4',
       auto: '',
     },
   },
@@ -67,8 +70,6 @@ export function PlanGroup({
   children,
   ...props
 }: PlanGroupProps) {
-  // Avoid naming this `setInterval` — that shadows window.setInterval and
-  // is easy to mis-wire; always use a domain-specific name.
   const [interval, setBillingInterval] = useControllableState(
     controlledInterval,
     defaultInterval,
@@ -95,14 +96,18 @@ export function PlanGroup({
     <PlanGroupContext.Provider value={ctx}>
       <div
         data-slot="plan-group"
-        className={cn('flex w-full flex-col gap-6 font-sans', className)}
+        className={cn(
+          // Container query root — @sm/@md follow this width (not browser)
+          '@container w-full min-w-0 flex flex-col gap-5 font-sans @md:gap-6',
+          className,
+        )}
         {...props}
       >
         {(title || description || showIntervalToggle) && (
-          <header className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex max-w-xl flex-col gap-1.5">
+          <header className="flex w-full min-w-0 flex-col items-stretch gap-3 @md:flex-row @md:items-end @md:justify-between @md:gap-4">
+            <div className="flex min-w-0 max-w-xl flex-col gap-1.5">
               {title ? (
-                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                <h2 className="text-lg font-semibold tracking-tight text-foreground @sm:text-xl @md:text-2xl">
                   {title}
                 </h2>
               ) : null}
@@ -112,7 +117,9 @@ export function PlanGroup({
                 </p>
               ) : null}
             </div>
-            {showIntervalToggle ? <PlanGroupIntervalToggle /> : null}
+            {showIntervalToggle ? (
+              <PlanGroupIntervalToggle className="w-full shrink-0 @md:w-auto" />
+            ) : null}
           </header>
         )}
 
@@ -131,6 +138,7 @@ export function PlanGroup({
                 interval={interval}
                 currencyFallback={currencyFallback}
                 onSelect={onSelectPlan}
+                className="min-w-0"
               />
             ))}
           </div>

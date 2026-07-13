@@ -105,9 +105,12 @@ function PreviewCanvas({
       data-preview-theme={previewTheme}
       data-viewport={viewport}
       className={cn(
-        'bp-preview-surface w-full',
+        // @container so UI kit @sm/@md queries follow frame width (not browser)
+        'bp-preview-surface @container w-full min-w-0',
         previewTheme === 'dark' && 'dark',
-        openPreview ? 'min-h-[min(70vh,640px)] p-6 md:p-10' : 'min-h-[280px] p-5 md:p-6',
+        openPreview
+          ? 'min-h-[min(70vh,640px)] p-4 sm:p-6 md:p-10'
+          : 'min-h-[280px] p-3 sm:p-5 md:p-6',
         contentAlign === 'center'
           ? 'flex items-center justify-center'
           : 'flex items-start justify-start',
@@ -115,8 +118,8 @@ function PreviewCanvas({
     >
       <div
         className={cn(
-          'w-full',
-          // Desktop caps content; full / fullWidth stretch edge-to-edge
+          'w-full min-w-0',
+          // Desktop caps content; full / fullWidth / device frames stretch
           viewport === 'desktop' && !fullWidth && !openPreview && 'max-w-xl',
           (isFull || openPreview || isDevice) && 'max-w-none',
           contentAlign === 'start' && 'mr-auto',
@@ -132,12 +135,19 @@ function PreviewCanvas({
       <div
         className={cn(
           'overflow-x-auto bg-fd-muted/15',
-          openPreview ? 'flex min-h-0 flex-1 justify-start p-4 md:p-6' : 'flex justify-start p-4 md:p-5',
+          openPreview
+            ? 'flex min-h-0 flex-1 justify-center p-3 sm:justify-start sm:p-4 md:p-6'
+            : 'flex justify-center p-3 sm:justify-start sm:p-4 md:p-5',
         )}
       >
         <div
-          className="shrink-0 overflow-hidden rounded-lg border border-fd-border bg-fd-card shadow-none"
-          style={{ width: vp.width, maxWidth: '100%' }}
+          className="w-full max-w-full shrink-0 overflow-hidden rounded-lg border border-fd-border bg-fd-card shadow-none"
+          style={{
+            width: vp.width,
+            maxWidth: '100%',
+            // Isolate layout so nested @container sees this frame width
+            contain: 'inline-size',
+          }}
         >
           {surface}
         </div>
@@ -146,7 +156,13 @@ function PreviewCanvas({
   }
 
   return (
-    <div className={cn(openPreview && 'min-h-0 flex-1 overflow-auto', !openPreview && 'overflow-x-auto')}>
+    <div
+      className={cn(
+        'min-w-0',
+        openPreview && 'min-h-0 flex-1 overflow-auto',
+        !openPreview && 'overflow-x-auto',
+      )}
+    >
       {surface}
     </div>
   );

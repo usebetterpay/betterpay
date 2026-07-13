@@ -5,11 +5,11 @@ import { cn } from '../lib/cn';
 import type { BillingInterval, PlanView } from '../types/billing-ui';
 import { PlanGroup } from './plan-group';
 
-const shellVariants = cva('mx-auto w-full max-w-5xl px-0', {
+const shellVariants = cva('mx-auto w-full min-w-0 max-w-5xl px-0', {
   variants: {
     density: {
       comfortable: '',
-      compact: '[&_[data-slot=plan-group]]:gap-4 sm:[&_[data-slot=plan-group]]:gap-5',
+      compact: '[&_[data-slot=plan-group]]:gap-4',
     },
   },
   defaultVariants: { density: 'comfortable' },
@@ -45,7 +45,10 @@ export function PricingTable({
   className,
 }: PricingTableProps) {
   return (
-    <section data-slot="pricing-table" className={cn(shellVariants({ density }), className)}>
+    <section
+      data-slot="pricing-table"
+      className={cn(shellVariants({ density }), className)}
+    >
       <PlanGroup
         plans={plans}
         title={title}

@@ -13,9 +13,7 @@ export interface BillingIntervalToggleProps {
 }
 
 /**
- * Monthly / Yearly control used by PlanGroup and PlanComparison.
- * Uses controlled Switch + explicit label weight so state is obvious even if
- * thumb styles fail to load.
+ * Monthly / Yearly control. Full-width on narrow containers; compact on wide.
  */
 export function BillingIntervalToggle({
   value,
@@ -25,24 +23,22 @@ export function BillingIntervalToggle({
 }: BillingIntervalToggleProps) {
   const yearly = value === 'year';
 
-  const setMonth = () => onChange('month');
-  const setYear = () => onChange('year');
-
   return (
     <div
       data-slot="billing-interval-toggle"
       data-interval={value}
       className={cn(
-        'inline-flex w-full items-center justify-between gap-3 rounded-lg bg-muted/60 px-3 py-2 text-sm ring-1 ring-border sm:w-auto sm:justify-start',
+        'inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-lg bg-muted/60 px-2.5 py-2 text-sm ring-1 ring-border',
+        'sm:w-auto sm:justify-start sm:gap-3 sm:px-3',
         className,
       )}
     >
       <button
         type="button"
-        onClick={setMonth}
+        onClick={() => onChange('month')}
         aria-pressed={!yearly}
         className={cn(
-          'min-h-9 rounded-md px-2 py-1 transition-colors',
+          'min-h-9 shrink-0 rounded-md px-2 py-1 transition-colors',
           !yearly
             ? 'font-semibold text-foreground'
             : 'font-normal text-muted-foreground hover:text-foreground',
@@ -53,18 +49,16 @@ export function BillingIntervalToggle({
 
       <Switch
         checked={yearly}
-        onCheckedChange={(checked) => {
-          onChange(checked ? 'year' : 'month');
-        }}
+        onCheckedChange={(checked) => onChange(checked ? 'year' : 'month')}
         aria-label={switchLabel}
       />
 
       <button
         type="button"
-        onClick={setYear}
+        onClick={() => onChange('year')}
         aria-pressed={yearly}
         className={cn(
-          'min-h-9 rounded-md px-2 py-1 transition-colors',
+          'min-h-9 shrink-0 rounded-md px-2 py-1 transition-colors',
           yearly
             ? 'font-semibold text-foreground'
             : 'font-normal text-muted-foreground hover:text-foreground',

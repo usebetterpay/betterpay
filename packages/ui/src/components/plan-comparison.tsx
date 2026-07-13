@@ -121,24 +121,31 @@ export function PlanComparison({
   return (
     <div
       data-slot="plan-comparison"
-      className={cn('flex w-full flex-col gap-3', className)}
+      className={cn('@container flex w-full min-w-0 flex-col gap-3', className)}
       {...props}
     >
       {showIntervalToggle ? (
-        <div className="flex justify-start sm:justify-end">
-          <BillingIntervalToggle value={interval} onChange={setIntervalValue} />
+        <div className="flex w-full min-w-0 justify-stretch @md:justify-end">
+          <BillingIntervalToggle
+            value={interval}
+            onChange={setIntervalValue}
+            className="w-full @md:w-auto"
+          />
         </div>
       ) : null}
 
       <div
         role="table"
         aria-label={ariaLabel}
-        className="w-full overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border"
+        className="w-full min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border"
       >
-        <div role="rowgroup" className="overflow-x-auto overscroll-x-contain">
+        <div
+          role="rowgroup"
+          className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]"
+        >
           <div
             role="row"
-            className="grid min-w-[min(100%,28rem)] w-max border-b border-border bg-muted/40 sm:min-w-[36rem] sm:w-full"
+            className="grid w-max min-w-[28rem] border-b border-border bg-muted/40 @lg:w-full @lg:min-w-0"
             style={gridCols}
           >
             <div
@@ -188,7 +195,7 @@ export function PlanComparison({
               key={row.id}
               role="row"
               className={cn(
-                'grid min-w-[min(100%,28rem)] w-max border-b border-border last:border-b-0 sm:min-w-[36rem] sm:w-full',
+                'grid w-max min-w-[28rem] border-b border-border last:border-b-0 @lg:w-full @lg:min-w-0',
                 i % 2 === 1 && 'bg-muted/20',
               )}
               style={gridCols}
@@ -196,7 +203,7 @@ export function PlanComparison({
               <div
                 role="cell"
                 className={cn(
-                  'sticky left-0 z-10 p-2.5 text-left text-sm text-foreground sm:p-3',
+                  'sticky left-0 z-10 max-w-[10rem] p-2.5 text-left text-sm text-foreground @sm:max-w-none @sm:p-3',
                   i % 2 === 1 ? 'bg-muted/90 backdrop-blur-sm' : 'bg-card/95 backdrop-blur-sm',
                 )}
               >

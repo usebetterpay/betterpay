@@ -65,12 +65,14 @@ export function BillingPortal({
     <div
       data-slot="billing-portal"
       className={cn(
-        'mx-auto flex w-full max-w-4xl flex-col gap-6 font-sans sm:gap-7',
+        '@container mx-auto flex w-full min-w-0 max-w-4xl flex-col gap-5 font-sans @md:gap-7',
         className,
       )}
     >
-      <header className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+      <header className="flex min-w-0 flex-col gap-1">
+        <h1 className="text-lg font-semibold tracking-tight @sm:text-xl @md:text-2xl">
+          {title}
+        </h1>
         <p className="text-sm text-muted-foreground">
           Plan, usage, and invoices for this account.
         </p>
@@ -90,7 +92,7 @@ export function BillingPortal({
 
       {plans.length > 0 || onCancel ? (
         <div
-          className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center"
+          className="flex w-full min-w-0 flex-col gap-2 @sm:flex-row @sm:flex-wrap @sm:items-center"
           data-slot="billing-portal-actions"
         >
           {plans.length > 0 ? (
@@ -99,14 +101,14 @@ export function BillingPortal({
               currentPlanId={subscription.planId}
               interval={subscription.interval === 'custom' ? 'month' : subscription.interval}
               onConfirm={onChangePlan}
-              className="w-full sm:w-auto"
+              className="w-full min-w-0 @sm:w-auto"
             />
           ) : null}
           {onCancel ? (
             <CancelFlow
               planName={subscription.planName}
               onConfirm={onCancel}
-              className="w-full sm:w-auto"
+              className="w-full min-w-0 @sm:w-auto"
             />
           ) : null}
         </div>
@@ -136,7 +138,7 @@ export function BillingPortal({
         </section>
       ) : invoiceLayout === 'responsive' ? (
         <>
-          <div className="hidden md:block">
+          <div className="hidden @md:block">
             <InvoiceTable
               invoices={invoices}
               onDownload={onDownloadInvoice}
@@ -144,7 +146,7 @@ export function BillingPortal({
             />
           </div>
           <section
-            className="flex flex-col gap-3 md:hidden"
+            className="flex flex-col gap-3 @md:hidden"
             data-slot="billing-portal-invoices-mobile"
           >
             <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>

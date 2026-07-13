@@ -40,8 +40,18 @@
     var(--background);
   /* Tailwind dark: utilities respect .dark on this subtree */
   color-scheme: light;
+  /* Ensure nested @container queries resolve against this surface width */
+  container-type: inline-size;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .bp-preview-surface.dark {
   color-scheme: dark;
+}
+
+/* Docs prose/main content shouldn't force overflow past mobile frames */
+.bp-preview-surface * {
+  box-sizing: border-box;
 }

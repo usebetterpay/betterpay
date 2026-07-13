@@ -76,13 +76,13 @@ function PlanCard({
           </div>
           {plan.description ? <CardDescription>{plan.description}</CardDescription> : null}
         </CardHeader>
-        <CardContent className="flex flex-1 flex-col gap-4 sm:gap-5">
+        <CardContent className="flex min-w-0 flex-1 flex-col gap-4">
           <PlanCardPrice amount={amount} currency={currency} period={period} />
           <PlanCardFeatures features={plan.features} />
         </CardContent>
-        <CardFooter>
+        <CardFooter className="min-w-0">
           <Button
-            className="w-full"
+            className="w-full min-w-0"
             variant={plan.recommended ? 'default' : 'outline'}
             onClick={() => onSelect?.(plan.id, interval)}
           >
@@ -136,10 +136,12 @@ function PlanCardPrice({
       className={cn('flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5', className)}
       {...props}
     >
-      <span className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
+      <span className="break-words text-xl font-semibold tracking-tight tabular-nums sm:text-2xl md:text-3xl">
         {formatMoney(amount, { currency })}
       </span>
-      {period ? <span className="text-sm text-muted-foreground">{period}</span> : null}
+      {period ? (
+        <span className="shrink-0 text-sm text-muted-foreground">{period}</span>
+      ) : null}
     </div>
   );
 }
