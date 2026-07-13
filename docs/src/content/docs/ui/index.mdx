@@ -1,114 +1,74 @@
 ---
-title: UI Kit
+title: Overview
 description: React billing components for BetterPay — pricing, portal, invoices, and usage.
 ---
 
 `@betterpay/ui` is the presentational React layer for BetterPay billing surfaces. Drop components into your app, pass domain-shaped props, and wire callbacks to `@betterpay/billing` or your own API.
 
-## Why a UI package
-
-Billing UI is deceptively hard: interval toggles, status vocabulary, IDR formatting, empty states, and accessible dialogs. This package gives you production patterns that match BetterPay's domain model (subscriptions, entitlements, invoices) without owning checkout — payment links still come from Midtrans Snap, Xendit, and friends.
-
-## Principles
-
-- **IDR-first** — default locale `id-ID`, tabular money via `formatMoney`
-- **Domain status** — `scheduled` · `active` · `past_due` · `canceled` · `ended` (and invoice statuses)
-- **Base UI + base-nova** — `render` composition, not Radix `asChild`
-- **Presentational** — props in, callbacks out; no hardcoded provider SDK
-- **Composable** — compound pieces (`PlanCard` / `PlanGroup`) plus opinionated sections (`PricingTable`, `BillingPortal`)
-
-## Install
-
-```bash
-pnpm add @betterpay/ui react react-dom
-```
-
-Optional CSS variables if your app is not already themed:
-
-```ts
-import '@betterpay/ui/styles.css';
-```
-
-Host apps should provide Tailwind (or equivalent) for utility classes used by components.
-
-## Live preview
-
-Toggle monthly/yearly and pick a plan in the canvas below.
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton
+    command="pnpm add @betterpay/ui"
+    copyCommand="pnpm add @betterpay/ui"
+  />
+</div>
 
 <ComponentPreview
+  title="Pricing table"
+  name="pricing-table"
   fullWidth
   code={`import { PricingTable } from '@betterpay/ui';
 
-<PricingTable plans={plans} onSelectPlan={(planId, interval) => {}} />`}
+<PricingTable
+  plans={plans}
+  onSelectPlan={(planId, interval) => {
+    // pay.billing.subscribe(...)
+  }}
+/>`}
 >
   <DemoPricingTable />
 </ComponentPreview>
 
-## Quick example
+## Why a UI package
 
-```tsx title="Usage"
-import { PricingTable, type PlanView } from '@betterpay/ui';
+Billing UI is deceptively hard: interval toggles, status vocabulary, IDR formatting, empty states, and accessible dialogs. This package gives you production patterns that match BetterPay's domain model without owning checkout — payment links still come from Midtrans Snap, Xendit, and friends.
 
-const plans: PlanView[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    monthlyAmount: 0,
-    yearlyAmount: 0,
-    currency: 'IDR',
-    features: [{ id: 'msg', label: '100 messages / month' }],
-    ctaLabel: 'Start free',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    monthlyAmount: 199_000,
-    yearlyAmount: 1_990_000,
-    currency: 'IDR',
-    recommended: true,
-    badge: 'Popular',
-    features: [
-      { id: 'msg', label: '5.000 messages / month' },
-      { id: 'wa', label: 'WhatsApp notifications' },
-    ],
-    ctaLabel: 'Upgrade to Pro',
-  },
-];
+## Principles
 
-export function PricingPage() {
-  return (
-    <PricingTable
-      plans={plans}
-      onSelectPlan={(planId, interval) => {
-        // await pay.billing.subscribe({ customerId, planId })
-        console.log(planId, interval);
-      }}
-    />
-  );
-}
+- **IDR-first** — default locale `id-ID`, tabular money via `formatMoney`
+- **Domain status** — `scheduled` · `active` · `past_due` · `canceled` · `ended`
+- **Base UI + base-nova** — `render` composition, not Radix `asChild`
+- **Presentational** — props in, callbacks out
+- **Composable** — `PlanCard` / `PlanGroup` plus opinionated sections
+
+## Install
+
+```bash title="Terminal"
+pnpm add @betterpay/ui
 ```
 
-## Components
+```ts title="Optional theme CSS"
+import '@betterpay/ui/styles.css';
+```
 
-Browse the full list under [Components](/docs/ui/components).
+Host apps should provide Tailwind (or equivalent) for utility classes.
 
-## Design system
+## Browse components
 
-Visual rules live in the package:
-
-- `packages/ui/DESIGN.md` — density, tokens, bans
-- `PRODUCT.md` — product register and anti-references
-
-## Next steps
-
-<Cards>
-  <Card title="Components" href="/docs/ui/components">
-    Full catalog of billing UI blocks
-  </Card>
-  <Card title="Billing engine" href="/docs/quickstart">
-    Wire plans and subscriptions with @betterpay/billing
-  </Card>
-  <Card title="Providers" href="/docs/providers">
-    Midtrans, Xendit, and other gateways
-  </Card>
-</Cards>
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 not-prose my-6">
+  <a href="/ui/components/plan-card" className="rounded-lg border border-fd-border bg-fd-card p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Plan Card</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Single plan surface</p>
+  </a>
+  <a href="/ui/components/pricing-table" className="rounded-lg border border-fd-border bg-fd-card p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Pricing Table</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Full pricing section</p>
+  </a>
+  <a href="/ui/components/billing-portal" className="rounded-lg border border-fd-border bg-fd-card p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Billing Portal</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Composed account page</p>
+  </a>
+  <a href="/ui/components" className="rounded-lg border border-fd-border bg-fd-card p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">All components</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Full catalog</p>
+  </a>
+</div>

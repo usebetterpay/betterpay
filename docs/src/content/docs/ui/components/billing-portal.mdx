@@ -3,9 +3,15 @@ title: Billing Portal
 description: Composed billing page — summary, plan actions, usage, and invoices.
 ---
 
-`BillingPortal` is a presentational layout. Interact with plan switcher, cancel, and usage expand in the preview.
+Presentational layout. Interact with plan switcher, cancel, and usage expand in the preview.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Billing Portal"
+  name="billing-portal"
   fullWidth
   code={`import { BillingPortal } from '@betterpay/ui';
 
@@ -21,26 +27,40 @@ description: Composed billing page — summary, plan actions, usage, and invoice
   <DemoBillingPortal />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { BillingPortal } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Full portal"
+<BillingPortal
+  subscription={subscription}
+  plans={plans}
+  entitlements={entitlements}
+  invoices={invoices}
+  usagePeriodLabel="12 days left in cycle"
+  invoiceLayout="responsive"
+  onChangePlan={handleChange}
+  onCancel={handleCancel}
+  onDownloadInvoice={handleDownload}
+/>
+```
 
-### BillingPortal
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `subscription` | `SubscriptionView` | — |
-| `plans` | `PlanView[]` | `[]` |
-| `entitlements` | `EntitlementView[]` | `[]` |
-| `invoices` | `InvoiceView[]` | `[]` |
-| `callout` | `{ status, title?, description? } \| null` | `null` |
-| `onChangePlan` | `(planId: string) => void` | — |
-| `onCancel` | `(payload: { reasonId?: string }) => void` | — |
-| `onDownloadInvoice` | `(invoiceId: string) => void` | — |
-| `invoiceLayout` | `"table" \| "cards" \| "responsive"` | `"responsive"` |
-| `usagePeriodLabel` | `string` | — |
-| `title` | `string` | `"Billing"` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `subscription` | `SubscriptionView` | — | Current sub |
+| `plans` | `PlanView[]` | `[]` | For plan switcher |
+| `entitlements` | `EntitlementView[]` | `[]` | Usage meters |
+| `invoices` | `InvoiceView[]` | `[]` | History |
+| `callout` | `{ status, title?, description? } \| null` | `null` | Banner |
+| `onChangePlan` | `(planId) => void` | — | Plan change |
+| `onCancel` | `(payload) => void` | — | Cancel |
+| `onDownloadInvoice` | `(id) => void` | — | Invoice download |
+| `invoiceLayout` | `"table" \| "cards" \| "responsive"` | `"responsive"` | History layout |
+| `usagePeriodLabel` | `string` | — | Cycle hint |
+| `title` | `string` | `"Billing"` | Page title |
+
+Composes: `SubscriptionSummary`, `PlanSwitcher`, `CancelFlow`, `UsageSummary`, `InvoiceTable`, `InvoiceCardList`, `PaymentStatusBanner`.

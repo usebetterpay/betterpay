@@ -1,23 +1,26 @@
 {
-  "title": "UI",
+  "title": "UI Kit",
+  "defaultOpen": true,
   "pages": [
     "index",
-    "components",
-    "---Components---",
+    "---Pricing---",
     "components/plan-card",
     "components/plan-group",
     "components/pricing-table",
     "components/plan-comparison",
+    "---Subscription---",
     "components/subscription-summary",
     "components/plan-switcher",
     "components/cancel-flow",
+    "components/billing-portal",
+    "---Usage & invoices---",
     "components/entitlement-meter",
     "components/usage-summary",
     "components/invoice-table",
     "components/invoice-card",
     "components/payment-status-banner",
-    "components/billing-portal",
-    "---Utilities---",
+    "---Reference---",
+    "components",
     "utilities"
   ]
 }

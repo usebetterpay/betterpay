@@ -3,9 +3,15 @@ title: Plan Comparison
 description: Feature × plan comparison matrix for marketing and docs pages.
 ---
 
-`PlanComparison` renders a table of features against plans. Cells support included, excluded, partial, or custom text.
+Table of features against plans. Cells: included, excluded, partial, or custom text.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Plan Comparison"
+  name="plan-comparison"
   fullWidth
   code={`import { PlanComparison } from '@betterpay/ui';
 
@@ -18,21 +24,17 @@ description: Feature × plan comparison matrix for marketing and docs pages.
   <DemoPlanComparison />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
-```
-
-```tsx title="Usage"
+```tsx title="Import"
 import { PlanComparison, type ComparisonFeatureRow } from '@betterpay/ui';
 ```
 
-## Examples
+```tsx title="Derived from plan.features"
+<PlanComparison plans={plans} interval="month" onSelectPlan={handleSelect} />
+```
 
-### Explicit feature matrix
-
-```tsx
+```tsx title="Explicit matrix"
 const features: ComparisonFeatureRow[] = [
   {
     id: 'msg',
@@ -49,17 +51,15 @@ const features: ComparisonFeatureRow[] = [
 <PlanComparison plans={plans} features={features} interval="year" />
 ```
 
-## API Reference
+## Props
 
-### PlanComparison
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `plans` | `PlanView[]` | — |
-| `features` | `ComparisonFeatureRow[]` | derived |
-| `interval` | `"month" \| "year"` | `"month"` |
-| `onSelectPlan` | `(planId: string) => void` | — |
-| `currencyFallback` | `string` | `"IDR"` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Column headers + prices |
+| `features` | `ComparisonFeatureRow[]` | derived | Matrix rows |
+| `interval` | `"month" \| "year"` | `"month"` | Price period |
+| `onSelectPlan` | `(planId) => void` | — | Header CTA |
+| `currencyFallback` | `string` | `"IDR"` | Fallback currency |
 
 ### ComparisonCell
 

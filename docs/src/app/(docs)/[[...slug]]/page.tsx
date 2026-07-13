@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 import { getPages, getPage } from '@/lib/source';
 import { CodeGroup } from '@/components/CodeGroup';
 import { ComponentPreview } from '@/components/ComponentPreview';
+import { CopyCommandButton } from '@/components/CopyCommandButton';
 import * as Demos from '@/components/demos';
 
 const mdxComponents = {
@@ -24,6 +25,7 @@ const mdxComponents = {
   Step,
   CodeGroup,
   ComponentPreview,
+  CopyCommandButton,
   ...Demos,
 };
 

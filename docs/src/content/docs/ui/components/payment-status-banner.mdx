@@ -3,9 +3,15 @@ title: Payment Status Banner
 description: Callout for success, failed, past due, or pending payments.
 ---
 
-`PaymentStatusBanner` is a full-border tinted callout. Status is always labeled in text.
+Full-border tinted callout. Status is always labeled in text, not color alone.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Payment Status Banner"
+  name="payment-status-banner"
   code={`import { PaymentStatusBanner } from '@betterpay/ui';
 
 <PaymentStatusBanner
@@ -16,21 +22,25 @@ description: Callout for success, failed, past due, or pending payments.
   <DemoPaymentStatusBanner />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { PaymentStatusBanner } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Variants"
+<PaymentStatusBanner status="success" description="Paid via BCA VA." />
+<PaymentStatusBanner status="past_due" description="Update payment." />
+<PaymentStatusBanner status="failed" dismissible onDismiss={...} />
+```
 
-### PaymentStatusBanner
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `status` | `"success" \| "failed" \| "past_due" \| "pending"` | — |
-| `title` | `string` | from status map |
-| `description` | `string` | — |
-| `dismissible` | `boolean` | `false` |
-| `onDismiss` | `() => void` | — |
-| `action` | `ReactNode` | — |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `status` | `"success" \| "failed" \| "past_due" \| "pending"` | — | Tone |
+| `title` | `string` | from status map | Heading |
+| `description` | `string` | — | Body |
+| `dismissible` | `boolean` | `false` | Show dismiss |
+| `onDismiss` | `() => void` | — | Dismiss handler |
+| `action` | `ReactNode` | — | Optional CTA |

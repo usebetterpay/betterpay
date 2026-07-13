@@ -3,9 +3,15 @@ title: Plan Group
 description: Interval context and grid layout for multiple plan cards.
 ---
 
-`PlanGroup` owns monthly/yearly state and can render a grid of plans, or wrap custom children that call `usePlanGroup()`.
+Owns monthly/yearly state. Pass `plans` for an auto grid, or children with `usePlanGroup()`.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Plan Group"
+  name="plan-group"
   fullWidth
   code={`import { PlanGroup } from '@betterpay/ui';
 
@@ -19,34 +25,24 @@ description: Interval context and grid layout for multiple plan cards.
   <DemoPlanGroup />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
-```
-
-```tsx title="Usage"
+```tsx title="Import"
 import { PlanGroup, PlanGroupIntervalToggle, usePlanGroup, PlanCard } from '@betterpay/ui';
 ```
 
-## Examples
-
-### Controlled interval
-
-```tsx
-const [interval, setInterval] = useState<'month' | 'year'>('month');
-
+```tsx title="With plans data"
 <PlanGroup
+  title="Choose a plan"
+  description="Switch monthly or yearly anytime."
   plans={plans}
-  interval={interval}
+  defaultInterval="month"
   onIntervalChange={setInterval}
   onSelectPlan={handleSelect}
 />
 ```
 
-### Custom children
-
-```tsx
+```tsx title="Custom children"
 function CustomGrid() {
   return (
     <PlanGroup defaultInterval="month" showIntervalToggle title="Plans">
@@ -60,30 +56,31 @@ function CustomGrid() {
 function InnerCards() {
   const { interval } = usePlanGroup();
   return plans.map((plan) => (
-    <PlanCard key={plan.id} plan={plan} interval={interval} onSelect={...} />
+    <PlanCard key={plan.id} plan={plan} interval={interval} onSelect={handleSelect} />
   ));
 }
 ```
 
-## API Reference
+## Props
 
 ### PlanGroup
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `plans` | `PlanView[]` | — |
-| `interval` | `"month" \| "year"` | controlled |
-| `defaultInterval` | `"month" \| "year"` | `"month"` |
-| `onIntervalChange` | `(interval) => void` | — |
-| `onSelectPlan` | `(planId, interval) => void` | — |
-| `currencyFallback` | `string` | `"IDR"` |
-| `showIntervalToggle` | `boolean` | `true` |
-| `title` | `string` | — |
-| `description` | `string` | — |
-| `columns` | `1 \| 2 \| 3 \| 4 \| "auto"` | `"auto"` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Auto-render PlanCards |
+| `interval` | `"month" \| "year"` | controlled | Controlled period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Period change |
+| `onSelectPlan` | `(planId, interval) => void` | — | Card CTA |
+| `showIntervalToggle` | `boolean` | `true` | Show monthly/yearly switch |
+| `title` | `string` | — | Section title |
+| `description` | `string` | — | Section blurb |
+| `columns` | `1 \| 2 \| 3 \| 4 \| "auto"` | `"auto"` | Grid columns |
 
 ### usePlanGroup
 
 ```ts
 const { interval, setInterval } = usePlanGroup();
 ```
+
+Must be used under `PlanGroup`.

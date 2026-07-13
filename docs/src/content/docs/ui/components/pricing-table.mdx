@@ -3,9 +3,15 @@ title: Pricing Table
 description: Opinionated pricing section built on PlanGroup and PlanCard.
 ---
 
-`PricingTable` is a thin section wrapper: title, description, interval toggle, and plan grid.
+Thin section wrapper: title, description, interval toggle, and plan grid.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Pricing Table"
+  name="pricing-table"
   fullWidth
   code={`import { PricingTable } from '@betterpay/ui';
 
@@ -17,47 +23,43 @@ description: Opinionated pricing section built on PlanGroup and PlanCard.
   <DemoPricingTable />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
-```
-
-```tsx title="Usage"
+```tsx title="Import"
 import { PricingTable, type PlanView } from '@betterpay/ui';
 ```
 
-## Examples
-
-### Compact density
-
-```tsx
-<PricingTable plans={plans} density="compact" onSelectPlan={...} />
+```tsx title="Basic"
+<PricingTable
+  plans={plans}
+  title="Simple pricing"
+  description="IDR pricing for Indonesian products."
+  onSelectPlan={(planId, interval) => {
+    // pay.billing.subscribe(...)
+  }}
+/>
 ```
 
-### Controlled interval
-
-```tsx
+```tsx title="Controlled interval"
 <PricingTable
   plans={plans}
   interval={interval}
   onIntervalChange={setInterval}
+  density="compact"
   onSelectPlan={handleSelect}
 />
 ```
 
-## API Reference
+## Props
 
-### PricingTable
-
-| Prop | Type | Default |
-| --- | --- | --- |
-| `plans` | `PlanView[]` | — |
-| `title` | `string` | `"Choose a plan"` |
-| `description` | `string` | IDR-oriented default copy |
-| `interval` | `"month" \| "year"` | — |
-| `defaultInterval` | `"month" \| "year"` | `"month"` |
-| `onIntervalChange` | `(interval) => void` | — |
-| `onSelectPlan` | `(planId, interval) => void` | — |
-| `currencyFallback` | `string` | `"IDR"` |
-| `density` | `"comfortable" \| "compact"` | `"comfortable"` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Plans to render |
+| `title` | `string` | `"Choose a plan"` | Heading |
+| `description` | `string` | IDR default copy | Subheading |
+| `interval` | `"month" \| "year"` | — | Controlled period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Period change |
+| `onSelectPlan` | `(planId, interval) => void` | — | CTA |
+| `currencyFallback` | `string` | `"IDR"` | Fallback currency |
+| `density` | `"comfortable" \| "compact"` | `"comfortable"` | Spacing |

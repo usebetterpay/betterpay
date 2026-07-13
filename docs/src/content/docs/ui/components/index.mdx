@@ -1,24 +1,73 @@
 ---
-title: Components
-description: All React billing components available in @betterpay/ui.
+title: All components
+description: Catalog of React billing components in @betterpay/ui.
 ---
 
-Here you can find every component in the UI kit. Each page follows the same structure: overview, installation, examples, and API reference.
+Browse every block. Each page: install command, live preview, usage, and props.
 
-<div className="grid grid-cols-2 sm:grid-cols-3 gap-4 not-prose my-6">
-  <a href="/docs/ui/components/plan-card" className="text-sm font-medium hover:underline underline-offset-4">Plan Card</a>
-  <a href="/docs/ui/components/plan-group" className="text-sm font-medium hover:underline underline-offset-4">Plan Group</a>
-  <a href="/docs/ui/components/pricing-table" className="text-sm font-medium hover:underline underline-offset-4">Pricing Table</a>
-  <a href="/docs/ui/components/plan-comparison" className="text-sm font-medium hover:underline underline-offset-4">Plan Comparison</a>
-  <a href="/docs/ui/components/subscription-summary" className="text-sm font-medium hover:underline underline-offset-4">Subscription Summary</a>
-  <a href="/docs/ui/components/plan-switcher" className="text-sm font-medium hover:underline underline-offset-4">Plan Switcher</a>
-  <a href="/docs/ui/components/cancel-flow" className="text-sm font-medium hover:underline underline-offset-4">Cancel Flow</a>
-  <a href="/docs/ui/components/entitlement-meter" className="text-sm font-medium hover:underline underline-offset-4">Entitlement Meter</a>
-  <a href="/docs/ui/components/usage-summary" className="text-sm font-medium hover:underline underline-offset-4">Usage Summary</a>
-  <a href="/docs/ui/components/invoice-table" className="text-sm font-medium hover:underline underline-offset-4">Invoice Table</a>
-  <a href="/docs/ui/components/invoice-card" className="text-sm font-medium hover:underline underline-offset-4">Invoice Card</a>
-  <a href="/docs/ui/components/payment-status-banner" className="text-sm font-medium hover:underline underline-offset-4">Payment Status Banner</a>
-  <a href="/docs/ui/components/billing-portal" className="text-sm font-medium hover:underline underline-offset-4">Billing Portal</a>
+## Pricing
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 not-prose my-4">
+  <a href="/ui/components/plan-card" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Plan Card</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Single pricing tier</p>
+  </a>
+  <a href="/ui/components/plan-group" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Plan Group</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Interval context + grid</p>
+  </a>
+  <a href="/ui/components/pricing-table" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Pricing Table</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Opinionated section</p>
+  </a>
+  <a href="/ui/components/plan-comparison" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Plan Comparison</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Feature matrix</p>
+  </a>
 </div>
 
-Need something else? Open an issue on [GitHub](https://github.com/usebetterpay/betterpay) with the surface you are building (portal, pricing page, dunning, etc.).
+## Subscription
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 not-prose my-4">
+  <a href="/ui/components/subscription-summary" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Subscription Summary</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Current plan + status</p>
+  </a>
+  <a href="/ui/components/plan-switcher" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Plan Switcher</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Change plan dialog</p>
+  </a>
+  <a href="/ui/components/cancel-flow" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Cancel Flow</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Cancel confirmation</p>
+  </a>
+  <a href="/ui/components/billing-portal" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Billing Portal</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Full portal layout</p>
+  </a>
+</div>
+
+## Usage & invoices
+
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 not-prose my-4">
+  <a href="/ui/components/entitlement-meter" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Entitlement Meter</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Single usage meter</p>
+  </a>
+  <a href="/ui/components/usage-summary" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Usage Summary</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Multi-meter panel</p>
+  </a>
+  <a href="/ui/components/invoice-table" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Invoice Table</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Desktop history</p>
+  </a>
+  <a href="/ui/components/invoice-card" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Invoice Card</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Mobile invoice row</p>
+  </a>
+  <a href="/ui/components/payment-status-banner" className="rounded-lg border p-4 hover:bg-fd-muted/40 transition-colors">
+    <div className="text-sm font-semibold">Payment Status Banner</div>
+    <p className="mt-1 text-xs text-fd-muted-foreground">Success / failed / past due</p>
+  </a>
+</div>

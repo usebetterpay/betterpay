@@ -5,13 +5,13 @@ description: Money formatting, dates, status maps, and controllable state helper
 
 Helpers exported from `@betterpay/ui` for consistent product UI.
 
-## Installation
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
-```
+## Usage
 
-```ts title="import utilities"
+```ts title="Import"
 import {
   formatMoney,
   formatIdr,
@@ -25,8 +25,6 @@ import {
 
 ## formatMoney
 
-Formats major units with `Intl.NumberFormat`. Defaults to IDR / `id-ID`.
-
 ```ts title="formatMoney"
 formatMoney(150_000);
 // → "Rp150.000" (locale-dependent spacing)
@@ -37,14 +35,14 @@ formatMoney(19.99, { currency: 'USD', locale: 'en-US' });
 formatIdr(99_000); // alias for IDR major units
 ```
 
-### API
+### Props
 
-| Param | Type | Default |
-| --- | --- | --- |
-| `amount` | `number` | — |
-| `options.currency` | `string` | `"IDR"` |
-| `options.locale` | `string` | `"id-ID"` |
-| `options.unit` | `"major" \| "minor"` | `"major"` |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `amount` | `number` | — | Amount to format |
+| `options.currency` | `string` | `"IDR"` | ISO currency |
+| `options.locale` | `string` | `"id-ID"` | BCP 47 locale |
+| `options.unit` | `"major" \| "minor"` | `"major"` | Unit mode |
 
 ## formatDisplayDate
 
@@ -54,8 +52,6 @@ formatDisplayDate('2026-08-01');
 ```
 
 ## Status presentation
-
-Maps BetterPay domain statuses to badge labels and tones.
 
 ```ts title="status maps"
 subscriptionStatusPresentation('past_due');
@@ -69,8 +65,6 @@ paymentCalloutPresentation('failed');
 ```
 
 ## useControllableState
-
-For controls that support both controlled and uncontrolled modes (interval toggles, dialogs).
 
 ```tsx title="useControllableState"
 const [interval, setInterval] = useControllableState(

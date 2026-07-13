@@ -3,9 +3,15 @@ title: Invoice Card
 description: Single invoice row for mobile lists and dense stacks.
 ---
 
-`InvoiceCard` shows one invoice as a horizontal card. `InvoiceCardList` stacks many.
+Horizontal card for one invoice. `InvoiceCardList` stacks many with an empty state.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Invoice Card"
+  name="invoice-card"
   code={`import { InvoiceCard, InvoiceCardList } from '@betterpay/ui';
 
 <InvoiceCard invoice={invoice} onDownload={...} />
@@ -14,26 +20,30 @@ description: Single invoice row for mobile lists and dense stacks.
   <DemoInvoiceCard />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { InvoiceCard, InvoiceCardList } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="List"
+<InvoiceCardList invoices={invoices} onDownload={handleDownload} />
+```
+
+## Props
 
 ### InvoiceCard
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `invoice` | `InvoiceView` | — |
-| `onDownload` | `(invoiceId: string) => void` | — |
-| `compact` | `boolean` | `false` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `invoice` | `InvoiceView` | — | Invoice data |
+| `onDownload` | `(invoiceId) => void` | — | Download action |
+| `compact` | `boolean` | `false` | Tighter padding |
 
 ### InvoiceCardList
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `invoices` | `InvoiceView[]` | — |
-| `onDownload` | `(invoiceId: string) => void` | — |
-| `emptyMessage` | `string` | `"No invoices yet."` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `invoices` | `InvoiceView[]` | — | Cards |
+| `onDownload` | `(invoiceId) => void` | — | Download action |
+| `emptyMessage` | `string` | `"No invoices yet."` | Empty state |

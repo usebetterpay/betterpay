@@ -1,11 +1,17 @@
 ---
 title: Usage Summary
-description: Multi-entitlement usage panel with optional expand for long lists.
+description: Multi-entitlement usage panel with optional expand.
 ---
 
-`UsageSummary` stacks meters, shows a cycle period label, and can collapse after N items. Try **Show more** in the preview.
+Stacks meters, shows a cycle period label, and can collapse after N items.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Usage Summary"
+  name="usage-summary"
   code={`import { UsageSummary } from '@betterpay/ui';
 
 <UsageSummary
@@ -17,19 +23,25 @@ description: Multi-entitlement usage panel with optional expand for long lists.
   <DemoUsageSummary />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { UsageSummary } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Basic"
+<UsageSummary
+  entitlements={entitlements}
+  periodLabel="12 days left in cycle"
+  collapseAfter={2}
+/>
+```
 
-### UsageSummary
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `entitlements` | `EntitlementView[]` | — |
-| `title` | `string` | `"Usage"` |
-| `periodLabel` | `string` | — |
-| `collapseAfter` | `number` | `3` (`0` = never) |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `entitlements` | `EntitlementView[]` | — | Meters |
+| `title` | `string` | `"Usage"` | Heading |
+| `periodLabel` | `string` | — | Cycle hint |
+| `collapseAfter` | `number` | `3` | `0` = never collapse |

@@ -3,9 +3,15 @@ title: Cancel Flow
 description: Confirm subscription cancellation with optional leave reason.
 ---
 
-`CancelFlow` is a destructive confirmation dialog. Open it from the preview button.
+Destructive confirmation dialog. Open it from the preview button.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Cancel Flow"
+  name="cancel-flow"
   code={`import { CancelFlow } from '@betterpay/ui';
 
 <CancelFlow
@@ -16,21 +22,28 @@ description: Confirm subscription cancellation with optional leave reason.
   <DemoCancelFlow />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { CancelFlow } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Basic"
+<CancelFlow
+  planName="Pro"
+  onConfirm={({ reasonId }) => {
+    // pay.billing.cancel(...)
+  }}
+/>
+```
 
-### CancelFlow
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `planName` | `string` | — |
-| `triggerLabel` | `string` | `"Cancel subscription"` |
-| `reasons` | `{ id: string; label: string }[]` | built-in set |
-| `onConfirm` | `(payload: { reasonId?: string }) => void` | — |
-| `open` | `boolean` | — |
-| `onOpenChange` | `(open: boolean) => void` | — |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `planName` | `string` | — | Plan label in copy |
+| `triggerLabel` | `string` | `"Cancel subscription"` | Button label |
+| `reasons` | `{ id, label }[]` | built-in | Optional leave reasons |
+| `onConfirm` | `(payload) => void` | — | Confirm handler |
+| `open` | `boolean` | — | Controlled open |
+| `onOpenChange` | `(open) => void` | — | Open change |

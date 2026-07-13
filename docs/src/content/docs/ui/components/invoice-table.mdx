@@ -3,9 +3,15 @@ title: Invoice Table
 description: Desktop invoice history table with status badges and amounts.
 ---
 
-`InvoiceTable` is the dense desktop view of billing history.
+Dense desktop view of billing history. Pair with Invoice Card for mobile.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Invoice Table"
+  name="invoice-table"
   fullWidth
   code={`import { InvoiceTable } from '@betterpay/ui';
 
@@ -17,19 +23,24 @@ description: Desktop invoice history table with status badges and amounts.
   <DemoInvoiceTable />
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { InvoiceTable, type InvoiceView } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Basic"
+<InvoiceTable
+  invoices={invoices}
+  onDownload={(id) => window.open(`/invoices/${id}`)}
+/>
+```
 
-### InvoiceTable
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `invoices` | `InvoiceView[]` | — |
-| `title` | `string` | `"Invoices"` |
-| `emptyMessage` | `string` | `"No invoices yet."` |
-| `onDownload` | `(invoiceId: string) => void` | — |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `invoices` | `InvoiceView[]` | — | Rows |
+| `title` | `string` | `"Invoices"` | Heading |
+| `emptyMessage` | `string` | `"No invoices yet."` | Empty state |
+| `onDownload` | `(invoiceId) => void` | — | Download action |

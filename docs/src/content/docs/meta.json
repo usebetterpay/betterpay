@@ -3,39 +3,17 @@
     "---Getting Started---",
     "introduction",
     "quickstart",
-    "...getting-started",
 
     "---Core---",
     "...core",
 
-    "---Billing---",
-    "...billing",
-
-    "---UI---",
-    "...ui",
-
     "---Providers---",
     "...providers",
 
-    "---Plugins---",
-    "...plugins",
+    "---UI Kit---",
+    "...ui",
 
-    "---Adapters---",
-    "...adapters",
-
-    "---Integrations---",
-    "...integrations",
-
-    "---Guides---",
-    "...guides",
-
-    "---Reference---",
-    "...reference",
-
-    "---Concepts---",
-    "...concepts",
-
-    "---Resources---",
-    "...resources"
+    "---Billing---",
+    "...billing"
   ]
 }

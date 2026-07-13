@@ -7,6 +7,10 @@ import { cn } from '@/lib/cn';
 
 export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  /** Optional title shown above the preview chrome */
+  title?: string;
+  /** Registry / component name for docs metadata */
+  name?: string;
   /** Source shown in the Code tab (highlighted) */
   code?: string;
   /** Language for the code tab */
@@ -18,10 +22,13 @@ export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivEleme
 }
 
 /**
- * Live preview shell: Preview | Code tabs + highlighted source.
+ * Live preview shell: optional title, Preview | Code tabs, highlighted source.
+ * Pattern: preview first, realistic demos, install command outside this shell.
  */
 export function ComponentPreview({
   children,
+  title,
+  name,
   code,
   lang = 'tsx',
   className,
@@ -40,48 +47,56 @@ export function ComponentPreview({
   };
 
   return (
-    <div className={cn('not-prose my-8 w-full', className)} {...props}>
-      <div className="flex items-center rounded-t-xl border border-b-0 border-fd-border bg-fd-muted/40 px-1 pr-2">
-        <button
-          type="button"
-          onClick={() => setActiveTab('preview')}
-          className={cn(
-            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors',
-            activeTab === 'preview'
-              ? 'text-fd-foreground'
-              : 'text-fd-muted-foreground hover:text-fd-foreground',
-          )}
-        >
-          <EyeIcon className="size-4" />
-          Preview
-        </button>
-        {code ? (
+    <div
+      className={cn('not-prose my-6 w-full', className)}
+      data-component={name}
+      {...props}
+    >
+      {title ? (
+        <p className="mb-2 text-sm font-medium text-fd-muted-foreground">{title}</p>
+      ) : null}
+
+      <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
+        <div className="flex items-center border-b border-fd-border bg-fd-muted/40 px-1 pr-2">
           <button
             type="button"
-            onClick={() => setActiveTab('code')}
+            onClick={() => setActiveTab('preview')}
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors',
-              activeTab === 'code'
-                ? 'text-fd-foreground'
+              activeTab === 'preview'
+                ? 'border-b-2 border-fd-primary text-fd-foreground'
                 : 'text-fd-muted-foreground hover:text-fd-foreground',
             )}
           >
-            <CodeIcon className="size-4" />
-            Code
+            <EyeIcon className="size-4" />
+            Preview
           </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={replay}
-          className="ml-auto flex size-7 items-center justify-center rounded-md text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
-          aria-label="Replay preview"
-          title="Replay"
-        >
-          <RotateCcwIcon className={cn('size-4', spinning && 'animate-spin')} />
-        </button>
-      </div>
+          {code ? (
+            <button
+              type="button"
+              onClick={() => setActiveTab('code')}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors',
+                activeTab === 'code'
+                  ? 'border-b-2 border-fd-primary text-fd-foreground'
+                  : 'text-fd-muted-foreground hover:text-fd-foreground',
+              )}
+            >
+              <CodeIcon className="size-4" />
+              Code
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={replay}
+            className="ml-auto flex size-7 items-center justify-center rounded-md text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
+            aria-label="Replay preview"
+            title="Replay"
+          >
+            <RotateCcwIcon className={cn('size-4', spinning && 'animate-spin')} />
+          </button>
+        </div>
 
-      <div className="overflow-hidden rounded-b-xl border border-fd-border">
         {activeTab === 'preview' || !code ? (
           <div
             key={previewKey}

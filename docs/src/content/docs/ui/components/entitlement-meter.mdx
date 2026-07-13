@@ -3,9 +3,15 @@ title: Entitlement Meter
 description: Linear usage meter for a single metered feature.
 ---
 
-`EntitlementMeter` shows used / limit with a progress track and optional reset label.
+Shows used / limit with a progress track, remaining count, and optional reset label.
+
+<div className="flex flex-col md:flex-row items-center justify-end gap-2 mb-2">
+  <CopyCommandButton command="pnpm add @betterpay/ui" />
+</div>
 
 <ComponentPreview
+  title="Entitlement Meter"
+  name="entitlement-meter"
   code={`import { EntitlementMeter } from '@betterpay/ui';
 
 <EntitlementMeter
@@ -18,20 +24,36 @@ description: Linear usage meter for a single metered feature.
   }}
 />`}
 >
-  <DemoEntitlementMeter />
+  <div className="flex w-full min-w-[200px] flex-col gap-8 md:min-w-[300px]">
+    <div>
+      <p className="mb-2 text-sm text-muted-foreground">Healthy usage</p>
+      <DemoEntitlementMeter />
+    </div>
+  </div>
 </ComponentPreview>
 
-## Installation
+## Usage
 
-```bash title="Terminal"
-pnpm add @betterpay/ui
+```tsx title="Import"
+import { EntitlementMeter, type EntitlementView } from '@betterpay/ui';
 ```
 
-## API Reference
+```tsx title="Basic"
+<EntitlementMeter
+  entitlement={{
+    featureId: 'messages',
+    label: 'Messages',
+    used: 1240,
+    limit: 5000,
+    resetLabel: 'monthly',
+  }}
+  warnAt={0.15}
+/>
+```
 
-### EntitlementMeter
+## Props
 
-| Prop | Type | Default |
-| --- | --- | --- |
-| `entitlement` | `EntitlementView` | — |
-| `warnAt` | `number` (0–1) | `0.15` |
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `entitlement` | `EntitlementView` | — | Feature usage |
+| `warnAt` | `number` (0–1) | `0.15` | Warn when remaining ratio ≤ this |
