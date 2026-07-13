@@ -35,19 +35,45 @@ export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivEleme
   name?: string;
   code?: string;
   lang?: string;
-  /**
-   * Align content in the canvas.
-   * Default `start` (left).
-   */
   align?: 'start' | 'center';
   /** @deprecated Use `align="center"` */
   center?: boolean;
-  /** Default to full-width content (no max-w) */
   fullWidth?: boolean;
-  /** Default viewport */
   defaultViewport?: Viewport;
-  /** Hide responsive controls */
   hideViewport?: boolean;
+}
+
+function ToolbarButton({
+  active,
+  onClick,
+  label,
+  children,
+  className,
+}: {
+  active?: boolean;
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className={cn(
+        'inline-flex size-8 items-center justify-center rounded-md transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring',
+        active
+          ? 'bg-fd-muted text-fd-foreground'
+          : 'text-fd-muted-foreground hover:bg-fd-muted/60 hover:text-fd-foreground',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
 export function ComponentPreview({
@@ -81,7 +107,6 @@ export function ComponentPreview({
     window.setTimeout(() => setSpinning(false), 400);
   };
 
-  // Escape closes open preview
   React.useEffect(() => {
     if (!openPreview) return;
     const onKey = (e: KeyboardEvent) => {
@@ -98,16 +123,11 @@ export function ComponentPreview({
       className={cn(
         'bp-preview-surface w-full transition-[max-width] duration-200',
         previewTheme === 'dark' && 'dark',
-        openPreview ? 'min-h-[70vh] p-8 md:p-12' : 'min-h-[300px] p-6 md:p-8',
+        openPreview ? 'min-h-[70vh] p-6 md:p-10' : 'min-h-[280px] p-5 md:p-6',
         contentAlign === 'center'
           ? 'flex items-center justify-center'
           : 'flex items-start justify-start',
       )}
-      style={
-        openPreview || viewport === 'desktop' || viewport === 'full'
-          ? undefined
-          : { maxWidth: vp.width, marginInline: contentAlign === 'center' ? 'auto' : undefined }
-      }
     >
       <div
         className={cn(
@@ -115,90 +135,84 @@ export function ComponentPreview({
           contentAlign === 'start' && 'mr-auto',
           (viewport === 'mobile' || viewport === 'tablet' || viewport === 'full') && 'max-w-none',
         )}
-        style={
-          !openPreview && (viewport === 'mobile' || viewport === 'tablet')
-            ? { width: '100%' }
-            : undefined
-        }
       >
         {children}
       </div>
     </div>
   );
 
+  const viewportControls = !hideViewport ? (
+    <div
+      className="flex items-center gap-0.5 rounded-md border border-fd-border bg-fd-background p-0.5"
+      role="group"
+      aria-label="Preview width"
+    >
+      {VIEWPORTS.map((v) => (
+        <ToolbarButton
+          key={v.id}
+          active={viewport === v.id}
+          onClick={() => setViewport(v.id)}
+          label={v.label}
+        >
+          {v.icon}
+        </ToolbarButton>
+      ))}
+    </div>
+  ) : null;
+
   const toolbar = (
-    <div className="flex flex-wrap items-center gap-1 border-b border-fd-border bg-fd-muted/40 px-1 pr-2">
-      <button
-        type="button"
-        onClick={() => setActiveTab('preview')}
-        className={cn(
-          'flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors',
-          activeTab === 'preview'
-            ? 'border-b-2 border-fd-primary text-fd-foreground'
-            : 'text-fd-muted-foreground hover:text-fd-foreground',
-        )}
-      >
-        <EyeIcon className="size-4" />
-        Preview
-      </button>
-      {code ? (
+    <div className="flex flex-wrap items-center gap-2 border-b border-fd-border bg-fd-muted/30 px-2 py-1.5">
+      <div className="flex items-center gap-0.5">
         <button
           type="button"
-          onClick={() => setActiveTab('code')}
+          onClick={() => setActiveTab('preview')}
           className={cn(
-            'flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors',
-            activeTab === 'code'
-              ? 'border-b-2 border-fd-primary text-fd-foreground'
+            'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors',
+            activeTab === 'preview'
+              ? 'bg-fd-background text-fd-foreground shadow-none ring-1 ring-fd-border'
               : 'text-fd-muted-foreground hover:text-fd-foreground',
           )}
         >
-          <CodeIcon className="size-4" />
-          Code
+          <EyeIcon className="size-4" />
+          Preview
         </button>
+        {code ? (
+          <button
+            type="button"
+            onClick={() => setActiveTab('code')}
+            className={cn(
+              'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors',
+              activeTab === 'code'
+                ? 'bg-fd-background text-fd-foreground shadow-none ring-1 ring-fd-border'
+                : 'text-fd-muted-foreground hover:text-fd-foreground',
+            )}
+          >
+            <CodeIcon className="size-4" />
+            Code
+          </button>
+        ) : null}
+      </div>
+
+      {activeTab === 'preview' ? (
+        <div className="flex flex-wrap items-center gap-1.5">{viewportControls}</div>
       ) : null}
 
-      {!hideViewport && activeTab === 'preview' ? (
-        <div className="ml-1 hidden items-center gap-0.5 rounded-lg border border-fd-border bg-fd-card p-0.5 sm:flex">
-          {VIEWPORTS.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setViewport(v.id)}
-              className={cn(
-                'flex size-8 items-center justify-center rounded-md transition-colors',
-                viewport === v.id
-                  ? 'bg-fd-muted text-fd-foreground'
-                  : 'text-fd-muted-foreground hover:text-fd-foreground',
-              )}
-              aria-label={v.label}
-              title={v.label}
-            >
-              {v.icon}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="ml-auto flex items-center gap-1.5">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
         <ThemeToggle theme={previewTheme} onThemeChange={setPreviewTheme} />
-        <button
-          type="button"
+        <ToolbarButton
           onClick={() => setOpenPreview(true)}
-          className="flex size-9 items-center justify-center rounded-lg border border-fd-border bg-fd-card text-fd-muted-foreground shadow-sm transition-colors hover:bg-fd-muted/60 hover:text-fd-foreground"
-          aria-label="Open full preview"
-          title="Open preview"
+          label="Open full preview"
+          className="size-8 rounded-md border border-fd-border bg-fd-background shadow-none"
         >
           <ExternalLinkIcon className="size-4" />
-        </button>
-        <button
-          type="button"
+        </ToolbarButton>
+        <ToolbarButton
           onClick={replay}
-          className="flex size-9 items-center justify-center rounded-lg border border-fd-border bg-fd-card text-fd-muted-foreground shadow-sm transition-colors hover:bg-fd-muted/60 hover:text-fd-foreground"
-          aria-label="Replay preview"
-          title="Replay"
+          label="Replay"
+          className="size-8 rounded-md border border-fd-border bg-fd-background shadow-none"
         >
           <RotateCcwIcon className={cn('size-4', spinning && 'animate-spin')} />
-        </button>
+        </ToolbarButton>
       </div>
     </div>
   );
@@ -206,23 +220,23 @@ export function ComponentPreview({
   return (
     <div className={cn('not-prose my-6 w-full', className)} data-component={name} {...props}>
       {title ? (
-        <p className="mb-2 text-sm font-medium text-fd-muted-foreground">{title}</p>
+        <p className="mb-2 text-left text-sm font-medium text-fd-muted-foreground">{title}</p>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card">
         {toolbar}
 
         {activeTab === 'preview' || !code ? (
           <div
             className={cn(
               'overflow-x-auto',
-              viewport !== 'desktop' && viewport !== 'full' && 'bg-fd-muted/20',
+              (viewport === 'mobile' || viewport === 'tablet') && 'bg-fd-muted/15',
             )}
           >
             {viewport === 'mobile' || viewport === 'tablet' ? (
-              <div className="flex justify-start p-4 md:p-6">
+              <div className="flex justify-start p-4 md:p-5">
                 <div
-                  className="overflow-hidden rounded-lg border border-fd-border shadow-sm"
+                  className="w-full overflow-hidden rounded-lg border border-fd-border"
                   style={{ width: vp.width, maxWidth: '100%' }}
                 >
                   {canvas}
@@ -239,7 +253,6 @@ export function ComponentPreview({
         )}
       </div>
 
-      {/* Full-screen open preview (scoped theme) */}
       {openPreview ? (
         <div
           className="fixed inset-0 z-50 flex flex-col bg-black/50 p-3 backdrop-blur-sm sm:p-6"
@@ -249,38 +262,20 @@ export function ComponentPreview({
           onClick={() => setOpenPreview(false)}
         >
           <div
-            className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-lg"
+            className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-fd-border bg-fd-card"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 border-b border-fd-border bg-fd-muted/40 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 border-b border-fd-border bg-fd-muted/30 px-3 py-2">
               <span className="text-sm font-medium text-fd-foreground">
                 {title || name || 'Preview'}
               </span>
-              <div className="ml-auto flex items-center gap-1.5">
-                <div className="hidden items-center gap-0.5 rounded-lg border border-fd-border bg-fd-card p-0.5 sm:flex">
-                  {VIEWPORTS.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setViewport(v.id)}
-                      className={cn(
-                        'flex size-8 items-center justify-center rounded-md transition-colors',
-                        viewport === v.id
-                          ? 'bg-fd-muted text-fd-foreground'
-                          : 'text-fd-muted-foreground hover:text-fd-foreground',
-                      )}
-                      aria-label={v.label}
-                      title={v.label}
-                    >
-                      {v.icon}
-                    </button>
-                  ))}
-                </div>
+              <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                {viewportControls}
                 <ThemeToggle theme={previewTheme} onThemeChange={setPreviewTheme} />
                 <button
                   type="button"
                   onClick={() => setOpenPreview(false)}
-                  className="rounded-lg border border-fd-border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-foreground hover:bg-fd-muted/60"
+                  className="rounded-md border border-fd-border bg-fd-background px-3 py-1.5 text-xs font-medium text-fd-foreground hover:bg-fd-muted/60"
                 >
                   Close
                 </button>

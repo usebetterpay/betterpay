@@ -20,8 +20,9 @@ function Card({
       data-size={size}
       className={cn(
         'group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card text-card-foreground',
-        'ring-1 ring-border',
-        elevated ? 'shadow-sm' : 'shadow-xs',
+        // Flat surfaces: ring for edge, shadow only when elevated (no muddy drop on CTAs)
+        'ring-1 ring-border shadow-none',
+        elevated && 'shadow-xs',
         size === 'default' && 'py-4',
         size === 'sm' && 'gap-3 py-3 text-sm',
         'has-data-[slot=card-footer]:pb-0',

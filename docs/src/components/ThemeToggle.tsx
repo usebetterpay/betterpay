@@ -37,9 +37,9 @@ export function ThemeToggle({
       type="button"
       onClick={toggle}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg border border-fd-border bg-fd-card text-fd-foreground shadow-sm transition-colors',
+        'inline-flex items-center justify-center rounded-md border border-fd-border bg-fd-background text-fd-foreground transition-colors shadow-none',
         'hover:bg-fd-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring',
-        size === 'sm' ? 'size-9' : 'size-10',
+        size === 'sm' ? 'size-8' : 'size-9',
         className,
       )}
       aria-label={isDark ? 'Preview light mode' : 'Preview dark mode'}
