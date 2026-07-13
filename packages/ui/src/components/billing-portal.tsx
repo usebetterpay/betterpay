@@ -7,11 +7,12 @@ import type {
   SubscriptionView,
 } from '../types/billing-ui';
 import { CancelFlow } from './cancel-flow';
-import { EntitlementMeter } from './entitlement-meter';
+import { InvoiceCardList } from './invoice-card';
 import { InvoiceTable } from './invoice-table';
 import { PaymentStatusBanner } from './payment-status-banner';
 import { PlanSwitcher } from './plan-switcher';
 import { SubscriptionSummary } from './subscription-summary';
+import { UsageSummary } from './usage-summary';
 
 export interface BillingPortalProps {
   subscription: SubscriptionView;
@@ -29,6 +30,9 @@ export interface BillingPortalProps {
   onDismissCallout?: () => void;
   className?: string;
   title?: string;
+  /** Prefer card stack on small viewports (default true). */
+  invoiceLayout?: 'table' | 'cards' | 'responsive';
+  usagePeriodLabel?: string;
 }
 
 /**
@@ -47,6 +51,8 @@ export function BillingPortal({
   onDismissCallout,
   className,
   title = 'Billing',
+  invoiceLayout = 'responsive',
+  usagePeriodLabel,
 }: BillingPortalProps) {
   return (
     <div
@@ -87,17 +93,30 @@ export function BillingPortal({
       ) : null}
 
       {entitlements.length > 0 ? (
-        <section className="flex flex-col gap-3" data-slot="billing-portal-usage">
-          <h2 className="text-sm font-semibold tracking-tight">Usage</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {entitlements.map((item) => (
-              <EntitlementMeter key={item.featureId} entitlement={item} />
-            ))}
-          </div>
-        </section>
+        <UsageSummary
+          entitlements={entitlements}
+          periodLabel={usagePeriodLabel}
+        />
       ) : null}
 
-      <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
+      {invoiceLayout === 'cards' ? (
+        <section className="flex flex-col gap-3" data-slot="billing-portal-invoices">
+          <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
+          <InvoiceCardList invoices={invoices} onDownload={onDownloadInvoice} />
+        </section>
+      ) : invoiceLayout === 'responsive' ? (
+        <>
+          <div className="hidden md:block">
+            <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
+          </div>
+          <section className="flex flex-col gap-3 md:hidden" data-slot="billing-portal-invoices-mobile">
+            <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
+            <InvoiceCardList invoices={invoices} onDownload={onDownloadInvoice} />
+          </section>
+        </>
+      ) : (
+        <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
+      )}
     </div>
   );
 }

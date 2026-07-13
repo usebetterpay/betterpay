@@ -1,4 +1,5 @@
 import { cn } from '../lib/cn';
+import { formatDisplayDate } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { invoiceStatusPresentation } from '../lib/status';
 import type { InvoiceView } from '../types/billing-ui';
@@ -21,16 +22,6 @@ export interface InvoiceTableProps {
   emptyMessage?: string;
   onDownload?: (invoiceId: string) => void;
   className?: string;
-}
-
-function formatDate(value: string | Date): string {
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return '—';
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(d);
 }
 
 export function InvoiceTable({
@@ -72,7 +63,7 @@ export function InvoiceTable({
                 const currency = invoice.currency ?? 'IDR';
                 return (
                   <TableRow key={invoice.id}>
-                    <TableCell>{formatDate(invoice.issuedAt)}</TableCell>
+                    <TableCell>{formatDisplayDate(invoice.issuedAt)}</TableCell>
                     <TableCell className="font-medium">{invoice.number}</TableCell>
                     <TableCell>
                       <Badge tone={status.tone}>{status.label}</Badge>

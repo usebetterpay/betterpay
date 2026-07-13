@@ -3,6 +3,8 @@
 // Utils
 export { cn } from './lib/cn';
 export { formatMoney, formatIdr, type FormatMoneyOptions } from './lib/money';
+export { formatDisplayDate } from './lib/dates';
+export { useControllableState } from './lib/use-controllable-state';
 export {
   subscriptionStatusPresentation,
   invoiceStatusPresentation,
@@ -65,7 +67,31 @@ export {
 } from './primitives/table';
 
 // Domain components
+export {
+  PlanCard,
+  PlanCardHeader,
+  PlanCardTitle,
+  PlanCardDescription,
+  PlanCardPrice,
+  PlanCardFeatures,
+  PlanCardFooter,
+  type PlanCardProps,
+  type PlanCardPriceProps,
+  type PlanCardFeaturesProps,
+} from './components/plan-card';
+export {
+  PlanGroup,
+  PlanGroupIntervalToggle,
+  usePlanGroup,
+  type PlanGroupProps,
+} from './components/plan-group';
 export { PricingTable, type PricingTableProps } from './components/pricing-table';
+export {
+  PlanComparison,
+  type PlanComparisonProps,
+  type ComparisonFeatureRow,
+  type ComparisonCell,
+} from './components/plan-comparison';
 export {
   SubscriptionSummary,
   type SubscriptionSummaryProps,
@@ -73,7 +99,14 @@ export {
 export { PlanSwitcher, type PlanSwitcherProps } from './components/plan-switcher';
 export { CancelFlow, type CancelFlowProps } from './components/cancel-flow';
 export { EntitlementMeter, type EntitlementMeterProps } from './components/entitlement-meter';
+export { UsageSummary, type UsageSummaryProps } from './components/usage-summary';
 export { InvoiceTable, type InvoiceTableProps } from './components/invoice-table';
+export {
+  InvoiceCard,
+  InvoiceCardList,
+  type InvoiceCardProps,
+  type InvoiceCardListProps,
+} from './components/invoice-card';
 export {
   PaymentStatusBanner,
   type PaymentStatusBannerProps,

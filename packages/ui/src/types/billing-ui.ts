@@ -59,6 +59,8 @@ export interface EntitlementView {
   /** null = unlimited */
   limit: number | null;
   resetLabel?: string;
+  /** Optional free-form unit label (e.g. "messages"). */
+  unit?: string;
 }
 
 export interface PaymentCalloutView {

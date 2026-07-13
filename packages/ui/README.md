@@ -102,14 +102,30 @@ export function PortalPage() {
 
 | Component | Role |
 |-----------|------|
-| `PricingTable` | Plan cards + monthly/yearly toggle |
+| `PlanCard` / `PlanGroup` | Compound plan cards + interval context |
+| `PricingTable` | Opinionated section on top of PlanGroup |
+| `PlanComparison` | Feature × plan comparison matrix |
 | `PlanSwitcher` | Dialog to change plan |
 | `SubscriptionSummary` | Current plan + status + next charge |
 | `CancelFlow` | Confirm cancel + optional reason |
-| `EntitlementMeter` | Usage meter with limit / remaining |
-| `InvoiceTable` | Invoice history |
+| `EntitlementMeter` | Single usage meter |
+| `UsageSummary` | Multi-meter panel with expand |
+| `InvoiceTable` / `InvoiceCard` | Invoice history (table + mobile cards) |
 | `PaymentStatusBanner` | Success / failed / past_due / pending |
 | `BillingPortal` | Composed portal layout |
+| `useControllableState` | Controlled/uncontrolled helper |
+
+### Compound pricing
+
+```tsx
+import { PlanGroup, PlanCard } from '@betterpay/ui';
+
+<PlanGroup defaultInterval="month" onIntervalChange={console.log}>
+  {/* or pass plans={...} for auto grid */}
+</PlanGroup>
+
+<PlanCard plan={pro} interval="month" onSelect={...} />
+```
 
 ## Design
 

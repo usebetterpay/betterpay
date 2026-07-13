@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '../lib/cn';
+import { formatDisplayDate } from '../lib/dates';
 import { formatMoney } from '../lib/money';
 import { subscriptionStatusPresentation } from '../lib/status';
 import type { SubscriptionView } from '../types/billing-ui';
@@ -18,17 +19,6 @@ export interface SubscriptionSummaryProps {
   cancelLabel?: string;
 }
 
-function formatDate(value: string | Date | null | undefined): string | null {
-  if (!value) return null;
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return null;
-  return new Intl.DateTimeFormat('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(d);
-}
-
 export function SubscriptionSummary({
   subscription,
   onUpgrade,
@@ -39,7 +29,9 @@ export function SubscriptionSummary({
 }: SubscriptionSummaryProps) {
   const status = subscriptionStatusPresentation(subscription.status);
   const currency = subscription.currency ?? 'IDR';
-  const periodEnd = formatDate(subscription.currentPeriodEnd ?? null);
+  const periodEnd = subscription.currentPeriodEnd
+    ? formatDisplayDate(subscription.currentPeriodEnd)
+    : null;
   const nextAmount =
     subscription.nextAmount != null
       ? formatMoney(subscription.nextAmount, { currency })
