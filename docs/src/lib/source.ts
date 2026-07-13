@@ -97,6 +97,8 @@ function buildFromMeta(dir: string): TreeNode[] {
         return true;
       });
 
+      // Prefer a single folder label; index page uses its own title (e.g. Overview)
+      // so we don't render "UI Kit > UI Kit".
       nodes.push({
         type: 'folder',
         name: folderMeta?.title || resolvePageName(folder),
@@ -104,7 +106,7 @@ function buildFromMeta(dir: string): TreeNode[] {
         index: indexDoc
           ? {
               type: 'page',
-              name: String(indexDoc.title || resolvePageName(folder)),
+              name: String(indexDoc.title || 'Overview'),
               url: pageUrl(folderDir),
             }
           : undefined,

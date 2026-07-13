@@ -3,17 +3,9 @@
     "---Getting Started---",
     "introduction",
     "quickstart",
-
-    "---Core---",
     "...core",
-
-    "---Providers---",
     "...providers",
-
-    "---UI Kit---",
     "...ui",
-
-    "---Billing---",
     "...billing"
   ]
 }
