@@ -3,23 +3,20 @@
 import * as React from 'react';
 import { CheckIcon, CopyIcon, TerminalIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface CopyCommandButtonProps {
   command: string;
   copyCommand?: string;
   className?: string;
   label?: string;
-  /** Show light/dark toggle beside the install command (default true) */
-  showThemeToggle?: boolean;
 }
 
+/** Install command with copy — no theme control (theme lives on ComponentPreview). */
 export function CopyCommandButton({
   command,
   copyCommand,
   className,
   label = 'Install',
-  showThemeToggle = true,
 }: CopyCommandButtonProps) {
   const [copied, setCopied] = React.useState(false);
   const value = copyCommand ?? command;
@@ -45,7 +42,7 @@ export function CopyCommandButton({
         type="button"
         onClick={onCopy}
         className={cn(
-          'inline-flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-3 py-2 sm:flex-initial',
+          'inline-flex min-w-0 items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-3 py-2',
           'font-mono text-xs text-fd-foreground shadow-sm transition-colors',
           'hover:bg-fd-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring',
         )}
@@ -59,7 +56,6 @@ export function CopyCommandButton({
           <CopyIcon className="size-3.5 shrink-0 text-fd-muted-foreground" />
         )}
       </button>
-      {showThemeToggle ? <ThemeToggle /> : null}
     </div>
   );
 }
