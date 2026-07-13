@@ -16,14 +16,19 @@ export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivEleme
   code?: string;
   /** Language for the code tab */
   lang?: string;
-  /** Center content in a fixed min-height canvas (default true) */
+  /**
+   * Align content in the canvas.
+   * Default `start` (left) — product docs should not center cards.
+   */
+  align?: 'start' | 'center';
+  /** @deprecated Use `align="center"` — kept for older MDX */
   center?: boolean;
   /** Wider canvas for tables / portals */
   fullWidth?: boolean;
 }
 
 /**
- * Live preview shell: optional title, Preview | Code tabs, theme toggle, highlighted source.
+ * Live preview shell. Theme toggle only affects the canvas (scoped `.dark`), not the docs page.
  */
 export function ComponentPreview({
   children,
@@ -32,13 +37,17 @@ export function ComponentPreview({
   code,
   lang = 'tsx',
   className,
-  center = true,
+  align,
+  center,
   fullWidth = false,
   ...props
 }: ComponentPreviewProps) {
   const [activeTab, setActiveTab] = React.useState<'preview' | 'code'>('preview');
   const [previewKey, setPreviewKey] = React.useState(0);
   const [spinning, setSpinning] = React.useState(false);
+  const [previewTheme, setPreviewTheme] = React.useState<'light' | 'dark'>('light');
+
+  const contentAlign = align ?? (center ? 'center' : 'start');
 
   const replay = () => {
     setSpinning(true);
@@ -88,7 +97,7 @@ export function ComponentPreview({
           ) : null}
 
           <div className="ml-auto flex items-center gap-1.5">
-            <ThemeToggle />
+            <ThemeToggle theme={previewTheme} onThemeChange={setPreviewTheme} />
             <button
               type="button"
               onClick={replay}
@@ -104,12 +113,23 @@ export function ComponentPreview({
         {activeTab === 'preview' || !code ? (
           <div
             key={previewKey}
+            data-preview-theme={previewTheme}
             className={cn(
-              'bp-preview-surface w-full p-6 md:p-10',
-              center && 'flex min-h-[300px] items-center justify-center',
+              'bp-preview-surface w-full p-6 md:p-8',
+              previewTheme === 'dark' && 'dark',
+              contentAlign === 'center'
+                ? 'flex min-h-[300px] items-center justify-center'
+                : 'flex min-h-[300px] items-start justify-start',
             )}
           >
-            <div className={cn(fullWidth ? 'w-full' : 'w-full max-w-xl')}>{children}</div>
+            <div
+              className={cn(
+                fullWidth ? 'w-full' : 'w-full max-w-xl',
+                contentAlign === 'start' && 'mr-auto',
+              )}
+            >
+              {children}
+            </div>
           </div>
         ) : (
           <div className="[&_figure]:my-0 [&_figure]:rounded-none [&_figure]:border-0">

@@ -1,49 +1,51 @@
 'use client';
 
 import * as React from 'react';
-import { useTheme } from 'next-themes';
 import { MoonIcon, SunIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export interface ThemeToggleProps {
   className?: string;
-  /** Compact icon-only button (default) */
   size?: 'sm' | 'md';
+  /** Controlled mode for scoped preview theme */
+  theme?: 'light' | 'dark';
+  onThemeChange?: (theme: 'light' | 'dark') => void;
 }
 
 /**
- * Light / dark switch using next-themes (fumadocs RootProvider).
+ * Light / dark switch.
+ * Controlled (`theme` + `onThemeChange`) scopes to a parent; uncontrolled uses local state only.
  */
-export function ThemeToggle({ className, size = 'sm' }: ThemeToggleProps) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+export function ThemeToggle({
+  className,
+  size = 'sm',
+  theme: controlled,
+  onThemeChange,
+}: ThemeToggleProps) {
+  const [uncontrolled, setUncontrolled] = React.useState<'light' | 'dark'>('light');
+  const theme = controlled ?? uncontrolled;
+  const isDark = theme === 'dark';
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === 'dark';
+  const toggle = () => {
+    const next = isDark ? 'light' : 'dark';
+    if (controlled === undefined) setUncontrolled(next);
+    onThemeChange?.(next);
+  };
 
   return (
     <button
       type="button"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={toggle}
       className={cn(
         'inline-flex items-center justify-center rounded-lg border border-fd-border bg-fd-card text-fd-foreground shadow-sm transition-colors',
         'hover:bg-fd-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring',
         size === 'sm' ? 'size-9' : 'size-10',
         className,
       )}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Light' : 'Dark'}
+      aria-label={isDark ? 'Preview light mode' : 'Preview dark mode'}
+      title={isDark ? 'Preview light' : 'Preview dark'}
     >
-      {!mounted ? (
-        <SunIcon className="size-4 opacity-50" />
-      ) : isDark ? (
-        <SunIcon className="size-4" />
-      ) : (
-        <MoonIcon className="size-4" />
-      )}
+      {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
     </button>
   );
 }

@@ -32,9 +32,16 @@
 @source '../../../packages/ui/src/**/*.{ts,tsx}';
 @source '../**/*.{ts,tsx,mdx}';
 
-/* Preview surface polish */
+/* Preview canvas — isolated theme via local CSS vars (see @betterpay/ui tokens) */
 .bp-preview-surface {
+  color: var(--foreground);
   background:
     radial-gradient(circle at top left, color-mix(in oklch, var(--primary) 6%, transparent), transparent 45%),
     var(--background);
+  /* Tailwind dark: utilities respect .dark on this subtree */
+  color-scheme: light;
+}
+
+.bp-preview-surface.dark {
+  color-scheme: dark;
 }

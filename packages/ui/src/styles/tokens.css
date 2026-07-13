@@ -85,7 +85,9 @@
   --bp-ring: var(--ring);
 }
 
-.dark {
+/* Global dark (html/body) and scoped preview dark (.bp-preview-surface.dark) */
+.dark,
+.bp-preview-surface.dark {
   --background: oklch(0.18 0.02 240);
   --foreground: oklch(0.94 0.01 235);
   --card: oklch(0.22 0.022 240);
@@ -111,6 +113,42 @@
   --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.25);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3), 0 2px 8px oklch(0 0 0 / 0.2);
   --shadow-md: 0 8px 24px oklch(0 0 0 / 0.35);
+}
+
+/* Scoped light tokens when page is dark but preview is light */
+.bp-preview-surface:not(.dark) {
+  --background: oklch(0.985 0.006 235);
+  --foreground: oklch(0.22 0.028 240);
+  --card: oklch(0.995 0.004 235);
+  --card-foreground: oklch(0.22 0.028 240);
+  --popover: oklch(0.995 0.004 235);
+  --popover-foreground: oklch(0.22 0.028 240);
+  --primary: oklch(0.38 0.055 225);
+  --primary-foreground: oklch(0.985 0.008 235);
+  --secondary: oklch(0.955 0.012 235);
+  --secondary-foreground: oklch(0.28 0.03 240);
+  --muted: oklch(0.96 0.01 235);
+  --muted-foreground: oklch(0.48 0.025 240);
+  --accent: oklch(0.95 0.014 230);
+  --accent-foreground: oklch(0.28 0.03 240);
+  --destructive: oklch(0.52 0.16 28);
+  --destructive-foreground: oklch(0.985 0.008 235);
+  --success: oklch(0.48 0.1 155);
+  --success-foreground: oklch(0.985 0.008 235);
+  --warning: oklch(0.62 0.12 75);
+  --warning-foreground: oklch(0.28 0.04 75);
+  --info: oklch(0.5 0.08 240);
+  --border: oklch(0.9 0.012 235);
+  --input: oklch(0.9 0.012 235);
+  --ring: oklch(0.48 0.06 225);
+  --shadow-xs: 0 1px 2px oklch(0.22 0.03 240 / 0.04);
+  --shadow-sm: 0 1px 2px oklch(0.22 0.03 240 / 0.05), 0 2px 8px oklch(0.22 0.03 240 / 0.04);
+  --shadow-md: 0 4px 16px oklch(0.22 0.03 240 / 0.08), 0 1px 3px oklch(0.22 0.03 240 / 0.04);
+  color-scheme: light;
+}
+
+.bp-preview-surface.dark {
+  color-scheme: dark;
 }
 
 /* Prefer reduced motion */
