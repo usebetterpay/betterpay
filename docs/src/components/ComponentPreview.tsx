@@ -4,6 +4,7 @@ import * as React from 'react';
 import { CodeIcon, EyeIcon, RotateCcwIcon } from 'lucide-react';
 import { DynamicCodeBlock } from 'fumadocs-ui/components/dynamic-codeblock';
 import { cn } from '@/lib/cn';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -22,8 +23,7 @@ export interface ComponentPreviewProps extends React.HTMLAttributes<HTMLDivEleme
 }
 
 /**
- * Live preview shell: optional title, Preview | Code tabs, highlighted source.
- * Pattern: preview first, realistic demos, install command outside this shell.
+ * Live preview shell: optional title, Preview | Code tabs, theme toggle, highlighted source.
  */
 export function ComponentPreview({
   children,
@@ -57,7 +57,7 @@ export function ComponentPreview({
       ) : null}
 
       <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card shadow-sm">
-        <div className="flex items-center border-b border-fd-border bg-fd-muted/40 px-1 pr-2">
+        <div className="flex items-center gap-1 border-b border-fd-border bg-fd-muted/40 px-1 pr-2">
           <button
             type="button"
             onClick={() => setActiveTab('preview')}
@@ -86,15 +86,19 @@ export function ComponentPreview({
               Code
             </button>
           ) : null}
-          <button
-            type="button"
-            onClick={replay}
-            className="ml-auto flex size-7 items-center justify-center rounded-md text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
-            aria-label="Replay preview"
-            title="Replay"
-          >
-            <RotateCcwIcon className={cn('size-4', spinning && 'animate-spin')} />
-          </button>
+
+          <div className="ml-auto flex items-center gap-1.5">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={replay}
+              className="flex size-9 items-center justify-center rounded-lg border border-fd-border bg-fd-card text-fd-muted-foreground shadow-sm transition-colors hover:bg-fd-muted/60 hover:text-fd-foreground"
+              aria-label="Replay preview"
+              title="Replay"
+            >
+              <RotateCcwIcon className={cn('size-4', spinning && 'animate-spin')} />
+            </button>
+          </div>
         </div>
 
         {activeTab === 'preview' || !code ? (
