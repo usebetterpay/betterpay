@@ -1,0 +1,46 @@
+---
+title: Payment Status Banner
+description: Callout for success, failed, past due, or pending payments.
+---
+
+Full-border tinted callout. Status is always labeled in text, not color alone.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="payment-status-banner" />
+</div>
+
+<ComponentPreview
+  title="Payment Status Banner"
+  name="payment-status-banner"
+  code={`import { PaymentStatusBanner } from '@betterpay/ui';
+
+<PaymentStatusBanner
+  status="success"
+  description="Invoice paid via BCA VA."
+/>`}
+>
+  <DemoPaymentStatusBanner />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { PaymentStatusBanner } from '@betterpay/ui';
+```
+
+```tsx title="Variants"
+<PaymentStatusBanner status="success" description="Paid via BCA VA." />
+<PaymentStatusBanner status="past_due" description="Update payment." />
+<PaymentStatusBanner status="failed" dismissible onDismiss={...} />
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `status` | `"success" \| "failed" \| "past_due" \| "pending"` | — | Tone |
+| `title` | `string` | from status map | Heading |
+| `description` | `string` | — | Body |
+| `dismissible` | `boolean` | `false` | Show dismiss |
+| `onDismiss` | `() => void` | — | Dismiss handler |
+| `action` | `ReactNode` | — | Optional CTA |

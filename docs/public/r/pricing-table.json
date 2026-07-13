@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "pricing-table",
+  "type": "registry:block",
+  "title": "Pricing Table",
+  "description": "Opinionated pricing section",
+  "dependencies": [
+    "class-variance-authority"
+  ],
+  "registryDependencies": [
+    "https://betterpay-docs.pages.dev/r/plan-group.json"
+  ],
+  "files": [
+    {
+      "path": "src/components/pricing-table.tsx",
+      "type": "registry:component",
+      "target": "components/betterpay/pricing-table.tsx",
+      "content": "'use client';\n\nimport { cva, type VariantProps } from 'class-variance-authority';\nimport { cn } from '@/lib/utils';\nimport type { BillingInterval, PlanView } from '@/types/billing-ui';\nimport { PlanGroup } from '@/components/betterpay/plan-group';\n\nconst shellVariants = cva('mx-auto w-full min-w-0 max-w-5xl px-0', {\n  variants: {\n    density: {\n      comfortable: '',\n      compact: '[&_[data-slot=plan-group]]:gap-4',\n    },\n  },\n  defaultVariants: { density: 'comfortable' },\n});\n\nexport interface PricingTableProps extends VariantProps<typeof shellVariants> {\n  plans: PlanView[];\n  title?: string;\n  description?: string;\n  /** Controlled interval. */\n  interval?: BillingInterval;\n  defaultInterval?: BillingInterval;\n  onIntervalChange?: (interval: BillingInterval) => void;\n  onSelectPlan?: (planId: string, interval: BillingInterval) => void;\n  currencyFallback?: string;\n  className?: string;\n}\n\n/**\n * Opinionated pricing section built on PlanGroup + PlanCard.\n * Prefer PlanGroup/PlanCard directly when you need custom composition.\n */\nexport function PricingTable({\n  plans,\n  title = 'Choose a plan',\n  description = 'Transparent pricing for Indonesian payment infrastructure.',\n  interval,\n  defaultInterval = 'month',\n  onIntervalChange,\n  onSelectPlan,\n  currencyFallback = 'IDR',\n  density,\n  className,\n}: PricingTableProps) {\n  return (\n    <section\n      data-slot=\"pricing-table\"\n      className={cn(shellVariants({ density }), className)}\n    >\n      <PlanGroup\n        plans={plans}\n        title={title}\n        description={description}\n        interval={interval}\n        defaultInterval={defaultInterval}\n        onIntervalChange={onIntervalChange}\n        onSelectPlan={onSelectPlan}\n        currencyFallback={currencyFallback}\n        showIntervalToggle\n      />\n    </section>\n  );\n}\n"
+    }
+  ]
+}

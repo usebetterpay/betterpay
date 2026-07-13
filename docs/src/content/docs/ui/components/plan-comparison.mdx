@@ -1,0 +1,71 @@
+---
+title: Plan Comparison
+description: Feature × plan comparison matrix for marketing and docs pages.
+---
+
+Table of features against plans. Cells: included, excluded, partial, or custom text.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="plan-comparison" />
+</div>
+
+<ComponentPreview
+  title="Plan Comparison"
+  name="plan-comparison"
+  fullWidth
+  code={`import { PlanComparison } from '@betterpay/ui';
+
+<PlanComparison
+  plans={plans}
+  showIntervalToggle
+  defaultInterval="month"
+  onSelectPlan={(planId) => {}}
+/>`}
+>
+  <DemoPlanComparison />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { PlanComparison, type ComparisonFeatureRow } from '@betterpay/ui';
+```
+
+```tsx title="Derived from plan.features"
+<PlanComparison plans={plans} interval="month" onSelectPlan={handleSelect} />
+```
+
+```tsx title="Explicit matrix"
+const features: ComparisonFeatureRow[] = [
+  {
+    id: 'msg',
+    label: 'Messages / month',
+    values: { free: '100', pro: '5.000', enterprise: 'Unlimited' },
+  },
+  {
+    id: 'wa',
+    label: 'WhatsApp',
+    values: { free: false, pro: true, enterprise: true },
+  },
+];
+
+<PlanComparison plans={plans} features={features} interval="year" />
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Column headers + prices |
+| `features` | `ComparisonFeatureRow[]` | derived | Matrix rows |
+| `interval` | `"month" \| "year"` | — | Controlled price period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Interval change |
+| `showIntervalToggle` | `boolean` | `false` | Monthly/Yearly control |
+| `emptyMessage` | `string` | `"No plans to compare."` | Empty state copy |
+| `onSelectPlan` | `(planId) => void` | — | Header CTA |
+| `currencyFallback` | `string` | `"IDR"` | Fallback currency |
+
+### ComparisonCell
+
+`true` · `false` · `"partial"` · `string`

@@ -1,0 +1,46 @@
+---
+title: Invoice Table
+description: Desktop invoice history table with status badges and amounts.
+---
+
+Dense desktop view of billing history. Pair with Invoice Card for mobile.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="invoice-table" />
+</div>
+
+<ComponentPreview
+  title="Invoice Table"
+  name="invoice-table"
+  fullWidth
+  code={`import { InvoiceTable } from '@betterpay/ui';
+
+<InvoiceTable
+  invoices={invoices}
+  onDownload={(id) => window.open(\`/invoices/\${id}\`)}
+/>`}
+>
+  <DemoInvoiceTable />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { InvoiceTable, type InvoiceView } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<InvoiceTable
+  invoices={invoices}
+  onDownload={(id) => window.open(`/invoices/${id}`)}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `invoices` | `InvoiceView[]` | — | Rows |
+| `title` | `string` | `"Invoices"` | Heading |
+| `emptyMessage` | `string` | `"No invoices yet."` | Empty state |
+| `onDownload` | `(invoiceId) => void` | — | Download action |

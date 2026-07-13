@@ -8,21 +8,33 @@
     "build": "fumadocs-mdx && next build",
     "start": "next start",
     "lint": "biome check .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "registry:build": "node scripts/build-registry.mjs",
+    "pages:build": "pnpm registry:build && pnpm build",
+    "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-docs"
   },
   "dependencies": {
+    "@betterpay/ui": "workspace:^",
+    "clsx": "^2.1.1",
     "fumadocs-core": "^14.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^14.0.0",
+    "lucide-react": "^0.511.0",
     "next": "^15.0.0",
+    "next-themes": "^0.4.6",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.0.0"
+    "react-grab": "^0.1.48",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^5.0.0",
+    "wrangler": "^4.110.0"
   }
 }

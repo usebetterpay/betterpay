@@ -1,0 +1,65 @@
+---
+title: Pricing Table
+description: Opinionated pricing section built on PlanGroup and PlanCard.
+---
+
+Thin section wrapper: title, description, interval toggle, and plan grid.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="pricing-table" />
+</div>
+
+<ComponentPreview
+  title="Pricing Table"
+  name="pricing-table"
+  fullWidth
+  code={`import { PricingTable } from '@betterpay/ui';
+
+<PricingTable
+  plans={plans}
+  onSelectPlan={(planId, interval) => {}}
+/>`}
+>
+  <DemoPricingTable />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { PricingTable, type PlanView } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<PricingTable
+  plans={plans}
+  title="Simple pricing"
+  description="IDR pricing for Indonesian products."
+  onSelectPlan={(planId, interval) => {
+    // pay.billing.subscribe(...)
+  }}
+/>
+```
+
+```tsx title="Controlled interval"
+<PricingTable
+  plans={plans}
+  interval={interval}
+  onIntervalChange={setInterval}
+  density="compact"
+  onSelectPlan={handleSelect}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Plans to render |
+| `title` | `string` | `"Choose a plan"` | Heading |
+| `description` | `string` | IDR default copy | Subheading |
+| `interval` | `"month" \| "year"` | — | Controlled period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Period change |
+| `onSelectPlan` | `(planId, interval) => void` | — | CTA |
+| `currencyFallback` | `string` | `"IDR"` | Fallback currency |
+| `density` | `"comfortable" \| "compact"` | `"comfortable"` | Spacing |

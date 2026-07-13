@@ -227,9 +227,9 @@ betterpay/
 │   ├── reconciliation/              # Planned (standalone package; currently in core)
 │   ├── memory-adapter/              # Planned
 │   ├── fastify/                     # Planned
+│   ├── ui/                          # React billing UI (pricing, portal, invoices)
 │   ├── client-react/                # Planned
-│   ├── client-vue/                  # Planned
-│   └── ui/                          # Planned (pricing-table, billing-portal, etc)
+│   └── client-vue/                  # Planned
 │
 ├── docs/                            # Fumadocs documentation website
 ├── demo/                            # Demo app with all providers + billing

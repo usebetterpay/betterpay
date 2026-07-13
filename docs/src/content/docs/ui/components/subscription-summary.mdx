@@ -1,0 +1,48 @@
+---
+title: Subscription Summary
+description: Current plan, status, next charge, and period end.
+---
+
+Shows the active (or past-due) subscription at a glance.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="subscription-summary" />
+</div>
+
+<ComponentPreview
+  title="Subscription Summary"
+  name="subscription-summary"
+  code={`import { SubscriptionSummary } from '@betterpay/ui';
+
+<SubscriptionSummary
+  subscription={subscription}
+  onUpgrade={() => {}}
+  onCancel={() => {}}
+/>`}
+>
+  <DemoSubscriptionSummary />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { SubscriptionSummary, type SubscriptionView } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<SubscriptionSummary
+  subscription={subscription}
+  onUpgrade={openPlanSwitcher}
+  onCancel={openCancelFlow}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `subscription` | `SubscriptionView` | — | Subscription data |
+| `onUpgrade` | `() => void` | — | Change plan action |
+| `onCancel` | `() => void` | — | Cancel action |
+| `upgradeLabel` | `string` | `"Change plan"` | Upgrade button label |
+| `cancelLabel` | `string` | `"Cancel"` | Cancel button label |

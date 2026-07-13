@@ -1,0 +1,47 @@
+---
+title: Usage Summary
+description: Multi-entitlement usage panel with optional expand.
+---
+
+Stacks meters, shows a cycle period label, and can collapse after N items.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="usage-summary" />
+</div>
+
+<ComponentPreview
+  title="Usage Summary"
+  name="usage-summary"
+  code={`import { UsageSummary } from '@betterpay/ui';
+
+<UsageSummary
+  entitlements={entitlements}
+  periodLabel="12 days left in cycle"
+  collapseAfter={2}
+/>`}
+>
+  <DemoUsageSummary />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { UsageSummary } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<UsageSummary
+  entitlements={entitlements}
+  periodLabel="12 days left in cycle"
+  collapseAfter={2}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `entitlements` | `EntitlementView[]` | — | Meters |
+| `title` | `string` | `"Usage"` | Heading |
+| `periodLabel` | `string` | — | Cycle hint |
+| `collapseAfter` | `number` | `3` | `0` = never collapse |

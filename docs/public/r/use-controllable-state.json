@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "use-controllable-state",
+  "type": "registry:hook",
+  "title": "useControllableState",
+  "description": "Controlled/uncontrolled state hook",
+  "dependencies": [],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "src/lib/use-controllable-state.ts",
+      "type": "registry:hook",
+      "target": "hooks/use-controllable-state.ts",
+      "content": "'use client';\n\nimport * as React from 'react';\n\n/**\n * Controlled + uncontrolled value helper for product controls\n * (interval toggles, dialogs, plan selection).\n */\nexport function useControllableState<T>(\n  controlledValue: T | undefined,\n  defaultValue: T,\n  onChange?: (value: T) => void,\n): [T, (value: T) => void] {\n  const [internalValue, setInternalValue] = React.useState(defaultValue);\n  const isControlled = controlledValue !== undefined;\n  const value = isControlled ? controlledValue : internalValue;\n\n  const setValue = React.useCallback(\n    (next: T) => {\n      if (!isControlled) {\n        setInternalValue(next);\n      }\n      onChange?.(next);\n    },\n    [isControlled, onChange],\n  );\n\n  return [value, setValue];\n}\n"
+    }
+  ]
+}

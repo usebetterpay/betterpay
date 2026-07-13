@@ -1,0 +1,53 @@
+{
+  "name": "@betterpay/ui",
+  "version": "0.1.0",
+  "description": "BetterPay billing and payment UI components for React",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./src/styles/tokens.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "src/styles"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.511.0",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "catalog:",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "jsdom": "^29.1.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "license": "MIT"
+}

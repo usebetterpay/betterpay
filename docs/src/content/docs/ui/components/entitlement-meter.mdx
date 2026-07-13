@@ -1,0 +1,59 @@
+---
+title: Entitlement Meter
+description: Linear usage meter for a single metered feature.
+---
+
+Shows used / limit with a progress track, remaining count, and optional reset label.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="entitlement-meter" />
+</div>
+
+<ComponentPreview
+  title="Entitlement Meter"
+  name="entitlement-meter"
+  code={`import { EntitlementMeter } from '@betterpay/ui';
+
+<EntitlementMeter
+  entitlement={{
+    featureId: 'messages',
+    label: 'Messages',
+    used: 1240,
+    limit: 5000,
+    resetLabel: 'monthly',
+  }}
+/>`}
+>
+  <div className="flex w-full min-w-[200px] flex-col gap-8 md:min-w-[300px]">
+    <div>
+      <p className="mb-2 text-sm text-muted-foreground">Healthy usage</p>
+      <DemoEntitlementMeter />
+    </div>
+  </div>
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { EntitlementMeter, type EntitlementView } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<EntitlementMeter
+  entitlement={{
+    featureId: 'messages',
+    label: 'Messages',
+    used: 1240,
+    limit: 5000,
+    resetLabel: 'monthly',
+  }}
+  warnAt={0.15}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `entitlement` | `EntitlementView` | — | Feature usage |
+| `warnAt` | `number` (0–1) | `0.15` | Warn when remaining ratio ≤ this |

@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import '@betterpay/ui/styles.css';
+
+/* Map BetterPay tokens into common utility names used by the UI kit */
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-lg);
+}
+
+/* Ensure UI package classes are scanned */
+@source '../../../packages/ui/src/**/*.{ts,tsx}';
+@source '../**/*.{ts,tsx,mdx}';
+
+/* Preview canvas — isolated theme via local CSS vars (see @betterpay/ui tokens) */
+.bp-preview-surface {
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at top left, color-mix(in oklch, var(--primary) 6%, transparent), transparent 45%),
+    var(--background);
+  /* Tailwind dark: utilities respect .dark on this subtree */
+  color-scheme: light;
+  /* Ensure nested @container queries resolve against this surface width */
+  container-type: inline-size;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.bp-preview-surface.dark {
+  color-scheme: dark;
+}
+
+/* Docs prose/main content shouldn't force overflow past mobile frames */
+.bp-preview-surface * {
+  box-sizing: border-box;
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "switch",
+  "type": "registry:ui",
+  "title": "Switch",
+  "description": "Base UI switch",
+  "dependencies": [
+    "@base-ui/react"
+  ],
+  "registryDependencies": [
+    "https://betterpay-docs.pages.dev/r/utils.json"
+  ],
+  "files": [
+    {
+      "path": "src/primitives/switch.tsx",
+      "type": "registry:ui",
+      "target": "components/ui/switch.tsx",
+      "content": "'use client';\n\nimport { Switch as SwitchPrimitive } from '@base-ui/react/switch';\nimport { cn } from '@/lib/utils';\n\n/**\n * Binary control (Base UI) — aligned with coss/ui Switch.\n *\n * Size is driven by CSS variable `--thumb-size` (see tokens.css).\n * Default: 1.25rem mobile, 1rem from sm up (coss: --spacing(5) / --spacing(4)).\n *\n * Geometry + checked/unchecked paint live in tokens.css so visuals work even\n * when Tailwind `data-checked:*` utilities fail to emit.\n */\nfunction Switch({\n  className,\n  size = 'default',\n  style,\n  ...props\n}: SwitchPrimitive.Root.Props & {\n  size?: 'sm' | 'default';\n}) {\n  return (\n    <SwitchPrimitive.Root\n      data-slot=\"switch\"\n      data-size={size}\n      style={style}\n      className={cn(\n        // Structure only — paint/geometry in tokens.css [data-slot=switch]\n        'bp-switch inline-flex shrink-0 cursor-pointer items-center rounded-full p-px outline-none',\n        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',\n        'data-disabled:cursor-not-allowed data-disabled:opacity-64',\n        // coss-compatible size hooks (also set via CSS defaults)\n        size === 'sm'\n          ? '[--thumb-size:0.875rem]'\n          : '[--thumb-size:1.25rem] sm:[--thumb-size:1rem]',\n        className,\n      )}\n      {...props}\n    >\n      <SwitchPrimitive.Thumb\n        data-slot=\"switch-thumb\"\n        className={cn(\n          'bp-switch-thumb pointer-events-none block aspect-square h-full origin-left bg-background shadow-sm/5 will-change-transform',\n        )}\n      />\n    </SwitchPrimitive.Root>\n  );\n}\n\nexport { Switch };\n"
+    }
+  ]
+}

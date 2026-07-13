@@ -1,0 +1,288 @@
+/**
+ * BetterPay UI — design tokens
+ *
+ * Scene: ops reviewing invoices on a laptop in a bright office at mid-morning.
+ * Strategy: Restrained — cool ink neutrals + one primary accent for actions/selection.
+ * Never pure black/white; neutrals carry a cool slate-teal cast (hue ~235).
+ */
+
+:root {
+  /* Shape */
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Surfaces (cool-tinted, never pure white) */
+  --background: oklch(0.985 0.006 235);
+  --foreground: oklch(0.22 0.028 240);
+  --card: oklch(0.995 0.004 235);
+  --card-foreground: oklch(0.22 0.028 240);
+  --popover: oklch(0.995 0.004 235);
+  --popover-foreground: oklch(0.22 0.028 240);
+
+  /* Brand action — deep ink-teal, used sparingly */
+  --primary: oklch(0.38 0.055 225);
+  --primary-foreground: oklch(0.985 0.008 235);
+
+  /* Quiet chrome */
+  --secondary: oklch(0.955 0.012 235);
+  --secondary-foreground: oklch(0.28 0.03 240);
+  --muted: oklch(0.96 0.01 235);
+  --muted-foreground: oklch(0.48 0.025 240);
+  --accent: oklch(0.95 0.014 230);
+  --accent-foreground: oklch(0.28 0.03 240);
+
+  /* Feedback (desaturated at extremes) */
+  --destructive: oklch(0.52 0.16 28);
+  --destructive-foreground: oklch(0.985 0.008 235);
+  --success: oklch(0.48 0.1 155);
+  --success-foreground: oklch(0.985 0.008 235);
+  --warning: oklch(0.62 0.12 75);
+  --warning-foreground: oklch(0.28 0.04 75);
+  --info: oklch(0.5 0.08 240);
+
+  /* Lines & focus */
+  --border: oklch(0.9 0.012 235);
+  --input: oklch(0.9 0.012 235);
+  --ring: oklch(0.48 0.06 225);
+
+  /* Elevation (subtle, cool) */
+  --shadow-xs: 0 1px 2px oklch(0.22 0.03 240 / 0.04);
+  --shadow-sm: 0 1px 2px oklch(0.22 0.03 240 / 0.05), 0 2px 8px oklch(0.22 0.03 240 / 0.04);
+  --shadow-md: 0 4px 16px oklch(0.22 0.03 240 / 0.08), 0 1px 3px oklch(0.22 0.03 240 / 0.04);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration: 180ms;
+  --duration-slow: 240ms;
+
+  /* Type */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Density */
+  --control-h: 2rem;
+  --control-h-sm: 1.75rem;
+  --control-h-lg: 2.25rem;
+
+  /* Legacy aliases (domain components during migration) */
+  --bp-radius: var(--radius);
+  --bp-background: var(--background);
+  --bp-foreground: var(--foreground);
+  --bp-card: var(--card);
+  --bp-card-foreground: var(--card-foreground);
+  --bp-primary: var(--primary);
+  --bp-primary-foreground: var(--primary-foreground);
+  --bp-muted: var(--muted);
+  --bp-muted-foreground: var(--muted-foreground);
+  --bp-border: var(--border);
+  --bp-destructive: var(--destructive);
+  --bp-success: var(--success);
+  --bp-warning: var(--warning);
+  --bp-ring: var(--ring);
+}
+
+/* Global dark (html/body) and scoped preview dark (.bp-preview-surface.dark) */
+.dark,
+.bp-preview-surface.dark {
+  --background: oklch(0.18 0.02 240);
+  --foreground: oklch(0.94 0.01 235);
+  --card: oklch(0.22 0.022 240);
+  --card-foreground: oklch(0.94 0.01 235);
+  --popover: oklch(0.22 0.022 240);
+  --popover-foreground: oklch(0.94 0.01 235);
+  --primary: oklch(0.72 0.07 210);
+  --primary-foreground: oklch(0.18 0.02 240);
+  --secondary: oklch(0.26 0.02 240);
+  --secondary-foreground: oklch(0.92 0.01 235);
+  --muted: oklch(0.26 0.02 240);
+  --muted-foreground: oklch(0.72 0.02 235);
+  --accent: oklch(0.28 0.025 235);
+  --accent-foreground: oklch(0.94 0.01 235);
+  --destructive: oklch(0.62 0.15 28);
+  --destructive-foreground: oklch(0.98 0.01 235);
+  --success: oklch(0.68 0.1 155);
+  --warning: oklch(0.75 0.11 85);
+  --info: oklch(0.7 0.07 230);
+  --border: oklch(0.32 0.02 240);
+  --input: oklch(0.32 0.02 240);
+  --ring: oklch(0.7 0.06 210);
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3), 0 2px 8px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 8px 24px oklch(0 0 0 / 0.35);
+}
+
+/* Scoped light tokens when page is dark but preview is light */
+.bp-preview-surface:not(.dark) {
+  --background: oklch(0.985 0.006 235);
+  --foreground: oklch(0.22 0.028 240);
+  --card: oklch(0.995 0.004 235);
+  --card-foreground: oklch(0.22 0.028 240);
+  --popover: oklch(0.995 0.004 235);
+  --popover-foreground: oklch(0.22 0.028 240);
+  --primary: oklch(0.38 0.055 225);
+  --primary-foreground: oklch(0.985 0.008 235);
+  --secondary: oklch(0.955 0.012 235);
+  --secondary-foreground: oklch(0.28 0.03 240);
+  --muted: oklch(0.96 0.01 235);
+  --muted-foreground: oklch(0.48 0.025 240);
+  --accent: oklch(0.95 0.014 230);
+  --accent-foreground: oklch(0.28 0.03 240);
+  --destructive: oklch(0.52 0.16 28);
+  --destructive-foreground: oklch(0.985 0.008 235);
+  --success: oklch(0.48 0.1 155);
+  --success-foreground: oklch(0.985 0.008 235);
+  --warning: oklch(0.62 0.12 75);
+  --warning-foreground: oklch(0.28 0.04 75);
+  --info: oklch(0.5 0.08 240);
+  --border: oklch(0.9 0.012 235);
+  --input: oklch(0.9 0.012 235);
+  --ring: oklch(0.48 0.06 225);
+  --shadow-xs: 0 1px 2px oklch(0.22 0.03 240 / 0.04);
+  --shadow-sm: 0 1px 2px oklch(0.22 0.03 240 / 0.05), 0 2px 8px oklch(0.22 0.03 240 / 0.04);
+  --shadow-md: 0 4px 16px oklch(0.22 0.03 240 / 0.08), 0 1px 3px oklch(0.22 0.03 240 / 0.04);
+  color-scheme: light;
+}
+
+.bp-preview-surface.dark {
+  color-scheme: dark;
+}
+
+/* Prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration: 0ms;
+    --duration-slow: 0ms;
+  }
+}
+
+/* ── Semantic utility bridges (hosts without full Tailwind theme map) ── */
+.bg-background { background-color: var(--background); }
+.bg-foreground { background-color: var(--foreground); }
+.bg-card { background-color: var(--card); }
+.bg-popover { background-color: var(--popover); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
+.bg-muted { background-color: var(--muted); }
+.bg-accent { background-color: var(--accent); }
+.bg-destructive { background-color: var(--destructive); }
+.bg-input { background-color: var(--input); }
+.bg-border { background-color: var(--border); }
+.bg-success { background-color: var(--success); }
+.bg-warning { background-color: var(--warning); }
+
+.text-background { color: var(--background); }
+.text-foreground { color: var(--foreground); }
+.text-card-foreground { color: var(--card-foreground); }
+.text-popover-foreground { color: var(--popover-foreground); }
+.text-primary { color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.text-muted-foreground { color: var(--muted-foreground); }
+.text-accent-foreground { color: var(--accent-foreground); }
+.text-destructive { color: var(--destructive); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+
+.border-border { border-color: var(--border); }
+.border-input { border-color: var(--input); }
+.border-ring { border-color: var(--ring); }
+.border-primary { border-color: var(--primary); }
+.border-destructive { border-color: var(--destructive); }
+.border-success { border-color: var(--success); }
+.border-warning { border-color: var(--warning); }
+.ring-ring { --tw-ring-color: var(--ring); }
+.ring-primary { --tw-ring-color: var(--primary); }
+.ring-destructive { --tw-ring-color: var(--destructive); }
+.accent-primary { accent-color: var(--primary); }
+
+.shadow-xs { box-shadow: var(--shadow-xs); }
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+
+.font-sans { font-family: var(--font-sans); }
+.font-mono { font-family: var(--font-mono); }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Container-query friendly: components use @container + @sm/@md against own width */
+@container (min-width: 24rem) {
+  /* reserved for host bridges if needed */
+}
+
+/* ── Switch safety net (coss geometry) ───────────────────────────────
+ * Base UI stamps data-checked / data-unchecked on Root + Thumb.
+ * Use transform (not CSS `translate` prop) so Tailwind transform utils
+ * and our styles don't fight. !important beats stale utility order.
+ */
+[data-slot='switch'] {
+  --thumb-size: 1.25rem;
+  box-sizing: border-box;
+  height: calc(var(--thumb-size) + 2px);
+  width: calc(var(--thumb-size) * 2 - 2px);
+  border-radius: 9999px;
+  background-color: var(--input);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  [data-slot='switch']:not([data-size='sm']) {
+    --thumb-size: 1rem;
+  }
+}
+
+[data-slot='switch'][data-size='sm'] {
+  --thumb-size: 0.875rem;
+}
+
+[data-slot='switch'][data-checked],
+[data-slot='switch'][aria-checked='true'] {
+  background-color: var(--primary) !important;
+}
+
+[data-slot='switch'][data-unchecked],
+[data-slot='switch'][aria-checked='false'] {
+  background-color: var(--input) !important;
+}
+
+[data-slot='switch-thumb'] {
+  box-sizing: border-box;
+  display: block;
+  height: 100%;
+  width: var(--thumb-size);
+  min-width: var(--thumb-size);
+  aspect-ratio: 1 / 1;
+  border-radius: 9999px;
+  background-color: var(--background);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.1);
+  transform-origin: left center;
+  transform: translateX(0);
+  transition: transform 0.15s ease;
+}
+
+[data-slot='switch-thumb'][data-checked],
+[data-slot='switch'][data-checked] [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='true'] [data-slot='switch-thumb'] {
+  transform: translateX(calc(var(--thumb-size) - 4px)) !important;
+}
+
+[data-slot='switch-thumb'][data-unchecked],
+[data-slot='switch'][data-unchecked] [data-slot='switch-thumb'],
+[data-slot='switch'][aria-checked='false'] [data-slot='switch-thumb'] {
+  transform: translateX(0) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='switch'],
+  [data-slot='switch-thumb'] {
+    transition: none !important;
+  }
+}

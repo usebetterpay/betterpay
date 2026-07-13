@@ -1,0 +1,51 @@
+---
+title: Plan Switcher
+description: Dialog to select a different plan for an existing subscription.
+---
+
+Opens a dialog listing plans and confirms a change. Click the button in the preview.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="plan-switcher" />
+</div>
+
+<ComponentPreview
+  title="Plan Switcher"
+  name="plan-switcher"
+  code={`import { PlanSwitcher } from '@betterpay/ui';
+
+<PlanSwitcher
+  plans={plans}
+  currentPlanId="pro"
+  onConfirm={(planId) => {}}
+/>`}
+>
+  <DemoPlanSwitcher />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { PlanSwitcher } from '@betterpay/ui';
+```
+
+```tsx title="Basic"
+<PlanSwitcher
+  plans={plans}
+  currentPlanId={subscription.planId}
+  interval="month"
+  onConfirm={handleChange}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Available plans |
+| `currentPlanId` | `string` | — | Active plan |
+| `interval` | `"month" \| "year"` | `"month"` | Price period |
+| `triggerLabel` | `string` | `"Change plan"` | Button label |
+| `onConfirm` | `(planId) => void` | — | Confirm handler |
+| `open` | `boolean` | — | Controlled open |
+| `onOpenChange` | `(open) => void` | — | Open change |

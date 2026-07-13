@@ -1,0 +1,5 @@
+# Cloudflare Pages SPA-ish helpers for trailing slash static export
+/ui /ui/ 301
+/ui/components /ui/components/ 301
+/introduction /introduction/ 301
+/quickstart /quickstart/ 301

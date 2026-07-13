@@ -1,0 +1,86 @@
+---
+title: Plan Group
+description: Interval context and grid layout for multiple plan cards.
+---
+
+Owns monthly/yearly state. Pass `plans` for an auto grid, or children with `usePlanGroup()`.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="plan-group" />
+</div>
+
+<ComponentPreview
+  title="Plan Group"
+  name="plan-group"
+  fullWidth
+  code={`import { PlanGroup } from '@betterpay/ui';
+
+<PlanGroup
+  plans={plans}
+  title="Choose a plan"
+  defaultInterval="month"
+  onSelectPlan={(planId, interval) => {}}
+/>`}
+>
+  <DemoPlanGroup />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { PlanGroup, PlanGroupIntervalToggle, usePlanGroup, PlanCard } from '@betterpay/ui';
+```
+
+```tsx title="With plans data"
+<PlanGroup
+  title="Choose a plan"
+  description="Switch monthly or yearly anytime."
+  plans={plans}
+  defaultInterval="month"
+  onIntervalChange={setInterval}
+  onSelectPlan={handleSelect}
+/>
+```
+
+```tsx title="Custom children"
+function CustomGrid() {
+  return (
+    <PlanGroup defaultInterval="month" showIntervalToggle title="Plans">
+      <div className="grid gap-4 md:grid-cols-2">
+        <InnerCards />
+      </div>
+    </PlanGroup>
+  );
+}
+
+function InnerCards() {
+  const { interval } = usePlanGroup();
+  return plans.map((plan) => (
+    <PlanCard key={plan.id} plan={plan} interval={interval} onSelect={handleSelect} />
+  ));
+}
+```
+
+## Props
+
+### PlanGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plans` | `PlanView[]` | — | Auto-render PlanCards |
+| `interval` | `"month" \| "year"` | controlled | Controlled period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Period change |
+| `onSelectPlan` | `(planId, interval) => void` | — | Card CTA |
+| `showIntervalToggle` | `boolean` | `true` | Show monthly/yearly switch |
+| `title` | `string` | — | Section title |
+| `description` | `string` | — | Section blurb |
+| `columns` | `1 \| 2 \| 3 \| 4 \| "auto"` | `"auto"` | Grid columns |
+
+### usePlanGroup
+
+```ts
+const { interval, setInterval } = usePlanGroup();
+```
+
+Must be used under `PlanGroup`.

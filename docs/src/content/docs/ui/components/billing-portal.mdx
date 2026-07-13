@@ -1,0 +1,68 @@
+---
+title: Billing Portal
+description: Composed billing page — summary, plan actions, usage, and invoices.
+---
+
+Presentational layout. Interact with plan switcher, cancel, and usage expand in the preview.
+
+<div className="flex flex-row items-center justify-start gap-2 mb-2">
+  <CopyCommandButton registryName="billing-portal" />
+</div>
+
+<ComponentPreview
+  title="Billing Portal"
+  name="billing-portal"
+  fullWidth
+  code={`import { BillingPortal } from '@betterpay/ui';
+
+<BillingPortal
+  subscription={subscription}
+  plans={plans}
+  entitlements={entitlements}
+  invoices={invoices}
+  onChangePlan={...}
+  onCancel={...}
+/>`}
+>
+  <DemoBillingPortal />
+</ComponentPreview>
+
+## Usage
+
+```tsx title="Import"
+import { BillingPortal } from '@betterpay/ui';
+```
+
+```tsx title="Full portal"
+<BillingPortal
+  subscription={subscription}
+  plans={plans}
+  entitlements={entitlements}
+  invoices={invoices}
+  usagePeriodLabel="12 days left in cycle"
+  invoiceLayout="responsive"
+  onChangePlan={handleChange}
+  onCancel={handleCancel}
+  onDownloadInvoice={handleDownload}
+/>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `subscription` | `SubscriptionView` | — | Current sub |
+| `plans` | `PlanView[]` | `[]` | For plan switcher |
+| `entitlements` | `EntitlementView[]` | `[]` | Usage meters |
+| `invoices` | `InvoiceView[]` | `[]` | History |
+| `callout` | `{ status, title?, description? } \| null` | `null` | Banner |
+| `onChangePlan` | `(planId) => void` | — | Plan change |
+| `onCancel` | `(payload) => void` | — | Cancel |
+| `onDownloadInvoice` | `(id) => void` | — | Invoice download |
+| `invoiceLayout` | `"table" \| "cards" \| "responsive"` | `"responsive"` | History layout |
+| `usagePeriodLabel` | `string` | — | Cycle hint |
+| `invoicesLoading` | `boolean` | `false` | Invoice skeleton |
+| `usageLoading` | `boolean` | `false` | Usage skeleton when empty |
+| `title` | `string` | `"Billing"` | Page title |
+
+Composes: `SubscriptionSummary`, `PlanSwitcher`, `CancelFlow`, `UsageSummary`, `InvoiceTable`, `InvoiceCardList`, `PaymentStatusBanner`.
