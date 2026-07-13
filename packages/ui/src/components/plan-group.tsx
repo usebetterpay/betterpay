@@ -10,7 +10,7 @@ import { PlanCard } from './plan-card';
 
 interface PlanGroupContextValue {
   interval: BillingInterval;
-  setInterval: (interval: BillingInterval) => void;
+  setBillingInterval: (interval: BillingInterval) => void;
 }
 
 const PlanGroupContext = React.createContext<PlanGroupContextValue | null>(null);
@@ -66,7 +66,9 @@ export function PlanGroup({
   children,
   ...props
 }: PlanGroupProps) {
-  const [interval, setInterval] = useControllableState(
+  // Avoid naming this `setInterval` — that shadows window.setInterval and
+  // is easy to mis-wire; always use a domain-specific name.
+  const [interval, setBillingInterval] = useControllableState(
     controlledInterval,
     defaultInterval,
     onIntervalChange,
@@ -81,8 +83,13 @@ export function PlanGroup({
           : 1
       : columns;
 
+  const ctx = React.useMemo(
+    () => ({ interval, setBillingInterval }),
+    [interval, setBillingInterval],
+  );
+
   return (
-    <PlanGroupContext.Provider value={{ interval, setInterval }}>
+    <PlanGroupContext.Provider value={ctx}>
       <div
         data-slot="plan-group"
         className={cn('flex w-full flex-col gap-6 font-sans', className)}
@@ -133,8 +140,11 @@ export function PlanGroup({
 }
 
 export function PlanGroupIntervalToggle({ className }: { className?: string }) {
-  const { interval, setInterval } = usePlanGroup();
+  const { interval, setBillingInterval } = usePlanGroup();
   const yearly = interval === 'year';
+
+  const selectMonth = () => setBillingInterval('month');
+  const selectYear = () => setBillingInterval('year');
 
   return (
     <div
@@ -144,17 +154,37 @@ export function PlanGroupIntervalToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className={cn('text-muted-foreground', !yearly && 'font-medium text-foreground')}>
+      <button
+        type="button"
+        onClick={selectMonth}
+        className={cn(
+          'rounded-md px-1.5 py-0.5 transition-colors',
+          !yearly
+            ? 'font-medium text-foreground'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
         Monthly
-      </span>
+      </button>
       <Switch
         checked={yearly}
-        onCheckedChange={(checked) => setInterval(checked ? 'year' : 'month')}
+        onCheckedChange={(checked) => {
+          setBillingInterval(checked ? 'year' : 'month');
+        }}
         aria-label="Bill yearly"
       />
-      <span className={cn('text-muted-foreground', yearly && 'font-medium text-foreground')}>
+      <button
+        type="button"
+        onClick={selectYear}
+        className={cn(
+          'rounded-md px-1.5 py-0.5 transition-colors',
+          yearly
+            ? 'font-medium text-foreground'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
         Yearly
-      </span>
+      </button>
     </div>
   );
 }
