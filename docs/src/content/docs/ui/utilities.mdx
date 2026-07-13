@@ -7,11 +7,11 @@ Helpers exported from `@betterpay/ui` for consistent product UI.
 
 ## Installation
 
-```bash
+```bash title="Terminal"
 pnpm add @betterpay/ui
 ```
 
-```ts
+```ts title="import utilities"
 import {
   formatMoney,
   formatIdr,
@@ -27,7 +27,7 @@ import {
 
 Formats major units with `Intl.NumberFormat`. Defaults to IDR / `id-ID`.
 
-```ts
+```ts title="formatMoney"
 formatMoney(150_000);
 // → "Rp150.000" (locale-dependent spacing)
 
@@ -48,7 +48,7 @@ formatIdr(99_000); // alias for IDR major units
 
 ## formatDisplayDate
 
-```ts
+```ts title="formatDisplayDate"
 formatDisplayDate('2026-08-01');
 // → "1 Agu 2026" (id-ID short month)
 ```
@@ -57,7 +57,7 @@ formatDisplayDate('2026-08-01');
 
 Maps BetterPay domain statuses to badge labels and tones.
 
-```ts
+```ts title="status maps"
 subscriptionStatusPresentation('past_due');
 // → { label: 'Past due', tone: 'warning' }
 
@@ -72,7 +72,7 @@ paymentCalloutPresentation('failed');
 
 For controls that support both controlled and uncontrolled modes (interval toggles, dialogs).
 
-```tsx
+```tsx title="useControllableState"
 const [interval, setInterval] = useControllableState(
   controlledInterval,
   'month',
