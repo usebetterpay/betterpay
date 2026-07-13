@@ -3,56 +3,23 @@ title: Cancel Flow
 description: Confirm subscription cancellation with optional leave reason.
 ---
 
-`CancelFlow` is a destructive confirmation dialog. Reasons are optional and fully customizable.
+`CancelFlow` is a destructive confirmation dialog. Open it from the preview button.
+
+<ComponentPreview
+  code={`import { CancelFlow } from '@betterpay/ui';
+
+<CancelFlow
+  planName="Pro"
+  onConfirm={({ reasonId }) => {}}
+/>`}
+>
+  <DemoCancelFlow />
+</ComponentPreview>
 
 ## Installation
 
 ```bash
 pnpm add @betterpay/ui
-```
-
-```tsx
-import { CancelFlow } from '@betterpay/ui';
-```
-
-## Examples
-
-### Basic
-
-```tsx
-<CancelFlow
-  planName="Pro"
-  onConfirm={({ reasonId }) => {
-    // await pay.billing.cancel(subscriptionId)
-    console.log(reasonId);
-  }}
-/>
-```
-
-### Custom reasons
-
-```tsx
-<CancelFlow
-  planName="Pro"
-  title="Leave Pro?"
-  reasons={[
-    { id: 'cost', label: 'Too expensive for our stage' },
-    { id: 'features', label: 'Missing a feature we need' },
-    { id: 'other', label: 'Other' },
-  ]}
-  onConfirm={handleCancel}
-/>
-```
-
-### Controlled
-
-```tsx
-<CancelFlow
-  open={open}
-  onOpenChange={setOpen}
-  planName={subscription.planName}
-  onConfirm={handleCancel}
-/>
 ```
 
 ## API Reference
@@ -63,10 +30,7 @@ import { CancelFlow } from '@betterpay/ui';
 | --- | --- | --- |
 | `planName` | `string` | — |
 | `triggerLabel` | `string` | `"Cancel subscription"` |
-| `title` | `string` | `"Cancel subscription?"` |
-| `description` | `string` | period-end access copy |
 | `reasons` | `{ id: string; label: string }[]` | built-in set |
 | `onConfirm` | `(payload: { reasonId?: string }) => void` | — |
 | `open` | `boolean` | — |
 | `onOpenChange` | `(open: boolean) => void` | — |
-| `className` | `string` | trigger classes |

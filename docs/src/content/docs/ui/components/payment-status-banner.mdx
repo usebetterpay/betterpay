@@ -3,55 +3,23 @@ title: Payment Status Banner
 description: Callout for success, failed, past due, or pending payments.
 ---
 
-`PaymentStatusBanner` is a full-border tinted callout (no side-stripe accents). Status is always labeled in text, not color alone.
+`PaymentStatusBanner` is a full-border tinted callout. Status is always labeled in text.
+
+<ComponentPreview
+  code={`import { PaymentStatusBanner } from '@betterpay/ui';
+
+<PaymentStatusBanner
+  status="success"
+  description="Invoice paid via BCA VA."
+/>`}
+>
+  <DemoPaymentStatusBanner />
+</ComponentPreview>
 
 ## Installation
 
 ```bash
 pnpm add @betterpay/ui
-```
-
-```tsx
-import { PaymentStatusBanner } from '@betterpay/ui';
-```
-
-## Examples
-
-### Success
-
-```tsx
-<PaymentStatusBanner
-  status="success"
-  description="Invoice INV-2026-001 was paid via BCA VA."
-/>
-```
-
-### Failed
-
-```tsx
-<PaymentStatusBanner
-  status="failed"
-  title="Payment failed"
-  description="The virtual account expired. Generate a new payment link."
-  dismissible
-  onDismiss={() => setBanner(null)}
-/>
-```
-
-### Past due with action
-
-```tsx
-<PaymentStatusBanner
-  status="past_due"
-  description="Update payment to keep Pro features."
-  action={<Button size="sm">Retry payment</Button>}
-/>
-```
-
-### Pending
-
-```tsx
-<PaymentStatusBanner status="pending" description="Waiting for bank confirmation." />
 ```
 
 ## API Reference
@@ -66,4 +34,3 @@ import { PaymentStatusBanner } from '@betterpay/ui';
 | `dismissible` | `boolean` | `false` |
 | `onDismiss` | `() => void` | — |
 | `action` | `ReactNode` | — |
-| `className` | `string` | — |

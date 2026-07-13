@@ -13,18 +13,24 @@
     "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-docs"
   },
   "dependencies": {
+    "@betterpay/ui": "workspace:^",
+    "clsx": "^2.1.1",
     "fumadocs-core": "^14.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^14.0.0",
+    "lucide-react": "^0.511.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.3.2",
     "typescript": "^5.0.0",
     "wrangler": "^4.110.0"
   }

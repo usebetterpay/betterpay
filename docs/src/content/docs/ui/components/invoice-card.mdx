@@ -3,50 +3,21 @@ title: Invoice Card
 description: Single invoice row for mobile lists and dense stacks.
 ---
 
-`InvoiceCard` shows one invoice as a horizontal card. `InvoiceCardList` stacks many cards with an empty state.
+`InvoiceCard` shows one invoice as a horizontal card. `InvoiceCardList` stacks many.
+
+<ComponentPreview
+  code={`import { InvoiceCard, InvoiceCardList } from '@betterpay/ui';
+
+<InvoiceCard invoice={invoice} onDownload={...} />
+<InvoiceCardList invoices={invoices} onDownload={...} />`}
+>
+  <DemoInvoiceCard />
+</ComponentPreview>
 
 ## Installation
 
 ```bash
 pnpm add @betterpay/ui
-```
-
-```tsx
-import { InvoiceCard, InvoiceCardList, type InvoiceView } from '@betterpay/ui';
-```
-
-## Examples
-
-### Single card
-
-```tsx
-<InvoiceCard
-  invoice={{
-    id: 'inv_1',
-    number: 'INV-2026-001',
-    amount: 199_000,
-    currency: 'IDR',
-    status: 'paid',
-    issuedAt: '2026-07-01',
-  }}
-  onDownload={(id) => console.log(id)}
-/>
-```
-
-### List
-
-```tsx
-<InvoiceCardList
-  invoices={invoices}
-  onDownload={handleDownload}
-  emptyMessage="No invoices yet."
-/>
-```
-
-### Compact
-
-```tsx
-<InvoiceCard invoice={invoice} compact />
 ```
 
 ## API Reference
@@ -58,7 +29,6 @@ import { InvoiceCard, InvoiceCardList, type InvoiceView } from '@betterpay/ui';
 | `invoice` | `InvoiceView` | — |
 | `onDownload` | `(invoiceId: string) => void` | — |
 | `compact` | `boolean` | `false` |
-| `className` | `string` | — |
 
 ### InvoiceCardList
 
@@ -67,4 +37,3 @@ import { InvoiceCard, InvoiceCardList, type InvoiceView } from '@betterpay/ui';
 | `invoices` | `InvoiceView[]` | — |
 | `onDownload` | `(invoiceId: string) => void` | — |
 | `emptyMessage` | `string` | `"No invoices yet."` |
-| `className` | `string` | — |

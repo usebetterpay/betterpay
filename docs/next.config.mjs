@@ -10,6 +10,7 @@ const nextConfig = {
   output: 'export',
   images: { unoptimized: true },
   trailingSlash: true,
+  transpilePackages: ['@betterpay/ui'],
 };
 
 export default withMDX(nextConfig);

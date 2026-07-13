@@ -4,6 +4,17 @@ import { Callout } from 'fumadocs-ui/components/callout';
 import { notFound } from 'next/navigation';
 import { getPages, getPage } from '@/lib/source';
 import { CodeGroup } from '@/components/CodeGroup';
+import { ComponentPreview } from '@/components/ComponentPreview';
+import * as Demos from '@/components/demos';
+
+const mdxComponents = {
+  Card,
+  Cards,
+  Callout,
+  CodeGroup,
+  ComponentPreview,
+  ...Demos,
+};
 
 export default async function Page({
   params,
@@ -23,7 +34,7 @@ export default async function Page({
     <DocsPage toc={page.data.toc} full={page.data.full}>
       <DocsBody>
         <h1>{page.data.title}</h1>
-        <MDX components={{ Card, Cards, Callout, CodeGroup }} />
+        <MDX components={mdxComponents} />
       </DocsBody>
     </DocsPage>
   );

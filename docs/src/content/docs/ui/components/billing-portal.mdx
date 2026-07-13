@@ -3,58 +3,28 @@ title: Billing Portal
 description: Composed billing page — summary, plan actions, usage, and invoices.
 ---
 
-`BillingPortal` is a presentational layout. Pass data and callbacks; it does not fetch.
+`BillingPortal` is a presentational layout. Interact with plan switcher, cancel, and usage expand in the preview.
+
+<ComponentPreview
+  fullWidth
+  code={`import { BillingPortal } from '@betterpay/ui';
+
+<BillingPortal
+  subscription={subscription}
+  plans={plans}
+  entitlements={entitlements}
+  invoices={invoices}
+  onChangePlan={...}
+  onCancel={...}
+/>`}
+>
+  <DemoBillingPortal />
+</ComponentPreview>
 
 ## Installation
 
 ```bash
 pnpm add @betterpay/ui
-```
-
-```tsx
-import { BillingPortal } from '@betterpay/ui';
-```
-
-## Examples
-
-### Full portal
-
-```tsx
-<BillingPortal
-  title="Billing"
-  subscription={subscription}
-  plans={plans}
-  entitlements={entitlements}
-  invoices={invoices}
-  usagePeriodLabel="12 days left in cycle"
-  callout={{
-    status: 'past_due',
-    description: 'Your last payment failed. Retry to stay on Pro.',
-  }}
-  onChangePlan={async (planId) => { /* ... */ }}
-  onCancel={async ({ reasonId }) => { /* ... */ }}
-  onDownloadInvoice={(id) => window.open(`/invoices/${id}`)}
-  onDismissCallout={() => setCallout(null)}
-/>
-```
-
-### Invoice layout
-
-```tsx
-// Table only (desktop-style)
-<BillingPortal subscription={sub} invoices={invoices} invoiceLayout="table" />
-
-// Cards only (mobile-style)
-<BillingPortal subscription={sub} invoices={invoices} invoiceLayout="cards" />
-
-// Responsive (default): table on md+, cards on small screens
-<BillingPortal subscription={sub} invoices={invoices} invoiceLayout="responsive" />
-```
-
-### Minimal (summary only)
-
-```tsx
-<BillingPortal subscription={subscription} />
 ```
 
 ## API Reference
@@ -71,10 +41,6 @@ import { BillingPortal } from '@betterpay/ui';
 | `onChangePlan` | `(planId: string) => void` | — |
 | `onCancel` | `(payload: { reasonId?: string }) => void` | — |
 | `onDownloadInvoice` | `(invoiceId: string) => void` | — |
-| `onDismissCallout` | `() => void` | — |
 | `invoiceLayout` | `"table" \| "cards" \| "responsive"` | `"responsive"` |
 | `usagePeriodLabel` | `string` | — |
 | `title` | `string` | `"Billing"` |
-| `className` | `string` | — |
-
-Composes: `SubscriptionSummary`, `PlanSwitcher`, `CancelFlow`, `UsageSummary`, `InvoiceTable`, `InvoiceCardList`, `PaymentStatusBanner`.

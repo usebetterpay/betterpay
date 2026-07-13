@@ -3,7 +3,19 @@ title: Pricing Table
 description: Opinionated pricing section built on PlanGroup and PlanCard.
 ---
 
-`PricingTable` is a thin section wrapper: title, description, interval toggle, and plan grid. Prefer `PlanGroup` / `PlanCard` when you need custom composition.
+`PricingTable` is a thin section wrapper: title, description, interval toggle, and plan grid.
+
+<ComponentPreview
+  fullWidth
+  code={`import { PricingTable } from '@betterpay/ui';
+
+<PricingTable
+  plans={plans}
+  onSelectPlan={(planId, interval) => {}}
+/>`}
+>
+  <DemoPricingTable />
+</ComponentPreview>
 
 ## Installation
 
@@ -16,49 +28,6 @@ import { PricingTable, type PlanView } from '@betterpay/ui';
 ```
 
 ## Examples
-
-### Basic
-
-```tsx
-const plans: PlanView[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    monthlyAmount: 0,
-    yearlyAmount: 0,
-    currency: 'IDR',
-    features: [{ id: 'api', label: '1.000 API calls' }],
-    ctaLabel: 'Start free',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    monthlyAmount: 199_000,
-    yearlyAmount: 1_990_000,
-    currency: 'IDR',
-    recommended: true,
-    badge: 'Popular',
-    features: [
-      { id: 'api', label: '50.000 API calls' },
-      { id: 'wa', label: 'WhatsApp alerts' },
-    ],
-    ctaLabel: 'Go Pro',
-  },
-];
-
-export function Page() {
-  return (
-    <PricingTable
-      plans={plans}
-      title="Simple pricing"
-      description="IDR pricing for Indonesian payment products."
-      onSelectPlan={(planId, interval) => {
-        // wire to pay.billing.subscribe
-      }}
-    />
-  );
-}
-```
 
 ### Compact density
 
@@ -92,19 +61,3 @@ export function Page() {
 | `onSelectPlan` | `(planId, interval) => void` | — |
 | `currencyFallback` | `string` | `"IDR"` |
 | `density` | `"comfortable" \| "compact"` | `"comfortable"` |
-| `className` | `string` | — |
-
-### PlanView
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | `string` | Stable plan id |
-| `name` | `string` | Display name |
-| `description` | `string?` | Short blurb |
-| `monthlyAmount` | `number` | Major units |
-| `yearlyAmount` | `number` | Major units |
-| `currency` | `string?` | Default IDR |
-| `recommended` | `boolean?` | Visual emphasis |
-| `badge` | `string?` | e.g. Popular |
-| `features` | `{ id, label, included? }[]` | Feature list |
-| `ctaLabel` | `string?` | Button label |

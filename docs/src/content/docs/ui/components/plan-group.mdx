@@ -5,6 +5,20 @@ description: Interval context and grid layout for multiple plan cards.
 
 `PlanGroup` owns monthly/yearly state and can render a grid of plans, or wrap custom children that call `usePlanGroup()`.
 
+<ComponentPreview
+  fullWidth
+  code={`import { PlanGroup } from '@betterpay/ui';
+
+<PlanGroup
+  plans={plans}
+  title="Choose a plan"
+  defaultInterval="month"
+  onSelectPlan={(planId, interval) => {}}
+/>`}
+>
+  <DemoPlanGroup />
+</ComponentPreview>
+
 ## Installation
 
 ```bash
@@ -16,25 +30,6 @@ import { PlanGroup, PlanGroupIntervalToggle, usePlanGroup, PlanCard } from '@bet
 ```
 
 ## Examples
-
-### With plans data
-
-```tsx
-import { PlanGroup, type PlanView } from '@betterpay/ui';
-
-export function Pricing() {
-  return (
-    <PlanGroup
-      title="Choose a plan"
-      description="Switch monthly or yearly anytime."
-      plans={plans}
-      defaultInterval="month"
-      onIntervalChange={(interval) => console.log(interval)}
-      onSelectPlan={(planId, interval) => console.log(planId, interval)}
-    />
-  );
-}
-```
 
 ### Controlled interval
 
@@ -86,16 +81,9 @@ function InnerCards() {
 | `title` | `string` | — |
 | `description` | `string` | — |
 | `columns` | `1 \| 2 \| 3 \| 4 \| "auto"` | `"auto"` |
-| `className` | `string` | — |
-
-### PlanGroupIntervalToggle
-
-Standalone monthly/yearly switch. Must be rendered inside `PlanGroup`.
 
 ### usePlanGroup
 
 ```ts
 const { interval, setInterval } = usePlanGroup();
 ```
-
-Throws if used outside `PlanGroup`.

@@ -31,6 +31,19 @@ import '@betterpay/ui/styles.css';
 
 Host apps should provide Tailwind (or equivalent) for utility classes used by components.
 
+## Live preview
+
+Toggle monthly/yearly and pick a plan in the canvas below.
+
+<ComponentPreview
+  fullWidth
+  code={`import { PricingTable } from '@betterpay/ui';
+
+<PricingTable plans={plans} onSelectPlan={(planId, interval) => {}} />`}
+>
+  <DemoPricingTable />
+</ComponentPreview>
+
 ## Quick example
 
 ```tsx

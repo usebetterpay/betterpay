@@ -3,50 +3,24 @@ title: Usage Summary
 description: Multi-entitlement usage panel with optional expand for long lists.
 ---
 
-`UsageSummary` stacks `EntitlementMeter` cards, shows a billing-cycle period label, and can collapse after N meters.
+`UsageSummary` stacks meters, shows a cycle period label, and can collapse after N items. Try **Show more** in the preview.
+
+<ComponentPreview
+  code={`import { UsageSummary } from '@betterpay/ui';
+
+<UsageSummary
+  entitlements={entitlements}
+  periodLabel="12 days left in cycle"
+  collapseAfter={2}
+/>`}
+>
+  <DemoUsageSummary />
+</ComponentPreview>
 
 ## Installation
 
 ```bash
 pnpm add @betterpay/ui
-```
-
-```tsx
-import { UsageSummary, type EntitlementView } from '@betterpay/ui';
-```
-
-## Examples
-
-### Multiple meters
-
-```tsx
-const entitlements: EntitlementView[] = [
-  { featureId: 'msg', label: 'Messages', used: 1200, limit: 5000, resetLabel: 'monthly' },
-  { featureId: 'api', label: 'API calls', used: 40_000, limit: 50_000, resetLabel: 'monthly' },
-  { featureId: 'seats', label: 'Seats', used: 3, limit: 10 },
-];
-
-<UsageSummary
-  entitlements={entitlements}
-  periodLabel="12 days left in cycle"
-/>
-```
-
-### Collapse after two
-
-```tsx
-<UsageSummary
-  entitlements={manyEntitlements}
-  collapseAfter={2}
-  title="Quota"
-/>
-```
-
-### Empty
-
-```tsx
-<UsageSummary entitlements={[]} />
-// → "No metered features on this plan."
 ```
 
 ## API Reference
@@ -57,8 +31,5 @@ const entitlements: EntitlementView[] = [
 | --- | --- | --- |
 | `entitlements` | `EntitlementView[]` | — |
 | `title` | `string` | `"Usage"` |
-| `description` | `string` | — |
 | `periodLabel` | `string` | — |
-| `warnAt` | `number` | meter default |
-| `collapseAfter` | `number` | `3` (`0` = never collapse) |
-| `className` | `string` | — |
+| `collapseAfter` | `number` | `3` (`0` = never) |
