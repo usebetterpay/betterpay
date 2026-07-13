@@ -4,6 +4,10 @@
 export { cn } from './lib/cn';
 export { formatMoney, formatIdr, type FormatMoneyOptions } from './lib/money';
 export { formatDisplayDate } from './lib/dates';
+export {
+  formatBillingIntervalLabel,
+  type IntervalLabelInput,
+} from './lib/labels';
 export { useControllableState } from './lib/use-controllable-state';
 export {
   subscriptionStatusPresentation,
@@ -93,6 +97,10 @@ export {
   type ComparisonFeatureRow,
   type ComparisonCell,
 } from './components/plan-comparison';
+export {
+  BillingIntervalToggle,
+  type BillingIntervalToggleProps,
+} from './components/billing-interval-toggle';
 export {
   SubscriptionSummary,
   type SubscriptionSummaryProps,

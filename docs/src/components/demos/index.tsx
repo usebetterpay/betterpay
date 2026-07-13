@@ -80,7 +80,8 @@ export function DemoPlanComparison() {
     <DemoShell>
       <PlanComparison
         plans={demoPlans}
-        interval="month"
+        showIntervalToggle
+        defaultInterval="month"
         onSelectPlan={(id) => console.log(id)}
       />
     </DemoShell>

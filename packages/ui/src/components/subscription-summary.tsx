@@ -2,6 +2,7 @@
 
 import { cn } from '../lib/cn';
 import { formatDisplayDate } from '../lib/dates';
+import { formatBillingIntervalLabel } from '../lib/labels';
 import { formatMoney } from '../lib/money';
 import { subscriptionStatusPresentation } from '../lib/status';
 import type { SubscriptionView } from '../types/billing-ui';
@@ -43,7 +44,9 @@ export function SubscriptionSummary({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-col gap-1.5">
             <CardTitle>{subscription.planName}</CardTitle>
-            <CardDescription>Subscription · {subscription.interval}</CardDescription>
+            <CardDescription>
+              Subscription · {formatBillingIntervalLabel(subscription.interval)}
+            </CardDescription>
           </div>
           <Badge tone={status.tone}>{status.label}</Badge>
         </div>

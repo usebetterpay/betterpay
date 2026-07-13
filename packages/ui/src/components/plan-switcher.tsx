@@ -51,6 +51,20 @@ export function PlanSwitcher({
     if (next) setSelected(currentPlanId);
   };
 
+  const ids = plans.map((p) => p.id);
+
+  const onListKeyDown = (e: React.KeyboardEvent) => {
+    if (ids.length === 0) return;
+    const idx = Math.max(0, ids.indexOf(selected));
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      setSelected(ids[(idx + 1) % ids.length]!);
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setSelected(ids[(idx - 1 + ids.length) % ids.length]!);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger
@@ -66,6 +80,9 @@ export function PlanSwitcher({
         </DialogHeader>
         <ul
           data-slot="plan-switcher-list"
+          role="radiogroup"
+          aria-label={title}
+          onKeyDown={onListKeyDown}
           className="flex max-h-[min(50vh,20rem)] flex-col gap-2 overflow-y-auto overscroll-contain pe-0.5"
         >
           {plans.map((plan) => {
@@ -74,9 +91,11 @@ export function PlanSwitcher({
             const active = selected === plan.id;
             const isCurrent = plan.id === currentPlanId;
             return (
-              <li key={plan.id}>
+              <li key={plan.id} role="none">
                 <button
                   type="button"
+                  role="radio"
+                  aria-checked={active}
                   data-slot="plan-switcher-option"
                   onClick={() => setSelected(plan.id)}
                   className={cn(

@@ -37,40 +37,59 @@ Family: system UI stack (`--font-sans`). Scale ratio ~1.15–1.2. No display fon
 
 ## Density & shape
 
-- Compact base-nova control heights (`h-8` default, not oversized marketing buttons).
+- **Mobile-first controls:** default button `h-10` / `sm:h-9` (comfortable thumb, denser desktop).
+- Icon buttons follow the same scale (`size-10` → `sm:size-9`).
 - Radius: `--radius` 8px; badges slightly rounded (`rounded-md`), not always full pill.
 - Spacing: `gap-*` only; rhythm varies by section (header looser, tables denser).
-- Touch: primary actions ≥36–40px height; icon buttons square.
+- Touch: expand hit area with `pointer-coarse:after` (≥44px) without growing visual chrome.
 
 ## Elevation
 
-- Cards: hairline ring + optional `shadow-xs`, not heavy drop shadows.
-- Dialogs: `shadow-md` + solid overlay (light scrim, no blur-by-default).
+- Cards: hairline `ring-1 ring-border` + optional `shadow-xs` only when `elevated`.
+- Dialogs: flat `shadow-none` + solid scrim; light `backdrop-blur-[2px]` on overlay only.
+- Switch thumb may use `shadow-sm/5` for depth of the knob only.
+- No heavy drop shadows on CTAs.
+
+## Dialog pattern
+
+- **Mobile:** bottom sheet (`items-end`, rounded top, grab handle).
+- **Desktop:** centered popup (`sm:items-center`, `sm:max-w-lg`).
+- Footer: full-width stacked buttons on mobile, row on `sm+`.
 
 ## Motion
 
 - 120–180ms, `cubic-bezier(0.16, 1, 0.3, 1)` (ease-out expo-ish).
 - State only (hover, open/close, switch thumb). No page-load choreography.
-- Honor `prefers-reduced-motion` (durations collapse to 0).
+- Tokens zero durations under `prefers-reduced-motion`.
+- Switch uses `motion-safe:` / `motion-reduce:transition-none` for thumb travel.
 
 ## Components (states required)
 
-Every interactive primitive documents: default · hover · focus-visible · active · disabled.  
-Loading via composition (spinner + disabled), not a bespoke `isLoading` API.
+Every interactive primitive documents: default · hover · focus-visible · active · disabled.
+
+| Concern | Pattern |
+|---------|---------|
+| Loading | Optional `loading` / `*Loading` props with skeleton rows (InvoiceTable, InvoiceCardList, BillingPortal); not a global spinner API |
+| Empty | Explicit empty copy for lists/matrices (`emptyMessage`) |
+| Exclusive pick | `role="radiogroup"` + `role="radio"` (PlanSwitcher) or native radio group (CancelFlow) |
+| Interval | Shared `BillingIntervalToggle`; human labels via `formatBillingIntervalLabel` |
+| Composition | Loading via host-driven props; primary actions can use `disabled` while submitting |
 
 ## Composition (Base UI / base-nova)
 
 - Style: `components.json` → `base-nova`
 - Slotting: `render` never `asChild`
 - Button as link: `render` + `nativeButton={false}`
-- `data-slot` on every semantic part
+- `data-slot` on every semantic part (including Badge root)
 - CVA + `cn()`; consumer `className` wins
+- Switch: CSS `--thumb-size` geometry; `data-checked` / `data-unchecked` on thumb for translate
 
-## Currency & status
+## Currency, copy & status
 
 - Default `id-ID` / `IDR`, no fraction digits for IDR
 - Status vocabulary matches `@betterpay/billing` (subscription + invoice + payment callouts)
 - Status = badge label + tone, never color alone
+- Product copy is English by default; hosts override via props (`title`, `emptyMessage`, …). Full i18n dictionaries are out of scope for v0.1.
 
 ## File map
 
@@ -79,3 +98,4 @@ Loading via composition (spinner + disabled), not a bespoke `isLoading` API.
 | `src/styles/tokens.css` | OKLCH variables + utility bridges |
 | `src/primitives/*` | Base UI / presentational primitives |
 | `src/components/*` | Domain billing blocks |
+| `src/lib/*` | money, dates, status, labels, controllable state |

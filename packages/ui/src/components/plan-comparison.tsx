@@ -1,10 +1,14 @@
+'use client';
+
 import type * as React from 'react';
 import { CheckIcon, MinusIcon, XIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
+import { useControllableState } from '../lib/use-controllable-state';
 import { formatMoney } from '../lib/money';
 import type { BillingInterval, PlanView } from '../types/billing-ui';
 import { Badge } from '../primitives/badge';
 import { Button } from '../primitives/button';
+import { BillingIntervalToggle } from './billing-interval-toggle';
 
 export type ComparisonCell = boolean | 'partial' | string;
 
@@ -19,10 +23,16 @@ export interface PlanComparisonProps extends React.ComponentProps<'div'> {
   plans: PlanView[];
   /** Explicit matrix rows. If omitted, derived from union of plan.features. */
   features?: ComparisonFeatureRow[];
+  /** Controlled interval. */
   interval?: BillingInterval;
+  defaultInterval?: BillingInterval;
+  onIntervalChange?: (interval: BillingInterval) => void;
+  /** Show Monthly/Yearly toggle above the matrix. */
+  showIntervalToggle?: boolean;
   currencyFallback?: string;
   onSelectPlan?: (planId: string) => void;
   ariaLabel?: string;
+  emptyMessage?: string;
 }
 
 function deriveFeatures(plans: PlanView[]): ComparisonFeatureRow[] {
@@ -70,13 +80,38 @@ function CellValue({ value }: { value: ComparisonCell }) {
 export function PlanComparison({
   plans,
   features,
-  interval = 'month',
+  interval: controlledInterval,
+  defaultInterval = 'month',
+  onIntervalChange,
+  showIntervalToggle = false,
   currencyFallback = 'IDR',
   onSelectPlan,
   ariaLabel = 'Plan comparison',
+  emptyMessage = 'No plans to compare.',
   className,
   ...props
 }: PlanComparisonProps) {
+  const [interval, setIntervalValue] = useControllableState(
+    controlledInterval,
+    defaultInterval,
+    onIntervalChange,
+  );
+
+  if (plans.length === 0) {
+    return (
+      <div
+        data-slot="plan-comparison-empty"
+        className={cn(
+          'rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground shadow-none ring-1 ring-border',
+          className,
+        )}
+        {...props}
+      >
+        {emptyMessage}
+      </div>
+    );
+  }
+
   const rows = features ?? deriveFeatures(plans);
 
   const gridCols = {
@@ -86,96 +121,102 @@ export function PlanComparison({
   return (
     <div
       data-slot="plan-comparison"
-      role="table"
-      aria-label={ariaLabel}
-      className={cn(
-        'w-full overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border',
-        className,
-      )}
+      className={cn('flex w-full flex-col gap-3', className)}
       {...props}
     >
-      {/* Horizontal scroll on narrow viewports; first column sticks */}
-      <div role="rowgroup" className="overflow-x-auto overscroll-x-contain">
-        <div
-          role="row"
-          className="grid min-w-[min(100%,28rem)] w-max border-b border-border bg-muted/40 sm:min-w-[36rem] sm:w-full"
-          style={gridCols}
-        >
-          <div
-            role="columnheader"
-            className="sticky left-0 z-10 bg-muted/95 p-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm"
-          >
-            Feature
-          </div>
-          {plans.map((plan) => {
-            const currency = plan.currency ?? currencyFallback;
-            const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
-            return (
-              <div
-                key={plan.id}
-                role="columnheader"
-                className={cn(
-                  'flex flex-col items-center gap-2 border-l border-border p-2.5 text-center sm:p-3',
-                  plan.recommended && 'bg-primary/5',
-                )}
-              >
-                <div className="flex flex-wrap items-center justify-center gap-1.5">
-                  <span className="text-sm font-semibold">{plan.name}</span>
-                  {plan.recommended ? <Badge tone="default">Popular</Badge> : null}
-                </div>
-                <span className="text-sm font-medium tabular-nums">
-                  {formatMoney(amount, { currency })}
-                  <span className="font-normal text-muted-foreground">
-                    {interval === 'year' ? '/yr' : '/mo'}
-                  </span>
-                </span>
-                {onSelectPlan ? (
-                  <Button
-                    size="xs"
-                    variant={plan.recommended ? 'default' : 'outline'}
-                    onClick={() => onSelectPlan(plan.id)}
-                  >
-                    {plan.ctaLabel ?? 'Select'}
-                  </Button>
-                ) : null}
-              </div>
-            );
-          })}
+      {showIntervalToggle ? (
+        <div className="flex justify-start sm:justify-end">
+          <BillingIntervalToggle value={interval} onChange={setIntervalValue} />
         </div>
+      ) : null}
 
-        {rows.map((row, i) => (
+      <div
+        role="table"
+        aria-label={ariaLabel}
+        className="w-full overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border"
+      >
+        <div role="rowgroup" className="overflow-x-auto overscroll-x-contain">
           <div
-            key={row.id}
             role="row"
-            className={cn(
-              'grid min-w-[min(100%,28rem)] w-max border-b border-border last:border-b-0 sm:min-w-[36rem] sm:w-full',
-              i % 2 === 1 && 'bg-muted/20',
-            )}
+            className="grid min-w-[min(100%,28rem)] w-max border-b border-border bg-muted/40 sm:min-w-[36rem] sm:w-full"
             style={gridCols}
           >
             <div
-              role="cell"
-              className={cn(
-                'sticky left-0 z-10 p-2.5 text-left text-sm text-foreground sm:p-3',
-                i % 2 === 1 ? 'bg-muted/90 backdrop-blur-sm' : 'bg-card/95 backdrop-blur-sm',
-              )}
+              role="columnheader"
+              className="sticky left-0 z-10 bg-muted/95 p-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm"
             >
-              {row.label}
+              Feature
             </div>
-            {plans.map((plan) => (
+            {plans.map((plan) => {
+              const currency = plan.currency ?? currencyFallback;
+              const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
+              return (
+                <div
+                  key={plan.id}
+                  role="columnheader"
+                  className={cn(
+                    'flex flex-col items-center gap-2 border-l border-border p-2.5 text-center sm:p-3',
+                    plan.recommended && 'bg-primary/5',
+                  )}
+                >
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    <span className="text-sm font-semibold">{plan.name}</span>
+                    {plan.recommended ? <Badge tone="default">Popular</Badge> : null}
+                  </div>
+                  <span className="text-sm font-medium tabular-nums">
+                    {formatMoney(amount, { currency })}
+                    <span className="font-normal text-muted-foreground">
+                      {interval === 'year' ? '/yr' : '/mo'}
+                    </span>
+                  </span>
+                  {onSelectPlan ? (
+                    <Button
+                      size="xs"
+                      variant={plan.recommended ? 'default' : 'outline'}
+                      onClick={() => onSelectPlan(plan.id)}
+                    >
+                      {plan.ctaLabel ?? 'Select'}
+                    </Button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          {rows.map((row, i) => (
+            <div
+              key={row.id}
+              role="row"
+              className={cn(
+                'grid min-w-[min(100%,28rem)] w-max border-b border-border last:border-b-0 sm:min-w-[36rem] sm:w-full',
+                i % 2 === 1 && 'bg-muted/20',
+              )}
+              style={gridCols}
+            >
               <div
-                key={plan.id}
                 role="cell"
                 className={cn(
-                  'flex items-center justify-center border-l border-border p-2.5 sm:p-3',
-                  plan.recommended && 'bg-primary/[0.03]',
+                  'sticky left-0 z-10 p-2.5 text-left text-sm text-foreground sm:p-3',
+                  i % 2 === 1 ? 'bg-muted/90 backdrop-blur-sm' : 'bg-card/95 backdrop-blur-sm',
                 )}
               >
-                <CellValue value={row.values[plan.id] ?? false} />
+                {row.label}
               </div>
-            ))}
-          </div>
-        ))}
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  role="cell"
+                  className={cn(
+                    'flex items-center justify-center border-l border-border p-2.5 sm:p-3',
+                    plan.recommended && 'bg-primary/[0.03]',
+                  )}
+                >
+                  <CellValue value={row.values[plan.id] ?? false} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

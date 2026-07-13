@@ -61,6 +61,8 @@ import { BillingPortal } from '@betterpay/ui';
 | `onDownloadInvoice` | `(id) => void` | — | Invoice download |
 | `invoiceLayout` | `"table" \| "cards" \| "responsive"` | `"responsive"` | History layout |
 | `usagePeriodLabel` | `string` | — | Cycle hint |
+| `invoicesLoading` | `boolean` | `false` | Invoice skeleton |
+| `usageLoading` | `boolean` | `false` | Usage skeleton when empty |
 | `title` | `string` | `"Billing"` | Page title |
 
 Composes: `SubscriptionSummary`, `PlanSwitcher`, `CancelFlow`, `UsageSummary`, `InvoiceTable`, `InvoiceCardList`, `PaymentStatusBanner`.

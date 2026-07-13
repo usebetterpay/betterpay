@@ -5,7 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/cn';
 import { useControllableState } from '../lib/use-controllable-state';
 import type { BillingInterval, PlanView } from '../types/billing-ui';
-import { Switch } from '../primitives/switch';
+import { BillingIntervalToggle } from './billing-interval-toggle';
 import { PlanCard } from './plan-card';
 
 interface PlanGroupContextValue {
@@ -144,50 +144,12 @@ export function PlanGroup({
 
 export function PlanGroupIntervalToggle({ className }: { className?: string }) {
   const { interval, setBillingInterval } = usePlanGroup();
-  const yearly = interval === 'year';
-
-  const selectMonth = () => setBillingInterval('month');
-  const selectYear = () => setBillingInterval('year');
 
   return (
-    <div
-      data-slot="plan-group-interval"
-      className={cn(
-        'flex w-full items-center justify-between gap-2.5 rounded-lg bg-muted/60 px-3 py-2 text-sm ring-1 ring-border sm:w-auto sm:justify-start',
-        className,
-      )}
-    >
-      <button
-        type="button"
-        onClick={selectMonth}
-        className={cn(
-          'min-h-9 rounded-md px-2 py-1 transition-colors',
-          !yearly
-            ? 'font-medium text-foreground'
-            : 'text-muted-foreground hover:text-foreground',
-        )}
-      >
-        Monthly
-      </button>
-      <Switch
-        checked={yearly}
-        onCheckedChange={(checked) => {
-          setBillingInterval(checked ? 'year' : 'month');
-        }}
-        aria-label="Bill yearly"
-      />
-      <button
-        type="button"
-        onClick={selectYear}
-        className={cn(
-          'min-h-9 rounded-md px-2 py-1 transition-colors',
-          yearly
-            ? 'font-medium text-foreground'
-            : 'text-muted-foreground hover:text-foreground',
-        )}
-      >
-        Yearly
-      </button>
-    </div>
+    <BillingIntervalToggle
+      value={interval}
+      onChange={setBillingInterval}
+      className={className}
+    />
   );
 }

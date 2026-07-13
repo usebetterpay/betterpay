@@ -33,11 +33,16 @@ export interface BillingPortalProps {
   /** Prefer card stack on small viewports (default true). */
   invoiceLayout?: 'table' | 'cards' | 'responsive';
   usagePeriodLabel?: string;
+  /** Skeleton for invoice table/cards while host fetches history. */
+  invoicesLoading?: boolean;
+  /** Skeleton for usage section when entitlements are still loading. */
+  usageLoading?: boolean;
 }
 
 /**
  * Presentational billing portal layout.
  * Wire data from `@betterpay/billing` in the host app.
+ * Plan change / cancel live in the actions row (not on SubscriptionSummary).
  */
 export function BillingPortal({
   subscription,
@@ -53,6 +58,8 @@ export function BillingPortal({
   title = 'Billing',
   invoiceLayout = 'responsive',
   usagePeriodLabel,
+  invoicesLoading = false,
+  usageLoading = false,
 }: BillingPortalProps) {
   return (
     <div
@@ -79,14 +86,7 @@ export function BillingPortal({
         />
       ) : null}
 
-      <SubscriptionSummary
-        subscription={subscription}
-        onUpgrade={
-          plans.length > 0 && onChangePlan
-            ? undefined // plan change lives in PlanSwitcher action row
-            : undefined
-        }
-      />
+      <SubscriptionSummary subscription={subscription} />
 
       {plans.length > 0 || onCancel ? (
         <div
@@ -112,30 +112,55 @@ export function BillingPortal({
         </div>
       ) : null}
 
-      {entitlements.length > 0 ? (
+      {usageLoading && entitlements.length === 0 ? (
+        <div
+          data-slot="billing-portal-usage-loading"
+          className="rounded-lg border border-border p-4"
+          aria-busy="true"
+        >
+          <div className="mb-3 h-4 w-24 animate-pulse rounded-md bg-muted" />
+          <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
+        </div>
+      ) : entitlements.length > 0 ? (
         <UsageSummary entitlements={entitlements} periodLabel={usagePeriodLabel} />
       ) : null}
 
       {invoiceLayout === 'cards' ? (
         <section className="flex flex-col gap-3" data-slot="billing-portal-invoices">
           <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
-          <InvoiceCardList invoices={invoices} onDownload={onDownloadInvoice} />
+          <InvoiceCardList
+            invoices={invoices}
+            onDownload={onDownloadInvoice}
+            loading={invoicesLoading}
+          />
         </section>
       ) : invoiceLayout === 'responsive' ? (
         <>
           <div className="hidden md:block">
-            <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
+            <InvoiceTable
+              invoices={invoices}
+              onDownload={onDownloadInvoice}
+              loading={invoicesLoading}
+            />
           </div>
           <section
             className="flex flex-col gap-3 md:hidden"
             data-slot="billing-portal-invoices-mobile"
           >
             <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
-            <InvoiceCardList invoices={invoices} onDownload={onDownloadInvoice} />
+            <InvoiceCardList
+              invoices={invoices}
+              onDownload={onDownloadInvoice}
+              loading={invoicesLoading}
+            />
           </section>
         </>
       ) : (
-        <InvoiceTable invoices={invoices} onDownload={onDownloadInvoice} />
+        <InvoiceTable
+          invoices={invoices}
+          onDownload={onDownloadInvoice}
+          loading={invoicesLoading}
+        />
       )}
     </div>
   );

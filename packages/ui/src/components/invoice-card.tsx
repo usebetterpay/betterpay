@@ -34,8 +34,7 @@ export function InvoiceCard({
       className={cn(
         'flex flex-col gap-3 rounded-lg border border-border bg-card text-card-foreground shadow-none',
         'transition-colors duration-[var(--duration-fast,120ms)] hover:bg-muted/40',
-        // Stack on very narrow; row when there is room
-        'xs:flex-row xs:items-center sm:flex-row sm:items-center',
+        'sm:flex-row sm:items-center',
         compact ? 'p-3' : 'p-4',
         className,
       )}
@@ -78,15 +77,49 @@ export interface InvoiceCardListProps extends React.ComponentProps<'div'> {
   invoices: InvoiceView[];
   onDownload?: (invoiceId: string) => void;
   emptyMessage?: string;
+  loading?: boolean;
+}
+
+function InvoiceCardListSkeleton() {
+  return (
+    <div data-slot="invoice-card-list-loading" className="flex flex-col gap-2" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 rounded-lg border border-border p-4"
+        >
+          <div className="size-10 animate-pulse rounded-md bg-muted" />
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="h-4 w-1/2 animate-pulse rounded-md bg-muted" />
+            <div className="h-3 w-1/3 animate-pulse rounded-md bg-muted" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function InvoiceCardList({
   invoices,
   onDownload,
   emptyMessage = 'No invoices yet.',
+  loading = false,
   className,
   ...props
 }: InvoiceCardListProps) {
+  if (loading) {
+    return (
+      <div
+        data-slot="invoice-card-list"
+        className={cn(className)}
+        aria-busy="true"
+        {...props}
+      >
+        <InvoiceCardListSkeleton />
+      </div>
+    );
+  }
+
   if (invoices.length === 0) {
     return (
       <p data-slot="invoice-card-list-empty" className="text-sm text-muted-foreground">

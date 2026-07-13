@@ -71,7 +71,8 @@ function Badge({
       {
         className: cn(badgeVariants({ variant: resolved }), className),
       },
-      props,
+      // data-slot is a custom attribute; cast keeps useRender typings happy
+      { ...props, 'data-slot': 'badge' } as typeof props & { 'data-slot': string },
     ),
     render,
     state: {

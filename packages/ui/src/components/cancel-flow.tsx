@@ -74,22 +74,28 @@ export function CancelFlow({
         </DialogHeader>
         <fieldset data-slot="cancel-flow-reasons" className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium">Why are you leaving? (optional)</legend>
-          {reasons.map((reason) => (
-            <label
-              key={reason.id}
-              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-            >
-              <input
-                type="radio"
-                name="cancel-reason"
-                value={reason.id}
-                checked={reasonId === reason.id}
-                onChange={() => setReasonId(reason.id)}
-                className="size-4 shrink-0 accent-primary"
-              />
-              <span className="min-w-0 flex-1 leading-snug">{reason.label}</span>
-            </label>
-          ))}
+          <div
+            role="radiogroup"
+            aria-label="Cancellation reason"
+            className="flex flex-col gap-2"
+          >
+            {reasons.map((reason) => (
+              <label
+                key={reason.id}
+                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              >
+                <input
+                  type="radio"
+                  name="cancel-reason"
+                  value={reason.id}
+                  checked={reasonId === reason.id}
+                  onChange={() => setReasonId(reason.id)}
+                  className="size-4 shrink-0 accent-primary"
+                />
+                <span className="min-w-0 flex-1 leading-snug">{reason.label}</span>
+              </label>
+            ))}
+          </div>
         </fieldset>
         <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>

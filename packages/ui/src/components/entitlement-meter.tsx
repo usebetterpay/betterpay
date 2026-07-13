@@ -23,6 +23,7 @@ export function EntitlementMeter({
   const warn = !unlimited && remainingRatio <= warnAt;
 
   const percentLabel = unlimited ? 'Unlimited' : `${Math.round(ratio * 100)}% used`;
+  const unitSuffix = entitlement.unit ? ` ${entitlement.unit}` : '';
 
   return (
     <Card data-slot="entitlement-meter" className={cn(className)}>
@@ -33,7 +34,7 @@ export function EntitlementMeter({
             <CardDescription>
               {unlimited
                 ? 'No hard limit'
-                : `${used.toLocaleString('id-ID')} of ${limit.toLocaleString('id-ID')} used`}
+                : `${used.toLocaleString('id-ID')} of ${limit.toLocaleString('id-ID')}${unitSuffix} used`}
             </CardDescription>
           </div>
           <span
@@ -70,7 +71,7 @@ export function EntitlementMeter({
           <span>
             {remaining == null
               ? 'Remaining: unlimited'
-              : `Remaining: ${remaining.toLocaleString('id-ID')}`}
+              : `Remaining: ${remaining.toLocaleString('id-ID')}${unitSuffix}`}
           </span>
           {entitlement.resetLabel ? <span>Resets {entitlement.resetLabel}</span> : null}
         </div>

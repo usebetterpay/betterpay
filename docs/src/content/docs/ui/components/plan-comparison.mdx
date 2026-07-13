@@ -17,7 +17,8 @@ Table of features against plans. Cells: included, excluded, partial, or custom t
 
 <PlanComparison
   plans={plans}
-  interval="month"
+  showIntervalToggle
+  defaultInterval="month"
   onSelectPlan={(planId) => {}}
 />`}
 >
@@ -57,7 +58,11 @@ const features: ComparisonFeatureRow[] = [
 | --- | --- | --- | --- |
 | `plans` | `PlanView[]` | — | Column headers + prices |
 | `features` | `ComparisonFeatureRow[]` | derived | Matrix rows |
-| `interval` | `"month" \| "year"` | `"month"` | Price period |
+| `interval` | `"month" \| "year"` | — | Controlled price period |
+| `defaultInterval` | `"month" \| "year"` | `"month"` | Uncontrolled default |
+| `onIntervalChange` | `(interval) => void` | — | Interval change |
+| `showIntervalToggle` | `boolean` | `false` | Monthly/Yearly control |
+| `emptyMessage` | `string` | `"No plans to compare."` | Empty state copy |
 | `onSelectPlan` | `(planId) => void` | — | Header CTA |
 | `currencyFallback` | `string` | `"IDR"` | Fallback currency |
 

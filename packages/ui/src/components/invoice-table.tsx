@@ -21,7 +21,24 @@ export interface InvoiceTableProps {
   description?: string;
   emptyMessage?: string;
   onDownload?: (invoiceId: string) => void;
+  /** Show skeleton rows while host loads invoices. */
+  loading?: boolean;
   className?: string;
+}
+
+function InvoiceTableSkeleton() {
+  return (
+    <div data-slot="invoice-table-loading" className="flex flex-col gap-3 px-4 pb-4" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex items-center gap-3">
+          <div className="h-4 w-20 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 flex-1 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-16 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function InvoiceTable({
@@ -30,16 +47,23 @@ export function InvoiceTable({
   description = 'Billing history for this account.',
   emptyMessage = 'No invoices yet.',
   onDownload,
+  loading = false,
   className,
 }: InvoiceTableProps) {
   return (
-    <Card data-slot="invoice-table" className={cn(className)}>
+    <Card
+      data-slot="invoice-table"
+      className={cn(className)}
+      aria-busy={loading || undefined}
+    >
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
       <CardContent className="px-0 pb-0">
-        {invoices.length === 0 ? (
+        {loading ? (
+          <InvoiceTableSkeleton />
+        ) : invoices.length === 0 ? (
           <p
             data-slot="invoice-table-empty"
             className="px-5 pb-5 text-sm text-muted-foreground"
@@ -47,7 +71,6 @@ export function InvoiceTable({
             {emptyMessage}
           </p>
         ) : (
-          // Table primitive already wraps overflow-x-auto for narrow screens
           <Table className="min-w-[28rem]">
             <TableHeader>
               <TableRow>
@@ -84,7 +107,6 @@ export function InvoiceTable({
                           variant="ghost"
                           size="sm"
                           onClick={() => onDownload(invoice.id)}
-                          disabled={!invoice.downloadUrl && !onDownload}
                         >
                           Download
                         </Button>
