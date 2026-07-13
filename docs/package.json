@@ -8,7 +8,9 @@
     "build": "fumadocs-mdx && next build",
     "start": "next start",
     "lint": "biome check .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "pages:build": "pnpm build",
+    "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-docs"
   },
   "dependencies": {
     "fumadocs-core": "^14.0.0",
@@ -23,6 +25,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "wrangler": "^4.110.0"
   }
 }

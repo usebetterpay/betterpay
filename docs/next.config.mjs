@@ -6,6 +6,10 @@ const withMDX = createMDX();
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
+  // Static export for Cloudflare Pages
+  output: 'export',
+  images: { unoptimized: true },
+  trailingSlash: true,
 };
 
 export default withMDX(nextConfig);

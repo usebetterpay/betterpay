@@ -11,3 +11,4 @@ sample/
 docs/.next/
 docs/.source/
 docs/next-env.d.ts
+docs/out/
