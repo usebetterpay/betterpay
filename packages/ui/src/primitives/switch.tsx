@@ -6,11 +6,9 @@ import { cn } from '../lib/cn';
 /**
  * Binary control (Base UI).
  *
- * Pattern notes (from production Base UI kits like coss/ui):
- * - Size via CSS custom property `--thumb-size` so track width = 2× thumb
- * - Thumb motion uses `data-checked:translate-x` on the thumb itself
- *   (Base UI stamps data-checked/unchecked on both root and thumb)
- * - Avoid fragile group-compound selectors for the checked transform
+ * Geometry uses fixed rem sizes (not CSS var calc multiply — invalid without
+ * spaces and flaky in some Tailwind pipelines). Thumb uses data-checked on
+ * itself for translate, matching Base UI attribute mapping.
  */
 function Switch({
   className,
@@ -19,24 +17,20 @@ function Switch({
 }: SwitchPrimitive.Root.Props & {
   size?: 'sm' | 'default';
 }) {
+  const isSm = size === 'sm';
+
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
       data-size={size}
       className={cn(
-        // Track sized from --thumb-size (coss-style geometry)
-        'inline-flex shrink-0 cursor-pointer items-center rounded-full p-px outline-none',
-        'motion-safe:transition-[background-color,box-shadow] motion-safe:duration-200',
-        'motion-reduce:transition-none',
+        'relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-transparent p-0.5 outline-none',
+        'motion-safe:transition-colors motion-safe:duration-200 motion-reduce:transition-none',
         'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
+        // Explicit colors (also work if data-* utilities fail to emit)
         'data-checked:bg-primary data-unchecked:bg-input',
         'data-disabled:cursor-not-allowed data-disabled:opacity-64',
-        // Mobile-first larger thumb; denser from sm. Rem keeps geometry
-        // stable without relying on host --spacing() theme helpers.
-        size === 'sm'
-          ? '[--thumb-size:0.875rem] sm:[--thumb-size:0.75rem]'
-          : '[--thumb-size:1.25rem] sm:[--thumb-size:1rem]',
-        'h-[calc(var(--thumb-size)+2px)] w-[calc(var(--thumb-size)*2-2px)]',
+        isSm ? 'h-5 w-9' : 'h-6 w-11 sm:h-5 sm:w-9',
         className,
       )}
       {...props}
@@ -44,16 +38,15 @@ function Switch({
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
         className={cn(
-          'pointer-events-none block aspect-square h-full rounded-full bg-background shadow-sm/5',
-          'origin-left will-change-transform',
-          'motion-safe:[transition:translate_.15s,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s]',
-          'motion-reduce:transition-none',
-          // Active squash (optional polish)
-          'motion-safe:in-[[role=switch]:active]:not-data-disabled:scale-x-110',
-          // Checked state on the thumb — reliable Base UI data attrs
-          'data-checked:origin-[var(--thumb-size)_50%]',
-          'data-checked:translate-x-[calc(var(--thumb-size)-4px)]',
+          'pointer-events-none block rounded-full bg-background shadow-sm ring-0',
+          'motion-safe:transition-transform motion-safe:duration-150 motion-reduce:transition-none',
+          isSm ? 'size-3.5' : 'size-5 sm:size-4',
+          // Unchecked: flush left (p-0.5 already applied on track)
           'data-unchecked:translate-x-0',
+          // Checked: track width - padding - thumb ≈ travel distance
+          isSm
+            ? 'data-checked:translate-x-4'
+            : 'data-checked:translate-x-5 sm:data-checked:translate-x-4',
         )}
       />
     </SwitchPrimitive.Root>
