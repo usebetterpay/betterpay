@@ -5,11 +5,11 @@ import { cn } from '../lib/cn';
 import type { BillingInterval, PlanView } from '../types/billing-ui';
 import { PlanGroup } from './plan-group';
 
-const shellVariants = cva('mx-auto w-full max-w-5xl', {
+const shellVariants = cva('mx-auto w-full max-w-5xl px-0', {
   variants: {
     density: {
       comfortable: '',
-      compact: '[&_[data-slot=plan-group]]:gap-5',
+      compact: '[&_[data-slot=plan-group]]:gap-4 sm:[&_[data-slot=plan-group]]:gap-5',
     },
   },
   defaultVariants: { density: 'comfortable' },

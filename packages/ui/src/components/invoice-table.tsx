@@ -38,7 +38,7 @@ export function InvoiceTable({
         <CardTitle>{title}</CardTitle>
         {description ? <CardDescription>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent className="px-0 pb-0 sm:px-0">
+      <CardContent className="px-0 pb-0">
         {invoices.length === 0 ? (
           <p
             data-slot="invoice-table-empty"
@@ -47,14 +47,19 @@ export function InvoiceTable({
             {emptyMessage}
           </p>
         ) : (
-          <Table>
+          // Table primitive already wraps overflow-x-auto for narrow screens
+          <Table className="min-w-[28rem]">
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                {onDownload ? <TableHead className="text-right"> </TableHead> : null}
+                {onDownload ? (
+                  <TableHead className="w-px text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -63,12 +68,14 @@ export function InvoiceTable({
                 const currency = invoice.currency ?? 'IDR';
                 return (
                   <TableRow key={invoice.id}>
-                    <TableCell>{formatDisplayDate(invoice.issuedAt)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {formatDisplayDate(invoice.issuedAt)}
+                    </TableCell>
                     <TableCell className="font-medium">{invoice.number}</TableCell>
                     <TableCell>
                       <Badge tone={status.tone}>{status.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right tabular-nums whitespace-nowrap">
                       {formatMoney(invoice.amount, { currency })}
                     </TableCell>
                     {onDownload ? (

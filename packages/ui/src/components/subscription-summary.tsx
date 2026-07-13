@@ -81,15 +81,15 @@ export function SubscriptionSummary({
         ) : null}
       </CardContent>
       {(onUpgrade || onCancel) && (
-        <CardFooter className="flex flex-wrap gap-2">
-          {onUpgrade ? (
-            <Button variant="default" onClick={onUpgrade}>
-              {upgradeLabel}
+        <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap">
+          {onCancel ? (
+            <Button variant="outline" className="w-full sm:w-auto" onClick={onCancel}>
+              {cancelLabel}
             </Button>
           ) : null}
-          {onCancel ? (
-            <Button variant="outline" onClick={onCancel}>
-              {cancelLabel}
+          {onUpgrade ? (
+            <Button variant="default" className="w-full sm:w-auto" onClick={onUpgrade}>
+              {upgradeLabel}
             </Button>
           ) : null}
         </CardFooter>

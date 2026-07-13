@@ -4,8 +4,13 @@ import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import { cn } from '../lib/cn';
 
 /**
- * Binary control (Base UI). Clear checked/unchecked via track fill + thumb.
- * Matches base-nova data-attribute styling (data-checked / data-unchecked).
+ * Binary control (Base UI).
+ *
+ * Pattern notes (from production Base UI kits like coss/ui):
+ * - Size via CSS custom property `--thumb-size` so track width = 2× thumb
+ * - Thumb motion uses `data-checked:translate-x` on the thumb itself
+ *   (Base UI stamps data-checked/unchecked on both root and thumb)
+ * - Avoid fragile group-compound selectors for the checked transform
  */
 function Switch({
   className,
@@ -19,14 +24,18 @@ function Switch({
       data-slot="switch"
       data-size={size}
       className={cn(
-        'peer group/switch relative inline-flex shrink-0 cursor-pointer items-center rounded-full',
-        'border border-transparent outline-none transition-all',
-        'after:absolute after:-inset-x-3 after:-inset-y-2',
-        'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-        'data-[size=default]:h-[18.4px] data-[size=default]:w-8',
-        'data-[size=sm]:h-3.5 data-[size=sm]:w-6',
+        // Track sized from --thumb-size (coss-style geometry)
+        'inline-flex shrink-0 cursor-pointer items-center rounded-full p-px outline-none',
+        'transition-[background-color,box-shadow] duration-200',
+        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
         'data-checked:bg-primary data-unchecked:bg-input',
-        'data-disabled:cursor-not-allowed data-disabled:opacity-50',
+        'data-disabled:cursor-not-allowed data-disabled:opacity-64',
+        // Mobile-first larger thumb; denser from sm. Rem keeps geometry
+        // stable without relying on host --spacing() theme helpers.
+        size === 'sm'
+          ? '[--thumb-size:0.875rem] sm:[--thumb-size:0.75rem]'
+          : '[--thumb-size:1.25rem] sm:[--thumb-size:1rem]',
+        'h-[calc(var(--thumb-size)+2px)] w-[calc(var(--thumb-size)*2-2px)]',
         className,
       )}
       {...props}
@@ -34,16 +43,15 @@ function Switch({
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
         className={cn(
-          'pointer-events-none block rounded-full bg-background ring-0 transition-transform',
-          // Size from parent group
-          'group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3',
-          // Thumb itself receives data-checked / data-unchecked from Base UI
-          'data-unchecked:translate-x-0 data-checked:translate-x-[calc(100%-2px)]',
-          // Fallback when group size variants fail to compound
-          'group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)]',
-          'group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)]',
-          'group-data-[size=default]/switch:data-unchecked:translate-x-0',
-          'group-data-[size=sm]/switch:data-unchecked:translate-x-0',
+          'pointer-events-none block aspect-square h-full rounded-full bg-background shadow-sm/5',
+          'origin-left will-change-transform',
+          '[transition:translate_.15s,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s]',
+          // Active squash (optional polish)
+          'in-[[role=switch]:active]:not-data-disabled:scale-x-110',
+          // Checked state on the thumb — reliable Base UI data attrs
+          'data-checked:origin-[var(--thumb-size)_50%]',
+          'data-checked:translate-x-[calc(var(--thumb-size)-4px)]',
+          'data-unchecked:translate-x-0',
         )}
       />
     </SwitchPrimitive.Root>

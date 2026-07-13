@@ -23,13 +23,14 @@ export function usePlanGroup(): PlanGroupContextValue {
   return ctx;
 }
 
-const planGroupGrid = cva('grid gap-3 md:gap-4', {
+// Always single column on phones; multi-col only from md/xl up.
+const planGroupGrid = cva('grid grid-cols-1 gap-3 md:gap-4', {
   variants: {
     columns: {
       1: 'md:grid-cols-1',
       2: 'md:grid-cols-2',
-      3: 'md:grid-cols-3',
-      4: 'md:grid-cols-2 xl:grid-cols-4',
+      3: 'sm:grid-cols-2 lg:grid-cols-3',
+      4: 'sm:grid-cols-2 xl:grid-cols-4',
       auto: '',
     },
   },
@@ -76,11 +77,13 @@ export function PlanGroup({
 
   const autoColumns =
     columns === 'auto' && plans
-      ? plans.length >= 3
-        ? 3
-        : plans.length === 2
-          ? 2
-          : 1
+      ? plans.length >= 4
+        ? 4
+        : plans.length === 3
+          ? 3
+          : plans.length === 2
+            ? 2
+            : 1
       : columns;
 
   const ctx = React.useMemo(
@@ -150,7 +153,7 @@ export function PlanGroupIntervalToggle({ className }: { className?: string }) {
     <div
       data-slot="plan-group-interval"
       className={cn(
-        'flex items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-2 text-sm ring-1 ring-border',
+        'flex w-full items-center justify-between gap-2.5 rounded-lg bg-muted/60 px-3 py-2 text-sm ring-1 ring-border sm:w-auto sm:justify-start',
         className,
       )}
     >

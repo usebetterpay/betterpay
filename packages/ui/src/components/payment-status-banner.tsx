@@ -51,30 +51,45 @@ export function PaymentStatusBanner({
       data-slot="payment-status-banner"
       role="status"
       className={cn(
-        'flex items-start gap-3 rounded-lg border px-3.5 py-3 shadow-xs',
+        'flex flex-col gap-3 rounded-lg border px-3.5 py-3 shadow-none sm:flex-row sm:items-start',
         TONE_CLASS[status],
         className,
       )}
     >
-      <span className="mt-0.5">{ICONS[status]}</span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-sm font-medium text-current">{heading}</p>
-        {description ? (
-          <p className="text-sm leading-relaxed text-foreground/85">{description}</p>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span className="mt-0.5 shrink-0">{ICONS[status]}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-medium text-current">{heading}</p>
+            {dismissible ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 text-current opacity-70 hover:opacity-100 sm:hidden"
+                aria-label="Dismiss"
+                onClick={onDismiss}
+              >
+                <XIcon />
+              </Button>
+            ) : null}
+          </div>
+          {description ? (
+            <p className="text-sm leading-relaxed text-foreground/85">{description}</p>
+          ) : null}
+          {action ? <div className="mt-1">{action}</div> : null}
+        </div>
+        {dismissible ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="hidden shrink-0 text-current opacity-70 hover:opacity-100 sm:inline-flex"
+            aria-label="Dismiss"
+            onClick={onDismiss}
+          >
+            <XIcon />
+          </Button>
         ) : null}
-        {action ? <div className="mt-1">{action}</div> : null}
       </div>
-      {dismissible ? (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="shrink-0 text-current opacity-70 hover:opacity-100"
-          aria-label="Dismiss"
-          onClick={onDismiss}
-        >
-          <XIcon />
-        </Button>
-      ) : null}
     </div>
   );
 }

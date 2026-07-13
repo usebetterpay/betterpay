@@ -78,7 +78,10 @@ export function PlanComparison({
   ...props
 }: PlanComparisonProps) {
   const rows = features ?? deriveFeatures(plans);
-  const colCount = plans.length + 1;
+
+  const gridCols = {
+    gridTemplateColumns: `minmax(8.5rem,1.2fr) repeat(${plans.length}, minmax(6.5rem,1fr))`,
+  } as const;
 
   return (
     <div
@@ -86,21 +89,22 @@ export function PlanComparison({
       role="table"
       aria-label={ariaLabel}
       className={cn(
-        'w-full overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-xs',
+        'w-full overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-none ring-1 ring-border',
         className,
       )}
       {...props}
     >
-      <div
-        role="rowgroup"
-        className="overflow-x-auto"
-      >
+      {/* Horizontal scroll on narrow viewports; first column sticks */}
+      <div role="rowgroup" className="overflow-x-auto overscroll-x-contain">
         <div
           role="row"
-          className="grid min-w-[36rem] border-b border-border bg-muted/40"
-          style={{ gridTemplateColumns: `minmax(10rem,1.2fr) repeat(${plans.length}, minmax(7rem,1fr))` }}
+          className="grid min-w-[min(100%,28rem)] w-max border-b border-border bg-muted/40 sm:min-w-[36rem] sm:w-full"
+          style={gridCols}
         >
-          <div role="columnheader" className="p-3 text-left text-xs font-medium text-muted-foreground">
+          <div
+            role="columnheader"
+            className="sticky left-0 z-10 bg-muted/95 p-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm"
+          >
             Feature
           </div>
           {plans.map((plan) => {
@@ -111,7 +115,7 @@ export function PlanComparison({
                 key={plan.id}
                 role="columnheader"
                 className={cn(
-                  'flex flex-col items-center gap-2 border-l border-border p-3 text-center',
+                  'flex flex-col items-center gap-2 border-l border-border p-2.5 text-center sm:p-3',
                   plan.recommended && 'bg-primary/5',
                 )}
               >
@@ -144,14 +148,18 @@ export function PlanComparison({
             key={row.id}
             role="row"
             className={cn(
-              'grid min-w-[36rem] border-b border-border last:border-b-0',
+              'grid min-w-[min(100%,28rem)] w-max border-b border-border last:border-b-0 sm:min-w-[36rem] sm:w-full',
               i % 2 === 1 && 'bg-muted/20',
             )}
-            style={{
-              gridTemplateColumns: `minmax(10rem,1.2fr) repeat(${colCount - 1}, minmax(7rem,1fr))`,
-            }}
+            style={gridCols}
           >
-            <div role="cell" className="p-3 text-left text-sm text-foreground">
+            <div
+              role="cell"
+              className={cn(
+                'sticky left-0 z-10 p-2.5 text-left text-sm text-foreground sm:p-3',
+                i % 2 === 1 ? 'bg-muted/90 backdrop-blur-sm' : 'bg-card/95 backdrop-blur-sm',
+              )}
+            >
               {row.label}
             </div>
             {plans.map((plan) => (
@@ -159,7 +167,7 @@ export function PlanComparison({
                 key={plan.id}
                 role="cell"
                 className={cn(
-                  'flex items-center justify-center border-l border-border p-3',
+                  'flex items-center justify-center border-l border-border p-2.5 sm:p-3',
                   plan.recommended && 'bg-primary/[0.03]',
                 )}
               >
