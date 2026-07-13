@@ -1,0 +1,86 @@
+---
+title: Plan Comparison
+description: Feature × plan comparison matrix for marketing and docs pages.
+---
+
+`PlanComparison` renders a table of features against plans. Cells support included, excluded, partial, or custom text. When `features` is omitted, the matrix is derived from the union of `plan.features`.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { PlanComparison, type PlanView } from '@betterpay/ui';
+```
+
+## Examples
+
+### Derived from plan features
+
+```tsx
+<PlanComparison
+  plans={plans}
+  interval="month"
+  onSelectPlan={(planId) => console.log(planId)}
+/>
+```
+
+### Explicit feature matrix
+
+```tsx
+import type { ComparisonFeatureRow } from '@betterpay/ui';
+
+const features: ComparisonFeatureRow[] = [
+  {
+    id: 'msg',
+    label: 'Messages / month',
+    values: { free: '100', pro: '5.000', ent: 'Unlimited' },
+  },
+  {
+    id: 'wa',
+    label: 'WhatsApp',
+    values: { free: false, pro: true, ent: true },
+  },
+  {
+    id: 'sso',
+    label: 'SSO',
+    values: { free: false, pro: 'partial', ent: true },
+  },
+];
+
+<PlanComparison plans={plans} features={features} interval="year" />
+```
+
+### Yearly prices in header
+
+```tsx
+<PlanComparison plans={plans} interval="year" />
+```
+
+## API Reference
+
+### PlanComparison
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `plans` | `PlanView[]` | — |
+| `features` | `ComparisonFeatureRow[]` | derived |
+| `interval` | `"month" \| "year"` | `"month"` |
+| `currencyFallback` | `string` | `"IDR"` |
+| `onSelectPlan` | `(planId: string) => void` | — |
+| `ariaLabel` | `string` | `"Plan comparison"` |
+| `className` | `string` | — |
+
+### ComparisonFeatureRow
+
+| Field | Type |
+| --- | --- |
+| `id` | `string` |
+| `label` | `string` |
+| `values` | `Record<planId, ComparisonCell>` |
+
+### ComparisonCell
+
+`true` · `false` · `"partial"` · `string` (custom label)

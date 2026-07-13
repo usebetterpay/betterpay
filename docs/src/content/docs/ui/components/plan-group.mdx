@@ -1,0 +1,101 @@
+---
+title: Plan Group
+description: Interval context and grid layout for multiple plan cards.
+---
+
+`PlanGroup` owns monthly/yearly state and can render a grid of plans, or wrap custom children that call `usePlanGroup()`.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { PlanGroup, PlanGroupIntervalToggle, usePlanGroup, PlanCard } from '@betterpay/ui';
+```
+
+## Examples
+
+### With plans data
+
+```tsx
+import { PlanGroup, type PlanView } from '@betterpay/ui';
+
+export function Pricing() {
+  return (
+    <PlanGroup
+      title="Choose a plan"
+      description="Switch monthly or yearly anytime."
+      plans={plans}
+      defaultInterval="month"
+      onIntervalChange={(interval) => console.log(interval)}
+      onSelectPlan={(planId, interval) => console.log(planId, interval)}
+    />
+  );
+}
+```
+
+### Controlled interval
+
+```tsx
+const [interval, setInterval] = useState<'month' | 'year'>('month');
+
+<PlanGroup
+  plans={plans}
+  interval={interval}
+  onIntervalChange={setInterval}
+  onSelectPlan={handleSelect}
+/>
+```
+
+### Custom children
+
+```tsx
+function CustomGrid() {
+  return (
+    <PlanGroup defaultInterval="month" showIntervalToggle title="Plans">
+      <div className="grid gap-4 md:grid-cols-2">
+        <InnerCards />
+      </div>
+    </PlanGroup>
+  );
+}
+
+function InnerCards() {
+  const { interval } = usePlanGroup();
+  return plans.map((plan) => (
+    <PlanCard key={plan.id} plan={plan} interval={interval} onSelect={...} />
+  ));
+}
+```
+
+## API Reference
+
+### PlanGroup
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `plans` | `PlanView[]` | — |
+| `interval` | `"month" \| "year"` | controlled |
+| `defaultInterval` | `"month" \| "year"` | `"month"` |
+| `onIntervalChange` | `(interval) => void` | — |
+| `onSelectPlan` | `(planId, interval) => void` | — |
+| `currencyFallback` | `string` | `"IDR"` |
+| `showIntervalToggle` | `boolean` | `true` |
+| `title` | `string` | — |
+| `description` | `string` | — |
+| `columns` | `1 \| 2 \| 3 \| 4 \| "auto"` | `"auto"` |
+| `className` | `string` | — |
+
+### PlanGroupIntervalToggle
+
+Standalone monthly/yearly switch. Must be rendered inside `PlanGroup`.
+
+### usePlanGroup
+
+```ts
+const { interval, setInterval } = usePlanGroup();
+```
+
+Throws if used outside `PlanGroup`.

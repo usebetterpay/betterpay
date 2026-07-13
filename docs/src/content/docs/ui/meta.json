@@ -1,0 +1,23 @@
+{
+  "title": "UI",
+  "pages": [
+    "index",
+    "components",
+    "---Components---",
+    "components/plan-card",
+    "components/plan-group",
+    "components/pricing-table",
+    "components/plan-comparison",
+    "components/subscription-summary",
+    "components/plan-switcher",
+    "components/cancel-flow",
+    "components/entitlement-meter",
+    "components/usage-summary",
+    "components/invoice-table",
+    "components/invoice-card",
+    "components/payment-status-banner",
+    "components/billing-portal",
+    "---Utilities---",
+    "utilities"
+  ]
+}

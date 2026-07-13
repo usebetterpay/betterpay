@@ -1,0 +1,78 @@
+---
+title: Invoice Table
+description: Desktop invoice history table with status badges and amounts.
+---
+
+`InvoiceTable` is the dense desktop view of billing history. Pair with `InvoiceCard` for mobile.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { InvoiceTable, type InvoiceView } from '@betterpay/ui';
+```
+
+## Examples
+
+### Basic
+
+```tsx
+const invoices: InvoiceView[] = [
+  {
+    id: 'inv_1',
+    number: 'INV-2026-001',
+    amount: 199_000,
+    currency: 'IDR',
+    status: 'paid',
+    issuedAt: '2026-07-01',
+  },
+  {
+    id: 'inv_2',
+    number: 'INV-2026-002',
+    amount: 199_000,
+    currency: 'IDR',
+    status: 'open',
+    issuedAt: '2026-08-01',
+  },
+];
+
+<InvoiceTable
+  invoices={invoices}
+  onDownload={(id) => window.open(`/api/invoices/${id}.pdf`)}
+/>
+```
+
+### Empty state
+
+```tsx
+<InvoiceTable invoices={[]} emptyMessage="No invoices for this account yet." />
+```
+
+## API Reference
+
+### InvoiceTable
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `invoices` | `InvoiceView[]` | — |
+| `title` | `string` | `"Invoices"` |
+| `description` | `string` | billing history copy |
+| `emptyMessage` | `string` | `"No invoices yet."` |
+| `onDownload` | `(invoiceId: string) => void` | — |
+| `className` | `string` | — |
+
+### InvoiceView
+
+| Field | Type |
+| --- | --- |
+| `id` | `string` |
+| `number` | `string` |
+| `amount` | `number` (major units) |
+| `currency` | `string?` |
+| `status` | `draft \| open \| paid \| overdue \| void` |
+| `issuedAt` | `string \| Date` |
+| `paidAt` | `string \| Date \| null?` |
+| `downloadUrl` | `string?` |

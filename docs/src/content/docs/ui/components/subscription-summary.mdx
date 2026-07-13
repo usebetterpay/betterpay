@@ -1,0 +1,93 @@
+---
+title: Subscription Summary
+description: Current plan, status, next charge, and period end for a subscription.
+---
+
+`SubscriptionSummary` shows the active (or past-due) subscription at a glance. Optional upgrade and cancel actions are callback slots.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { SubscriptionSummary, type SubscriptionView } from '@betterpay/ui';
+```
+
+## Examples
+
+### Active subscription
+
+```tsx
+const subscription: SubscriptionView = {
+  id: 'sub_1',
+  planId: 'pro',
+  planName: 'Pro',
+  status: 'active',
+  interval: 'month',
+  nextAmount: 199_000,
+  currency: 'IDR',
+  currentPeriodEnd: '2026-08-01',
+  paymentMethodLabel: 'BCA Virtual Account',
+};
+
+export function Example() {
+  return (
+    <SubscriptionSummary
+      subscription={subscription}
+      onUpgrade={() => openPlanSwitcher()}
+      onCancel={() => openCancelFlow()}
+    />
+  );
+}
+```
+
+### Cancel at period end
+
+```tsx
+<SubscriptionSummary
+  subscription={{
+    ...subscription,
+    cancelAtPeriodEnd: true,
+    status: 'active',
+  }}
+/>
+```
+
+### Past due
+
+```tsx
+<SubscriptionSummary
+  subscription={{ ...subscription, status: 'past_due' }}
+  upgradeLabel="Update payment"
+/>
+```
+
+## API Reference
+
+### SubscriptionSummary
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `subscription` | `SubscriptionView` | — |
+| `onUpgrade` | `() => void` | — |
+| `onCancel` | `() => void` | — |
+| `upgradeLabel` | `string` | `"Change plan"` |
+| `cancelLabel` | `string` | `"Cancel"` |
+| `className` | `string` | — |
+
+### SubscriptionView
+
+| Field | Type |
+| --- | --- |
+| `id` | `string` |
+| `planId` | `string` |
+| `planName` | `string` |
+| `status` | `scheduled \| active \| past_due \| canceled \| ended` |
+| `interval` | `month \| year \| custom` |
+| `nextAmount` | `number?` |
+| `currency` | `string?` |
+| `currentPeriodEnd` | `string \| Date \| null?` |
+| `paymentMethodLabel` | `string?` |
+| `cancelAtPeriodEnd` | `boolean?` |

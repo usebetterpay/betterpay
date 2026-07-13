@@ -1,0 +1,87 @@
+---
+title: Utilities
+description: Money formatting, dates, status maps, and controllable state helpers.
+---
+
+Helpers exported from `@betterpay/ui` for consistent product UI.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```ts
+import {
+  formatMoney,
+  formatIdr,
+  formatDisplayDate,
+  useControllableState,
+  subscriptionStatusPresentation,
+  invoiceStatusPresentation,
+  paymentCalloutPresentation,
+} from '@betterpay/ui';
+```
+
+## formatMoney
+
+Formats major units with `Intl.NumberFormat`. Defaults to IDR / `id-ID`.
+
+```ts
+formatMoney(150_000);
+// → "Rp150.000" (locale-dependent spacing)
+
+formatMoney(19.99, { currency: 'USD', locale: 'en-US' });
+// → "$19.99"
+
+formatIdr(99_000); // alias for IDR major units
+```
+
+### API
+
+| Param | Type | Default |
+| --- | --- | --- |
+| `amount` | `number` | — |
+| `options.currency` | `string` | `"IDR"` |
+| `options.locale` | `string` | `"id-ID"` |
+| `options.unit` | `"major" \| "minor"` | `"major"` |
+
+## formatDisplayDate
+
+```ts
+formatDisplayDate('2026-08-01');
+// → "1 Agu 2026" (id-ID short month)
+```
+
+## Status presentation
+
+Maps BetterPay domain statuses to badge labels and tones.
+
+```ts
+subscriptionStatusPresentation('past_due');
+// → { label: 'Past due', tone: 'warning' }
+
+invoiceStatusPresentation('paid');
+// → { label: 'Paid', tone: 'success' }
+
+paymentCalloutPresentation('failed');
+// → { label: 'Payment failed', tone: 'danger' }
+```
+
+## useControllableState
+
+For controls that support both controlled and uncontrolled modes (interval toggles, dialogs).
+
+```tsx
+const [interval, setInterval] = useControllableState(
+  controlledInterval,
+  'month',
+  onIntervalChange,
+);
+```
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `controlledValue` | `T \| undefined` | Controlled value when provided |
+| `defaultValue` | `T` | Uncontrolled default |
+| `onChange` | `(value: T) => void` | Fired on every set |

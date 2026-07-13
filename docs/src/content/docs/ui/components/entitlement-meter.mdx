@@ -1,0 +1,75 @@
+---
+title: Entitlement Meter
+description: Linear usage meter for a single metered feature.
+---
+
+`EntitlementMeter` shows used / limit with a progress track, remaining count, and optional reset label. Warns when remaining ratio is low.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { EntitlementMeter, type EntitlementView } from '@betterpay/ui';
+```
+
+## Examples
+
+### Metered feature
+
+```tsx
+const entitlement: EntitlementView = {
+  featureId: 'messages',
+  label: 'Messages',
+  used: 1_240,
+  limit: 5_000,
+  resetLabel: 'monthly',
+};
+
+<EntitlementMeter entitlement={entitlement} />
+```
+
+### Near limit (warning)
+
+```tsx
+<EntitlementMeter
+  entitlement={{ featureId: 'api', label: 'API calls', used: 9_200, limit: 10_000 }}
+  warnAt={0.15}
+/>
+```
+
+### Unlimited
+
+```tsx
+<EntitlementMeter
+  entitlement={{
+    featureId: 'storage',
+    label: 'Storage',
+    used: 12,
+    limit: null,
+  }}
+/>
+```
+
+## API Reference
+
+### EntitlementMeter
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `entitlement` | `EntitlementView` | — |
+| `warnAt` | `number` (0–1) | `0.15` |
+| `className` | `string` | — |
+
+### EntitlementView
+
+| Field | Type |
+| --- | --- |
+| `featureId` | `string` |
+| `label` | `string` |
+| `used` | `number` |
+| `limit` | `number \| null` (`null` = unlimited) |
+| `resetLabel` | `string?` |
+| `unit` | `string?` |

@@ -1,0 +1,141 @@
+---
+title: Plan Card
+description: A card for displaying a single pricing tier or subscription plan.
+---
+
+`PlanCard` is a compound surface for one plan. Pass a `PlanView` for a ready layout, or compose header, price, features, and footer yourself.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import {
+  PlanCard,
+  PlanCardHeader,
+  PlanCardTitle,
+  PlanCardDescription,
+  PlanCardPrice,
+  PlanCardFeatures,
+  PlanCardFooter,
+} from '@betterpay/ui';
+```
+
+## Examples
+
+### Data-driven (recommended)
+
+```tsx
+import { PlanCard, type PlanView } from '@betterpay/ui';
+
+const pro: PlanView = {
+  id: 'pro',
+  name: 'Pro',
+  description: 'For growing teams',
+  monthlyAmount: 199_000,
+  yearlyAmount: 1_990_000,
+  currency: 'IDR',
+  recommended: true,
+  badge: 'Popular',
+  features: [
+    { id: 'msg', label: '5.000 messages / month' },
+    { id: 'wa', label: 'WhatsApp notifications' },
+    { id: 'sso', label: 'SSO', included: false },
+  ],
+  ctaLabel: 'Upgrade to Pro',
+};
+
+export function Example() {
+  return (
+    <PlanCard
+      plan={pro}
+      interval="month"
+      onSelect={(planId, interval) => console.log(planId, interval)}
+    />
+  );
+}
+```
+
+### Compound composition
+
+```tsx
+import {
+  PlanCard,
+  PlanCardHeader,
+  PlanCardTitle,
+  PlanCardDescription,
+  PlanCardPrice,
+  PlanCardFeatures,
+  PlanCardFooter,
+  Button,
+  Badge,
+} from '@betterpay/ui';
+
+export function CustomPlan() {
+  return (
+    <PlanCard emphasis="recommended" elevated>
+      <PlanCardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <PlanCardTitle>Enterprise</PlanCardTitle>
+          <Badge tone="default">Custom</Badge>
+        </div>
+        <PlanCardDescription>Volume pricing and SLA</PlanCardDescription>
+      </PlanCardHeader>
+      <PlanCardPrice amount={999_000} currency="IDR" period="/ month" />
+      <PlanCardFeatures
+        features={[
+          { id: 'ded', label: 'Dedicated support' },
+          { id: 'sla', label: '99.9% SLA' },
+        ]}
+      />
+      <PlanCardFooter>
+        <Button className="w-full">Talk to sales</Button>
+      </PlanCardFooter>
+    </PlanCard>
+  );
+}
+```
+
+### Yearly price
+
+```tsx
+<PlanCard plan={pro} interval="year" onSelect={handleSelect} />
+```
+
+## API Reference
+
+### PlanCard
+
+Root container. When `plan` is set and no `children` are provided, renders a full layout.
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `plan` | `PlanView` | — |
+| `interval` | `"month" \| "year"` | `"month"` |
+| `currencyFallback` | `string` | `"IDR"` |
+| `onSelect` | `(planId: string, interval: BillingInterval) => void` | — |
+| `emphasis` | `"default" \| "recommended"` | derived from `plan.recommended` |
+| `elevated` | `boolean` | derived from recommended |
+| `className` | `string` | — |
+
+### PlanCardPrice
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `amount` | `number` | — |
+| `currency` | `string` | `"IDR"` |
+| `period` | `string` | `"/ month"` |
+
+### PlanCardFeatures
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `features` | `PlanView["features"]` | — |
+
+Each feature: `{ id, label, included?: boolean }`.
+
+### Compound parts
+
+`PlanCardHeader`, `PlanCardTitle`, `PlanCardDescription`, `PlanCardFooter` — layout slots matching the card primitive.

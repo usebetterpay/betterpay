@@ -1,0 +1,75 @@
+---
+title: Plan Switcher
+description: Dialog to select a different plan for an existing subscription.
+---
+
+`PlanSwitcher` opens a dialog listing available plans, highlights the current plan, and confirms a change. Built on Base UI Dialog with `render` composition.
+
+## Installation
+
+```bash
+pnpm add @betterpay/ui
+```
+
+```tsx
+import { PlanSwitcher } from '@betterpay/ui';
+```
+
+## Examples
+
+### Basic
+
+```tsx
+<PlanSwitcher
+  plans={plans}
+  currentPlanId="pro"
+  interval="month"
+  onConfirm={(planId) => {
+    // await pay.billing.changePlan(...)
+  }}
+/>
+```
+
+### Custom trigger label
+
+```tsx
+<PlanSwitcher
+  plans={plans}
+  currentPlanId={subscription.planId}
+  triggerLabel="Upgrade"
+  title="Change plan"
+  description="Select a plan. Billing updates on the next cycle unless configured otherwise."
+  onConfirm={handleChange}
+/>
+```
+
+### Controlled open state
+
+```tsx
+const [open, setOpen] = useState(false);
+
+<PlanSwitcher
+  plans={plans}
+  currentPlanId="free"
+  open={open}
+  onOpenChange={setOpen}
+  onConfirm={handleChange}
+/>
+```
+
+## API Reference
+
+### PlanSwitcher
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `plans` | `PlanView[]` | — |
+| `currentPlanId` | `string` | — |
+| `interval` | `"month" \| "year"` | `"month"` |
+| `triggerLabel` | `string` | `"Change plan"` |
+| `title` | `string` | `"Change plan"` |
+| `description` | `string` | sensible default |
+| `onConfirm` | `(planId: string) => void` | — |
+| `open` | `boolean` | — |
+| `onOpenChange` | `(open: boolean) => void` | — |
+| `className` | `string` | applied to trigger |
