@@ -16,14 +16,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "better-call": "catalog:",
-    "drizzle-orm": "catalog:",
-    "pg": "^8.16.0"
+    "better-call": "^1.1.0",
+    "drizzle-orm": "^0.44.2",
+    "pg": "^8.16.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/node": "^22.15.0",
     "@types/pg": "^8.15.0",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
   }
 }

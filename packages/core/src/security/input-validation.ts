@@ -3,6 +3,8 @@
 
 import { z } from 'zod';
 
+const stringRecord = z.record(z.string(), z.string());
+
 // Common validation schemas
 export const schemas = {
   // Order ID validation (alphanumeric + dash, max 50 chars)
@@ -65,8 +67,7 @@ export const schemas = {
     description: z.string()
       .max(1000, 'Description must be 1000 characters or less')
       .optional(),
-    metadata: z.record(z.string())
-      .optional(),
+    metadata: stringRecord.optional(),
     providerId: z.string()
       .min(1)
       .max(50)
@@ -99,8 +100,7 @@ export const schemas = {
       .max(50)
       .regex(/^[a-z0-9_-]+$/)
       .optional(),
-    metadata: z.record(z.string())
-      .optional(),
+    metadata: stringRecord.optional(),
   }),
 
   // Entitlement check request
@@ -137,18 +137,19 @@ export const schemas = {
     phone: z.string()
       .max(50, 'Phone must be 50 characters or less')
       .optional(),
-    metadata: z.record(z.string())
-      .optional(),
+    metadata: stringRecord.optional(),
   }),
 };
+
+type ZodIssueLike = { path: (string | number)[]; message: string };
 
 /**
  * Validate input data against a schema.
  */
-export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): {
+export function validateInput<T>(schema: z.ZodType<T>, data: unknown): {
   success: boolean;
   data?: T;
-  errors?: z.ZodError['errors'];
+  errors?: ZodIssueLike[];
 } {
   const result = schema.safeParse(data);
 
@@ -156,20 +157,28 @@ export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): {
     return { success: true, data: result.data };
   }
 
+  // Zod 4 uses `.issues`; keep a fallback for older shapes
+  const issues =
+    (result.error as { issues?: ZodIssueLike[] }).issues ??
+    (result.error as { errors?: ZodIssueLike[] }).errors ??
+    [];
+
   return {
     success: false,
-    errors: result.error.errors,
+    errors: issues,
   };
 }
 
 /**
  * Validate and throw error if invalid.
  */
-export function validateInputStrict<T>(schema: z.ZodSchema<T>, data: unknown): T {
+export function validateInputStrict<T>(schema: z.ZodType<T>, data: unknown): T {
   const result = validateInput(schema, data);
 
   if (!result.success) {
-    const errorMessages = result.errors!.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+    const errorMessages = (result.errors ?? [])
+      .map((e: ZodIssueLike) => `${e.path.join('.')}: ${e.message}`)
+      .join(', ');
     throw new Error(`Validation failed: ${errorMessages}`);
   }
 
@@ -179,7 +188,7 @@ export function validateInputStrict<T>(schema: z.ZodSchema<T>, data: unknown): T
 /**
  * Create validation middleware for Express/Koa.
  */
-export function validationMiddleware(schema: z.ZodSchema, source: 'body' | 'query' | 'params' = 'body') {
+export function validationMiddleware(schema: z.ZodType, source: 'body' | 'query' | 'params' = 'body') {
   return (req: any, res: any, next: any) => {
     const data = req[source];
     const result = validateInput(schema, data);

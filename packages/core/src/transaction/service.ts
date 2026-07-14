@@ -28,6 +28,16 @@ export interface TransactionRepository {
 
   checkIdempotencyKey(key: string): Promise<string | undefined>;
   setIdempotencyKey(key: string, transactionId: string): Promise<void>;
+
+  /**
+   * Optional: list non-terminal transactions for reconciliation.
+   * `maxAge` is the oldest createdAt to include (createdAt >= maxAge).
+   */
+  listPendingForReconciliation?(
+    providerIds: string[],
+    maxAge: Date,
+    limit: number,
+  ): Promise<TransactionRecord[]>;
 }
 
 export class TransactionService {
@@ -76,5 +86,18 @@ export class TransactionService {
     }
 
     return updated;
+  }
+
+  /**
+   * Non-terminal transactions for reconciliation (pending/active).
+   * Returns [] if the repository does not implement listing.
+   */
+  async listPendingForReconciliation(
+    providerIds: string[],
+    maxAge: Date,
+    limit: number,
+  ): Promise<TransactionRecord[]> {
+    if (!this.repo.listPendingForReconciliation) return [];
+    return this.repo.listPendingForReconciliation(providerIds, maxAge, limit);
   }
 }

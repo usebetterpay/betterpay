@@ -4,6 +4,14 @@
 export type { PayContext } from './context';
 export type { BetterPayPlugin, PayEndpoint, PayMiddleware, HookContext, RawError } from './plugin';
 
+// Notifications
+export { NotificationDispatcher } from './notification/channel';
+export type {
+  NotificationChannel,
+  NotificationEvent,
+  NotificationEventName,
+} from './notification/channel';
+
 // Provider interface
 export type {
   PaymentProvider,
@@ -18,6 +26,10 @@ export type {
 
 // Provider registry
 export { ProviderRegistry } from './provider/registry';
+export {
+  createPaymentLinkWithResilience,
+  isNonRetryableProviderError,
+} from './provider/execute-with-resilience';
 
 // Transaction
 export type { TransactionRecord, TransactionStatus } from './transaction/schema';
@@ -28,6 +40,13 @@ export type { TransactionRepository } from './transaction/service';
 // Webhook
 export { WebhookHandler } from './webhook/handler';
 export type { WebhookResult } from './webhook/handler';
+export {
+  InMemoryWebhookEventRepository,
+} from './webhook/event-store';
+export type {
+  WebhookEventRepository,
+  WebhookEventRecordInput,
+} from './webhook/event-store';
 
 // Router
 export { createPayRouter } from './router';

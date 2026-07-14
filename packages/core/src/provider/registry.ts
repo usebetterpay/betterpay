@@ -45,18 +45,52 @@ export class ProviderRegistry {
    * Returns the highest-priority candidate.
    */
   selectForSubscribe(input: { paymentMethod?: PaymentMethod; amount?: number }): PaymentProvider {
-    let candidates: PaymentProvider[];
+    const candidates = this.listForCreate({
+      paymentMethod: input.paymentMethod,
+      failover: false,
+    });
+    if (candidates.length === 0) {
+      throw new Error(
+        input.paymentMethod
+          ? `No provider supports payment method: ${input.paymentMethod}`
+          : 'No providers registered',
+      );
+    }
+    return candidates[0]!;
+  }
 
+  /**
+   * Ordered candidates for createPaymentLink.
+   * - If providerId set → that provider only.
+   * - Else sorted by priority (lowest number first).
+   * - If failover false → only the first candidate.
+   * - If failover true → full priority list (caller tries each on failure).
+   */
+  listForCreate(input: {
+    providerId?: string;
+    paymentMethod?: PaymentMethod | string;
+    failover?: boolean;
+  }): PaymentProvider[] {
+    if (input.providerId) {
+      const p = this.get(input.providerId);
+      if (!p) throw new Error(`Provider not found: ${input.providerId}`);
+      return [p];
+    }
+
+    let candidates = this.list();
     if (input.paymentMethod) {
-      candidates = this.findByMethod(input.paymentMethod);
+      const method = input.paymentMethod as PaymentMethod;
+      candidates = this.findByMethod(method);
       if (candidates.length === 0) {
         throw new Error(`No provider supports payment method: ${input.paymentMethod}`);
       }
-    } else {
-      candidates = this.list();
     }
 
-    return this.sortByPriority(candidates)[0]!;
+    const sorted = this.sortByPriority(candidates);
+    if (!input.failover) {
+      return sorted.slice(0, 1);
+    }
+    return sorted;
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

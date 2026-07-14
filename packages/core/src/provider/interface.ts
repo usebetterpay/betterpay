@@ -21,6 +21,12 @@ export interface ProviderCapabilities {
   paylater?: boolean;
   payout?: boolean;
   customerPortal?: boolean;
+  /**
+   * When true, webhook auth is field-match / trust-based (not HMAC).
+   * Production deployments should add IP allowlisting or a shared secret
+   * at the edge. Applies to Mayar and Pakasir today.
+   */
+  weakWebhookAuth?: boolean;
 }
 
 // ── Input for creating a payment link ──────────────────────────────────────

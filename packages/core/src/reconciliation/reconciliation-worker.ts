@@ -75,8 +75,9 @@ export class ReconciliationWorker {
       maxAge: Date,
       limit: number,
     ) => Promise<TransactionRecord[]>,
+    /** Called with orderId (BetterPay transaction key) and normalized status. */
     private updateTransactionStatus: (
-      transactionId: string,
+      orderId: string,
       status: string,
       metadata?: Record<string, any>,
     ) => Promise<void>,
@@ -200,8 +201,9 @@ export class ReconciliationWorker {
 
       // Check if update is valid (provider is source of truth)
       if (this.isValidStatusTransition(localStatus, providerStatus)) {
+        // Prefer orderId — TransactionService keys by orderId
         await this.updateTransactionStatus(
-          transaction.id,
+          transaction.orderId,
           providerStatus,
           providerData.metadata,
         );
@@ -247,13 +249,14 @@ export class ReconciliationWorker {
     const statusMap: Record<string, string> = {
       pending: 'pending',
       processing: 'pending',
-      success: 'success',
-      completed: 'success',
-      paid: 'success',
+      active: 'pending', // payment link issued, not yet paid
+      success: 'completed',
+      completed: 'completed',
+      paid: 'completed',
       failed: 'failed',
       expired: 'expired',
-      cancelled: 'cancelled',
-      canceled: 'cancelled',
+      cancelled: 'canceled',
+      canceled: 'canceled',
       refunded: 'refunded',
     };
 
@@ -261,16 +264,15 @@ export class ReconciliationWorker {
   }
 
   /**
-   * Check if status transition is valid.
+   * Check if status transition is valid (aligned with transaction state machine).
    */
   private isValidStatusTransition(from: string, to: string): boolean {
     const validTransitions: Record<string, string[]> = {
-      pending: ['success', 'failed', 'expired', 'cancelled'],
-      processing: ['success', 'failed', 'expired', 'cancelled'],
-      success: ['refunded'],
+      pending: ['completed', 'failed', 'expired', 'canceled'],
+      completed: ['refunded'],
       failed: [],
       expired: [],
-      cancelled: [],
+      canceled: [],
       refunded: [],
     };
 
@@ -311,7 +313,7 @@ export function createReconciliationWorker(
     limit: number,
   ) => Promise<TransactionRecord[]>,
   updateTransactionStatus?: (
-    transactionId: string,
+    orderId: string,
     status: string,
     metadata?: Record<string, any>,
   ) => Promise<void>,

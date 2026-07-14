@@ -1,21 +1,26 @@
 // ── Webhook Handler ───────────────────────────────────────────────────────
 // Processes inbound provider webhooks:
 //   1. Verify signature
-//   2. Replay protection (timestamp validation)
+//   2. Replay protection (timestamp validation when header present)
 //   3. Normalize event
-//   4. Idempotency check
-//   5. Update transaction status
+//   4. Claim event key (idempotency) — release on apply failure
+//   5. Update transaction status — only then keep the claim
 
 import type { PaymentProvider, WebhookData, NormalizedWebhookEvent } from '../provider/interface';
 import type { TransactionService } from '../transaction/service';
 import { validateTimestamp } from './replay-protection';
 import type { Logger } from '../logging/logger';
+import {
+  InMemoryWebhookEventRepository,
+  type WebhookEventRepository,
+} from './event-store';
 
 export interface WebhookResult {
   success: boolean;
   eventName?: string;
   duplicate?: boolean;
   error?: string;
+  orderId?: string;
 }
 
 /** Maps normalized event names → target transaction status. */
@@ -32,11 +37,17 @@ export interface WebhookHandlerDeps {
   providers: PaymentProvider[];
   transactionService: TransactionService;
   logger?: Logger;
+  /**
+   * Event store for idempotency. Defaults to process-local in-memory store.
+   * Inject a durable store (e.g. drizzle) for production so restarts cannot
+   * re-apply the same webhook after a successful process.
+   */
+  webhookEventRepository?: WebhookEventRepository;
 }
 
 export class WebhookHandler {
   private providerMap: Map<string, PaymentProvider>;
-  private processedEvents = new Set<string>(); // In-memory idempotency (MVP)
+  private eventStore: WebhookEventRepository;
   private txService: TransactionService;
   private logger?: Logger;
 
@@ -44,6 +55,7 @@ export class WebhookHandler {
     this.providerMap = new Map(deps.providers.map((p) => [p.id, p]));
     this.txService = deps.transactionService;
     this.logger = deps.logger;
+    this.eventStore = deps.webhookEventRepository ?? new InMemoryWebhookEventRepository();
   }
 
   async handle(providerId: string, data: WebhookData): Promise<WebhookResult> {
@@ -63,7 +75,7 @@ export class WebhookHandler {
       return { success: false, error: `Invalid webhook signature for ${providerId}` };
     }
 
-    // 3. Replay protection - validate timestamp if present
+    // 3. Replay protection - validate timestamp if present (not all providers send one)
     const timestampHeader = data.headers['x-webhook-timestamp'] || data.headers['X-Webhook-Timestamp'];
     if (timestampHeader) {
       const timestamp = parseInt(timestampHeader as string, 10);
@@ -84,63 +96,95 @@ export class WebhookHandler {
     }
 
     const event = events[0]!;
+    const eventKey = this.buildEventKey(providerId, event);
 
-    // 5. Idempotency check
-    const eventId = this.buildEventKey(providerId, event);
-    if (this.processedEvents.has(eventId)) {
+    // 5. Claim event before mutating payment state (concurrency-safe).
+    //    On any apply failure we release so provider retries can still succeed.
+    const { wasDuplicate } = await this.eventStore.tryRecord({
+      eventKey,
+      providerId,
+      providerEventId: event.providerEventId,
+      eventName: event.name,
+      payload: event.payload,
+    });
+
+    if (wasDuplicate) {
       this.logger?.debug('Duplicate webhook event', { providerId, eventName: event.name });
-      return { success: true, eventName: event.name, duplicate: true };
+      return {
+        success: true,
+        eventName: event.name,
+        duplicate: true,
+        orderId: this.extractOrderId(event),
+      };
     }
+
+    const failAndRelease = async (error: string, log?: Record<string, unknown>): Promise<WebhookResult> => {
+      try {
+        await this.eventStore.release(eventKey);
+      } catch (releaseErr) {
+        this.logger?.error('Failed to release webhook event claim', {
+          eventKey,
+          error: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+        });
+      }
+      if (log) this.logger?.warn(error, log);
+      else this.logger?.warn(error);
+      return { success: false, error };
+    };
 
     // 6. Find transaction by orderId in payload
     const orderId = this.extractOrderId(event);
     if (!orderId) {
-      this.logger?.warn('Could not extract order_id from webhook', { providerId, eventName: event.name });
-      return { success: false, error: 'Could not extract order_id from webhook payload' };
+      return failAndRelease('Could not extract order_id from webhook payload', {
+        providerId,
+        eventName: event.name,
+      });
     }
 
     const txn = await this.txService.getByOrderId(orderId);
     if (!txn) {
-      this.logger?.warn('Transaction not found for webhook', { orderId, providerId });
-      return { success: false, error: `Transaction not found: ${orderId}` };
+      return failAndRelease(`Transaction not found: ${orderId}`, { orderId, providerId });
     }
 
     // 7. Determine target status and update
     const targetStatus = EVENT_STATUS_MAP[event.name];
     if (!targetStatus) {
-      this.logger?.warn('Unknown webhook event name', { eventName: event.name, providerId });
-      return { success: false, error: `Unknown event name: ${event.name}` };
+      return failAndRelease(`Unknown event name: ${event.name}`, {
+        eventName: event.name,
+        providerId,
+      });
     }
 
     try {
       await this.txService.updateStatus(orderId, targetStatus as any);
     } catch (error) {
-      // State machine violation or missing txn — surface as error
-      this.logger?.error('Failed to update transaction status', { 
-        orderId, 
-        targetStatus, 
-        error: error instanceof Error ? error.message : String(error) 
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error('Failed to update transaction status', {
+        orderId,
+        targetStatus,
+        error: message,
       });
-      return { success: false, error: (error as Error).message };
+      return failAndRelease(message, { orderId, targetStatus });
     }
 
-    // 8. Mark as processed
-    this.processedEvents.add(eventId);
-
-    this.logger?.info('Webhook processed successfully', { 
-      providerId, 
+    // Claim retained — successful apply
+    this.logger?.info('Webhook processed successfully', {
+      providerId,
       eventName: event.name,
       orderId,
-      newStatus: targetStatus 
+      newStatus: targetStatus,
     });
 
-    return { success: true, eventName: event.name };
+    return { success: true, eventName: event.name, orderId };
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────
 
   private buildEventKey(providerId: string, event: NormalizedWebhookEvent): string {
-    return `${providerId}:${event.providerEventId ?? event.name}:${JSON.stringify(event.payload).slice(0, 100)}`;
+    if (event.providerEventId) {
+      return `${providerId}:${event.providerEventId}`;
+    }
+    return `${providerId}:${event.name}:${JSON.stringify(event.payload).slice(0, 100)}`;
   }
 
   private extractOrderId(event: NormalizedWebhookEvent): string | undefined {

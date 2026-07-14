@@ -36,9 +36,18 @@ export interface BillingSubscriptionHandle {
   subscribe(input: { customerId: string; plan: BillingPlanDef; periodStart?: Date; periodEnd?: Date }): Promise<unknown>;
   activate(id: string, periodStart: Date, periodEnd: Date): Promise<unknown>;
   cancel(id: string, atPeriodEnd?: boolean): Promise<unknown>;
+  markPastDue?(id: string): Promise<unknown>;
+  getById?(id: string): Promise<unknown>;
   upgrade(input: { currentSubscriptionId: string; newPlan: BillingPlanDef }): Promise<unknown>;
   downgrade(input: { currentSubscriptionId: string; newPlan: BillingPlanDef }): Promise<unknown>;
   getActive(customerId: string, group: string): Promise<unknown>;
+}
+
+/** Multi-stage dunning (optional; present when billing plugin wires DunningService). */
+export interface BillingDunningHandle {
+  onPaymentFailure(subscriptionId: string, now?: Date): Promise<unknown>;
+  onPaymentSuccess(subscriptionId: string): Promise<unknown>;
+  processDue(now?: Date): Promise<number>;
 }
 
 export interface BillingEntitlementHandle {
@@ -74,4 +83,6 @@ export interface BillingPluginData {
   customer: BillingCustomerHandle;
   invoice: BillingInvoiceHandle;
   billingCycle: BillingCycleHandle;
+  /** Present when billing plugin exposes DunningService. */
+  dunning?: BillingDunningHandle;
 }

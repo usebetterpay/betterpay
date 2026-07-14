@@ -57,7 +57,7 @@ describe('ReconciliationWorker', () => {
 
       mockGetPending.mockResolvedValue(transactions);
       (mockProvider.getTransactionStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
-        status: 'success',
+        status: 'completed',
       });
 
       const run = await worker.run();
@@ -67,7 +67,7 @@ describe('ReconciliationWorker', () => {
       expect(run.conflicts).toBe(0);
       expect(run.errors).toBe(0);
       expect(run.results[0].action).toBe('update');
-      expect(mockUpdateStatus).toHaveBeenCalledWith('txn1', 'success', undefined);
+      expect(mockUpdateStatus).toHaveBeenCalledWith('order1', 'completed', undefined);
     });
 
     it('should handle status matches', async () => {
@@ -77,7 +77,7 @@ describe('ReconciliationWorker', () => {
           orderId: 'order1',
           providerId: 'test-provider',
           providerTransactionId: 'prov1',
-          status: 'success',
+          status: 'completed',
           amount: 100000,
           currency: 'IDR',
           createdAt: new Date(),
@@ -87,7 +87,7 @@ describe('ReconciliationWorker', () => {
 
       mockGetPending.mockResolvedValue(transactions);
       (mockProvider.getTransactionStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
-        status: 'success',
+        status: 'completed',
       });
 
       const run = await worker.run();
@@ -104,7 +104,7 @@ describe('ReconciliationWorker', () => {
           orderId: 'order1',
           providerId: 'test-provider',
           providerTransactionId: 'prov1',
-          status: 'success',
+          status: 'completed',
           amount: 100000,
           currency: 'IDR',
           createdAt: new Date(),

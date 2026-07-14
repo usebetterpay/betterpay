@@ -55,15 +55,29 @@ export async function withRetry<T>(
   throw lastError;
 }
 
-/** Heuristic: network/timeout errors are retryable. */
+/** Heuristic: network/timeout/provider blips are retryable; validation is not. */
 function isRetryable(error: Error): boolean {
   const msg = error.message.toLowerCase();
+  if (
+    msg.includes('validation') ||
+    msg.includes('unauthorized') ||
+    msg.includes('forbidden') ||
+    msg.includes('invalid amount') ||
+    msg.includes('not found')
+  ) {
+    return false;
+  }
   return (
     msg.includes('network') ||
     msg.includes('timeout') ||
     msg.includes('econnrefused') ||
     msg.includes('econnreset') ||
     msg.includes('etimedout') ||
-    msg.includes('circuit breaker')
+    msg.includes('circuit breaker') ||
+    msg.includes('503') ||
+    msg.includes('502') ||
+    msg.includes('429') ||
+    msg.includes('temporarily') ||
+    msg.includes('provider')
   );
 }

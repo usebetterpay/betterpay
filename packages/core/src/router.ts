@@ -18,6 +18,38 @@ export interface RouterContext {
   billing?: BillingPluginData | null;
   logger?: Logger;
   rateLimiter?: RateLimiter | null;
+  /** Manual / cron reconciliation */
+  runReconciliation?: () => Promise<{
+    totalChecked: number;
+    updated: number;
+    conflicts: number;
+    errors: number;
+  }>;
+  /** Plugin-contributed better-call endpoints */
+  extraEndpoints?: Record<string, unknown>;
+
+  /** Shared create-payment path (retry + CB + optional failover) */
+  createPaymentLink?: (input: {
+    orderId: string;
+    amount: number;
+    currency: string;
+    customerEmail: string;
+    customerName?: string;
+    description: string;
+    callbackUrl: string;
+    returnUrl: string;
+    paymentMethod?: string;
+    metadata?: Record<string, string>;
+    providerId?: string;
+  }) => Promise<{
+    provider: { id: string };
+    result: {
+      providerTransactionId: string;
+      paymentUrl?: string;
+      amount: number;
+      currency: string;
+    };
+  }>;
 }
 
 export function createPayRouter(ctx: RouterContext) {
@@ -74,47 +106,77 @@ export function createPayRouter(ctx: RouterContext) {
           currency: validated.currency ?? 'IDR' 
         });
 
-        const provider = validated.providerId
-          ? ctx.providerRegistry.get(validated.providerId)
-          : ctx.providerRegistry.getDefault();
-        if (!provider) {
-          logger?.warn('No provider available', { providerId: validated.providerId });
-          return toResponse({ error: 'No provider available' }, { status: 400 });
+        let providerId: string;
+        let result: {
+          providerTransactionId: string;
+          paymentUrl?: string;
+          amount: number;
+          currency: string;
+        };
+
+        if (ctx.createPaymentLink) {
+          const out = await ctx.createPaymentLink({
+            orderId: validated.orderId,
+            amount: validated.amount,
+            currency: validated.currency ?? 'IDR',
+            customerEmail: validated.customerEmail,
+            customerName: validated.customerName,
+            description: validated.description ?? '',
+            callbackUrl: validated.callbackUrl ?? '',
+            returnUrl: validated.returnUrl ?? '',
+            paymentMethod: validated.paymentMethod,
+            metadata: validated.metadata,
+            providerId: validated.providerId,
+          });
+          providerId = out.provider.id;
+          result = out.result;
+        } else {
+          const provider = validated.providerId
+            ? ctx.providerRegistry.get(validated.providerId)
+            : ctx.providerRegistry.getDefault();
+          if (!provider) {
+            logger?.warn('No provider available', { providerId: validated.providerId });
+            return toResponse({ error: 'No provider available' }, { status: 400 });
+          }
+          providerId = provider.id;
+          result = await provider.createPaymentLink({
+            orderId: validated.orderId,
+            amount: validated.amount,
+            currency: validated.currency ?? 'IDR',
+            customerEmail: validated.customerEmail,
+            customerName: validated.customerName,
+            description: validated.description ?? '',
+            callbackUrl: validated.callbackUrl ?? '',
+            returnUrl: validated.returnUrl ?? '',
+            paymentMethod: validated.paymentMethod,
+            metadata: validated.metadata,
+          });
         }
 
         const txn = await ctx.transactionService.create({
           orderId: validated.orderId,
-          providerId: provider.id,
+          providerId,
           amount: validated.amount,
           currency: validated.currency ?? 'IDR',
           customerEmail: validated.customerEmail,
           metadata: validated.metadata,
         });
 
-        const result = await provider.createPaymentLink({
-          orderId: validated.orderId,
-          amount: validated.amount,
-          currency: validated.currency ?? 'IDR',
-          customerEmail: validated.customerEmail,
-          customerName: validated.customerName,
-          description: validated.description ?? '',
-          callbackUrl: validated.callbackUrl ?? '',
-          returnUrl: validated.returnUrl ?? '',
-          paymentMethod: validated.paymentMethod,
-          metadata: validated.metadata,
-        });
-
-        await ctx.transactionService.updateStatus(validated.orderId, 'active', result.providerTransactionId);
+        await ctx.transactionService.updateStatus(
+          validated.orderId,
+          'active',
+          result.providerTransactionId,
+        );
 
         logger?.info('Transaction created successfully', { 
           orderId: txn.orderId,
-          providerId: provider.id,
+          providerId,
           status: 'active' 
         });
 
         return toResponse({
           orderId: txn.orderId,
-          providerId: provider.id,
+          providerId,
           paymentUrl: result.paymentUrl,
           providerTransactionId: result.providerTransactionId,
           status: 'active',
@@ -174,37 +236,15 @@ export function createPayRouter(ctx: RouterContext) {
     async (_c: any) => {
       try {
         logger?.info('Manual reconciliation triggered');
-        
-        // Trigger reconciliation for all providers
-        const results = [];
-        for (const provider of ctx.providerRegistry.list()) {
-          if ('reconcile' in provider && typeof provider.reconcile === 'function') {
-            try {
-              const result = await (provider as any).reconcile();
-              results.push({ providerId: provider.id, success: true, result });
-            } catch (error) {
-              logger?.warn('Provider reconciliation failed', { 
-                providerId: provider.id, 
-                error: error instanceof Error ? error.message : String(error) 
-              });
-              results.push({ 
-                providerId: provider.id, 
-                success: false, 
-                error: error instanceof Error ? error.message : String(error) 
-              });
-            }
-          }
+        if (!ctx.runReconciliation) {
+          return toResponse(
+            { error: 'Reconciliation not available on this instance' },
+            { status: 503 },
+          );
         }
-        
-        logger?.info('Reconciliation completed', { 
-          totalProviders: results.length,
-          successful: results.filter(r => r.success).length 
-        });
-        
-        return toResponse({ 
-          success: true, 
-          results 
-        });
+        const result = await ctx.runReconciliation();
+        logger?.info('Reconciliation completed', result);
+        return toResponse({ success: true, ...result });
       } catch (error) {
         logger?.error('Reconciliation failed', { 
           error: error instanceof Error ? error.message : String(error) 
@@ -416,6 +456,18 @@ export function createPayRouter(ctx: RouterContext) {
         return toResponse({ invoices });
       },
     );
+  }
+
+  // ── Plugin endpoints (must not override core keys) ─────────────────────
+  if (ctx.extraEndpoints) {
+    const reserved = new Set(Object.keys(endpoints));
+    for (const [key, ep] of Object.entries(ctx.extraEndpoints)) {
+      if (reserved.has(key)) {
+        logger?.warn('Plugin endpoint key collides with core route; skipped', { key });
+        continue;
+      }
+      endpoints[key] = ep;
+    }
   }
 
   // ── Build router ───────────────────────────────────────────────────────
