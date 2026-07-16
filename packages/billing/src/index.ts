@@ -4,11 +4,12 @@ import type { BetterPayPlugin } from '@betterpay/core';
 import type { BillingPluginData } from '@betterpay/core';
 import type { PlanDefinition } from './types';
 import { normalizeSchema, type NormalizedSchema } from './normalize';
-import { SubscriptionService } from './subscription';
-import { EntitlementService } from './entitlement';
-import { CustomerService } from './customer';
-import { InvoiceService } from './invoice';
+import { SubscriptionService, type SubscriptionRepository } from './subscription';
+import { EntitlementService, type EntitlementRepository } from './entitlement';
+import { CustomerService, type CustomerRepository } from './customer';
+import { InvoiceService, type InvoiceRepository } from './invoice';
 import { BillingCycleRunner } from './billing-cycle';
+import { DunningService } from './dunning/dunning-service';
 import {
   createInMemorySubscriptionRepo,
   createInMemoryEntitlementRepo,
@@ -61,6 +62,8 @@ export type {
   DunningStage,
   DunningEvent,
 } from './dunning/dunning-manager';
+export { DunningService } from './dunning/dunning-service';
+export type { DunningCallbacks } from './dunning/dunning-service';
 
 // Cron
 export {
@@ -77,20 +80,34 @@ export type {
 
 // ── Plugin factory ───────────────────────────────────────────────────────
 
+export interface BillingRepositories {
+  subscription: SubscriptionRepository;
+  entitlement: EntitlementRepository;
+  customer: CustomerRepository;
+  invoice: InvoiceRepository;
+}
+
 export interface BillingPluginOptions {
   /** Plan definitions created with plan() and feature(). */
   products: PlanDefinition[];
+  /**
+   * Optional durable repositories (e.g. from @betterpay/drizzle-adapter).
+   * When omitted, in-memory repos are used (dev/test only).
+   * When provided, those repos are used exclusively — no silent mix.
+   */
+  repositories?: BillingRepositories;
 }
 
 /**
  * Create a billing plugin for BetterPay.
  *
- * Creates in-memory repos + service instances and wires them into
- * plugin.$Infer.billing so the core factory can use them.
+ * Creates service instances from injected or in-memory repos and wires them
+ * into plugin.$Infer.billing so the core factory can use them.
  *
  * @example
  * ```ts
  * import { billing, feature, plan } from "@betterpay/billing";
+ * import { createDrizzleRepositories } from "@betterpay/drizzle-adapter";
  *
  * const messages = feature({ id: "messages", type: "metered" });
  * const free = plan({ id: "free", group: "base", default: true,
@@ -99,32 +116,38 @@ export interface BillingPluginOptions {
  *   price: { amount: 199000, currency: "IDR", interval: "month" },
  *   includes: [messages({ limit: 5000, reset: "month" })] });
  *
- * const pay = betterPay({
- *   plugins: [midtrans({ ... }), billing({ products: [free, pro] })],
- * });
+ * // Dev (in-memory):
+ * billing({ products: [free, pro] })
  *
- * // Now available:
- * pay.billing.subscribe({ customerId: "cust_1", planId: "pro" })
- * pay.billing.check({ customerId: "cust_1", featureId: "messages" })
- * pay.billing.report({ customerId: "cust_1", featureId: "messages", amount: 1 })
+ * // Production (durable):
+ * const repos = createDrizzleRepositories(db);
+ * billing({
+ *   products: [free, pro],
+ *   repositories: {
+ *     subscription: repos.subscription,
+ *     entitlement: repos.entitlement,
+ *     customer: repos.customer,
+ *     invoice: repos.invoice,
+ *   },
+ * })
  * ```
  */
 export function billing(options: BillingPluginOptions): BetterPayPlugin {
   const schema: NormalizedSchema = normalizeSchema(options.products);
 
-  // Create repos + services
-  const subRepo = createInMemorySubscriptionRepo();
-  const entRepo = createInMemoryEntitlementRepo();
-  const custRepo = createInMemoryCustomerRepo();
-  const invRepo = createInMemoryInvoiceRepo();
+  const usesInMemory = !options.repositories;
+  const subRepo = options.repositories?.subscription ?? createInMemorySubscriptionRepo();
+  const entRepo = options.repositories?.entitlement ?? createInMemoryEntitlementRepo();
+  const custRepo = options.repositories?.customer ?? createInMemoryCustomerRepo();
+  const invRepo = options.repositories?.invoice ?? createInMemoryInvoiceRepo();
 
   const subService = new SubscriptionService(subRepo);
   const entService = new EntitlementService(entRepo);
   const custService = new CustomerService(custRepo);
   const invService = new InvoiceService(invRepo);
+  const dunningService = new DunningService(subRepo);
 
-  // Billing cycle runner — needs external deps wired later
-  // We create a lazy wrapper that the core factory fills in
+  // Billing cycle runner — core wires createPayment via __wireBillingCycle
   let billingCycleRunner: BillingCycleRunner | null = null;
 
   const billingData: BillingPluginData = {
@@ -137,26 +160,83 @@ export function billing(options: BillingPluginOptions): BetterPayPlugin {
     billingCycle: {
       async run(now?: Date) {
         if (!billingCycleRunner) {
-          return { processed: 0, succeeded: 0, failed: 0, errors: ['Billing cycle runner not initialized'] };
+          return {
+            processed: 0,
+            succeeded: 0,
+            failed: 0,
+            errors: ['Billing cycle runner not initialized — core must call __wireBillingCycle'],
+          };
+        }
+        try {
+          await dunningService.processDue(now ?? new Date());
+        } catch {
+          /* best-effort dunning advance */
         }
         return billingCycleRunner.run(now);
       },
     },
   };
 
-  // Store a setter so core can inject the runner once provider registry is ready
+  /** @internal Core factory: wire payment + complete BillingCycleRunner. */
+  (billingData as any).__wireBillingCycle = (deps: {
+    createPaymentForSubscription: (
+      sub: { id: string; customerId: string; planId: string },
+      plan: PlanDefinition,
+    ) => Promise<{ paymentUrl: string; providerTransactionId: string }>;
+    onPaymentFailure?: (subscriptionId: string) => Promise<void>;
+  }) => {
+    const planMap = new Map(options.products.map((p) => [p.id, p]));
+
+    billingCycleRunner = new BillingCycleRunner({
+      subscriptionService: subService,
+      updateSubscriptionPeriod: async (id, periodStart, periodEnd) => {
+        await subRepo.update(id, {
+          currentPeriodStartAt: periodStart,
+          currentPeriodEndAt: periodEnd,
+        });
+      },
+      invoiceService: invService,
+      entitlementService: entService,
+      planMap,
+      findDueSubscriptions: async (before) => {
+        if (subRepo.listDue) return subRepo.listDue(before);
+        return [];
+      },
+      createPaymentForSubscription: async (sub, plan) => {
+        try {
+          return await deps.createPaymentForSubscription(sub, plan);
+        } catch (err) {
+          try {
+            await dunningService.onPaymentFailure(sub.id);
+          } catch {
+            try {
+              await subService.markPastDue(sub.id);
+            } catch {
+              /* best-effort */
+            }
+          }
+          await deps.onPaymentFailure?.(sub.id);
+          throw err;
+        }
+      },
+    });
+  };
+
+  // Legacy setter (tests / advanced)
   (billingData as any).__setRunner = (runner: BillingCycleRunner) => {
     billingCycleRunner = runner;
   };
 
-  // Also expose services directly for advanced users
   (billingData as any).__services = {
     subscription: subService,
     entitlement: entService,
     customer: custService,
     invoice: invService,
+    dunning: dunningService,
     repos: { subRepo, entRepo, custRepo, invRepo },
   };
+
+  (billingData as any).dunning = dunningService;
 
   return {
     id: 'billing',
@@ -165,6 +245,8 @@ export function billing(options: BillingPluginOptions): BetterPayPlugin {
       billing: billingData,
       schema,
       products: options.products,
+      /** True when default in-memory repos are in use (not for production). */
+      billingUsesInMemory: usesInMemory,
     },
     endpoints: {},
     hooks: { before: [], after: [] },

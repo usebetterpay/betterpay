@@ -33,6 +33,7 @@ export function createInMemorySubscriptionRepo(): SubscriptionRepository {
         cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
         currentPeriodStartAt: data.currentPeriodStartAt ?? null,
         currentPeriodEndAt: data.currentPeriodEndAt ?? null,
+        metadata: data.metadata ?? null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -62,6 +63,17 @@ export function createInMemorySubscriptionRepo(): SubscriptionRepository {
       r.status = 'canceled';
       r.updatedAt = new Date();
       return { ...r };
+    },
+    async listDue(before: Date) {
+      return Array.from(records.values()).filter(
+        (r) =>
+          (r.status === 'active' || r.status === 'past_due') &&
+          r.currentPeriodEndAt != null &&
+          r.currentPeriodEndAt <= before,
+      );
+    },
+    async listByStatus(status) {
+      return Array.from(records.values()).filter((r) => r.status === status);
     },
   };
 }

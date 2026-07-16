@@ -64,6 +64,8 @@ export interface SubscriptionRecord {
   cancelAtPeriodEnd: boolean;
   currentPeriodStartAt: Date | null;
   currentPeriodEndAt: Date | null;
+  /** Opaque app/dunning metadata (string map for portability). */
+  metadata?: Record<string, string> | null;
   createdAt: Date;
   updatedAt: Date;
 }

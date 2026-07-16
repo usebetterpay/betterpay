@@ -101,12 +101,13 @@ export class BillingCycleRunner {
         dueAt: periodEnd,
       });
 
-      // Create payment link
+      // Create payment link (failure should mark past_due via deps wrapper)
       if (plan.price && plan.price.amount > 0) {
         await this.deps.createPaymentForSubscription(sub, plan);
       }
 
-      // Update subscription period (no state transition — stays active)
+      // Only advance period when payment link was created (or free plan).
+      // Past_due renewals that fail stay on current period via thrown error above.
       await this.deps.updateSubscriptionPeriod(sub.id, periodEnd, nextPeriodEnd);
 
       // Reset entitlements

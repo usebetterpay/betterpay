@@ -13,6 +13,7 @@ export interface SubscriptionRepository {
     cancelAtPeriodEnd?: boolean;
     currentPeriodStartAt?: Date | null;
     currentPeriodEndAt?: Date | null;
+    metadata?: Record<string, string> | null;
   }): Promise<SubscriptionRecord>;
 
   getById(id: string): Promise<SubscriptionRecord | undefined>;
@@ -30,6 +31,15 @@ export interface SubscriptionRepository {
   update(id: string, data: Partial<SubscriptionRecord>): Promise<SubscriptionRecord | undefined>;
 
   cancel(id: string): Promise<SubscriptionRecord | undefined>;
+
+  /**
+   * Optional: list subscriptions due for billing cycle (period end <= before).
+   * In-memory and drizzle adapters should implement this for renewals.
+   */
+  listDue?(before: Date): Promise<SubscriptionRecord[]>;
+
+  /** Optional: list past_due for dunning processDue. */
+  listByStatus?(status: SubscriptionStatus): Promise<SubscriptionRecord[]>;
 }
 
 export class SubscriptionService {
@@ -88,8 +98,11 @@ export class SubscriptionService {
     return this.transition(id, 'canceled');
   }
 
-  /** Mark a subscription as past_due (failed payment). */
+  /** Mark a subscription as past_due (failed payment). Idempotent if already past_due. */
   async markPastDue(id: string): Promise<SubscriptionRecord> {
+    const sub = await this.repo.getById(id);
+    if (!sub) throw new Error(`Subscription not found: ${id}`);
+    if (sub.status === 'past_due') return sub;
     return this.transition(id, 'past_due');
   }
 
@@ -150,6 +163,15 @@ export class SubscriptionService {
   /** Get active subscription for a customer in a group. */
   async getActive(customerId: string, group: string): Promise<SubscriptionRecord | undefined> {
     return this.repo.getActiveByCustomerAndGroup(customerId, group);
+  }
+
+  async getById(id: string): Promise<SubscriptionRecord | undefined> {
+    return this.repo.getById(id);
+  }
+
+  async listPastDue(): Promise<SubscriptionRecord[]> {
+    if (this.repo.listByStatus) return this.repo.listByStatus('past_due');
+    return [];
   }
 
   // ── Private ────────────────────────────────────────────────────────────
