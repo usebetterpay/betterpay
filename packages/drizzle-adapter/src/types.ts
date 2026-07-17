@@ -44,6 +44,7 @@ export interface SubscriptionRecord {
   cancelAtPeriodEnd: boolean;
   currentPeriodStartAt: Date | null;
   currentPeriodEndAt: Date | null;
+  metadata?: Record<string, string> | null;
   createdAt: Date;
   updatedAt: Date;
 }

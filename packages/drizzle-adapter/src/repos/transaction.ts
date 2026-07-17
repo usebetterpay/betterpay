@@ -1,7 +1,7 @@
 // ── Drizzle Transaction Repository ─────────────────────────────────────────
 // Implements TransactionRepository using drizzle-orm + pg.
 
-import { eq } from 'drizzle-orm';
+import { and, eq, gte, inArray, or, isNotNull } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { paymentTransaction, paymentIdempotencyKey } from '../schema';
 import type { TransactionRecord, TransactionStatus } from '../types';
@@ -86,6 +86,30 @@ export function createDrizzleTransactionRepo(db: DrizzleDB) {
         .insert(paymentIdempotencyKey)
         .values({ key, transactionId, expiresAt, createdAt: new Date() })
         .onConflictDoNothing();
+    },
+
+    async listPendingForReconciliation(
+      providerIds: string[],
+      maxAge: Date,
+      limit: number,
+    ): Promise<TransactionRecord[]> {
+      if (providerIds.length === 0) return [];
+      const rows = await db
+        .select()
+        .from(paymentTransaction)
+        .where(
+          and(
+            inArray(paymentTransaction.providerId, providerIds),
+            or(
+              eq(paymentTransaction.status, 'pending'),
+              eq(paymentTransaction.status, 'active'),
+            ),
+            isNotNull(paymentTransaction.providerTransactionId),
+            gte(paymentTransaction.createdAt, maxAge),
+          ),
+        )
+        .limit(limit);
+      return rows as TransactionRecord[];
     },
   };
 }

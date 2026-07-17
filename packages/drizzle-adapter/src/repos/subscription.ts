@@ -1,10 +1,11 @@
 // ── Drizzle Subscription Repository ──────────────────────────────────────
 // Implements SubscriptionRepository using drizzle-orm + pg.
 
-import { eq, and } from 'drizzle-orm';
+import { eq, and, lte, or, isNotNull } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import { betterpaySubscription } from '../schema';
 import type { SubscriptionRecord, SubscriptionStatus } from '../types';
+import { toSubscriptionRecord } from '../mappers';
 
 type DrizzleDB = any;
 
@@ -18,6 +19,7 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
       cancelAtPeriodEnd?: boolean;
       currentPeriodStartAt?: Date | null;
       currentPeriodEndAt?: Date | null;
+      metadata?: Record<string, string> | null;
     }): Promise<SubscriptionRecord> {
       const id = `sub_${randomUUID().slice(0, 12)}`;
       const now = new Date();
@@ -33,12 +35,13 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
           cancelAtPeriodEnd: data.cancelAtPeriodEnd ?? false,
           currentPeriodStartAt: data.currentPeriodStartAt ?? null,
           currentPeriodEndAt: data.currentPeriodEndAt ?? null,
+          metadata: data.metadata ?? null,
           createdAt: now,
           updatedAt: now,
         })
         .returning();
 
-      return record as SubscriptionRecord;
+      return toSubscriptionRecord(record);
     },
 
     async getById(id: string): Promise<SubscriptionRecord | undefined> {
@@ -48,7 +51,7 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
         .where(eq(betterpaySubscription.id, id))
         .limit(1);
 
-      return record as SubscriptionRecord | undefined;
+      return record ? toSubscriptionRecord(record) : undefined;
     },
 
     async getActiveByCustomerAndGroup(
@@ -67,7 +70,7 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
         )
         .limit(1);
 
-      return record as SubscriptionRecord | undefined;
+      return record ? toSubscriptionRecord(record) : undefined;
     },
 
     async getScheduledByCustomerAndGroup(
@@ -85,15 +88,18 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
           ),
         );
 
-      return records as SubscriptionRecord[];
+      return records.map(toSubscriptionRecord);
     },
 
     async update(
       id: string,
       data: Partial<SubscriptionRecord>,
     ): Promise<SubscriptionRecord | undefined> {
-      const { id: _id, createdAt: _ca, ...updates } = data;
-      updates.updatedAt = new Date();
+      const { id: _id, createdAt: _ca, group, ...rest } = data;
+      const updates: Record<string, unknown> = { ...rest, updatedAt: new Date() };
+      if (group !== undefined) {
+        updates.groupId = group;
+      }
 
       const [record] = await db
         .update(betterpaySubscription)
@@ -101,7 +107,7 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
         .where(eq(betterpaySubscription.id, id))
         .returning();
 
-      return record as SubscriptionRecord | undefined;
+      return record ? toSubscriptionRecord(record) : undefined;
     },
 
     async cancel(id: string): Promise<SubscriptionRecord | undefined> {
@@ -111,7 +117,32 @@ export function createDrizzleSubscriptionRepo(db: DrizzleDB) {
         .where(eq(betterpaySubscription.id, id))
         .returning();
 
-      return record as SubscriptionRecord | undefined;
+      return record ? toSubscriptionRecord(record) : undefined;
+    },
+
+    async listDue(before: Date): Promise<SubscriptionRecord[]> {
+      const records = await db
+        .select()
+        .from(betterpaySubscription)
+        .where(
+          and(
+            or(
+              eq(betterpaySubscription.status, 'active'),
+              eq(betterpaySubscription.status, 'past_due'),
+            ),
+            isNotNull(betterpaySubscription.currentPeriodEndAt),
+            lte(betterpaySubscription.currentPeriodEndAt, before),
+          ),
+        );
+      return records.map(toSubscriptionRecord);
+    },
+
+    async listByStatus(status: SubscriptionStatus): Promise<SubscriptionRecord[]> {
+      const records = await db
+        .select()
+        .from(betterpaySubscription)
+        .where(eq(betterpaySubscription.status, status));
+      return records.map(toSubscriptionRecord);
     },
   };
 }

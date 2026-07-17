@@ -8,20 +8,26 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json",
+    "./migrations/*": "./migrations/*"
   },
+  "files": [
+    "dist",
+    "migrations"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@betterpay/core": "workspace:*",
-    "drizzle-orm": "catalog:"
+    "@betterpay/core": "file:../core",
+    "drizzle-orm": "^0.44.2"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
   }
 }

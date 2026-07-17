@@ -71,6 +71,7 @@ export const betterpaySubscription = pgTable('betterpay_subscription', {
   cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
   currentPeriodStartAt: timestamp('current_period_start_at', { withTimezone: true }),
   currentPeriodEndAt: timestamp('current_period_end_at', { withTimezone: true }),
+  metadata: jsonb('metadata').$type<Record<string, string>>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

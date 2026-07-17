@@ -5,18 +5,28 @@
 // Usage:
 //   import { drizzle } from "drizzle-orm/node-postgres";
 //   import { createDrizzleRepositories } from "@betterpay/drizzle-adapter";
-//   import * as schema from "@betterpay/drizzle-adapter/schema";
+//   import { betterPay } from "@betterpay/core";
+//   import { billing } from "@betterpay/billing";
 //   import pg from "pg";
 //
 //   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-//   const db = drizzle(pool, { schema });
+//   const db = drizzle(pool);
 //   const repos = createDrizzleRepositories(db);
 //
 //   const pay = betterPay({
 //     transactionRepository: repos.transaction,
+//     webhookEventRepository: repos.webhookEvent,
 //     plugins: [
 //       midtrans({ ... }),
-//       billing({ products: [...], repos: repos }),
+//       billing({
+//         products: [...],
+//         repositories: {
+//           subscription: repos.subscription,
+//           entitlement: repos.entitlement,
+//           customer: repos.customer,
+//           invoice: repos.invoice,
+//         },
+//       }),
 //     ],
 //   });
 
@@ -41,18 +51,22 @@ import { createDrizzleSubscriptionRepo } from './repos/subscription';
 import { createDrizzleEntitlementRepo } from './repos/entitlement';
 import { createDrizzleCustomerRepo } from './repos/customer';
 import { createDrizzleInvoiceRepo } from './repos/invoice';
+import { createDrizzleWebhookEventRepo } from './repos/webhook-event';
 import { DrizzleCredentialRepository } from './repos/credential';
 export { DrizzleCredentialRepository } from './repos/credential';
+export { createDrizzleWebhookEventRepo, createMapWebhookEventRepo } from './repos/webhook-event';
+export { toSubscriptionRecord, toCustomerRecord } from './mappers';
 
 type DrizzleDB = any;
 
 /**
  * Create all Drizzle-backed repositories.
- * Pass these to betterPay() and billing() for PostgreSQL persistence.
+ * Pass transaction + webhookEvent to betterPay(); pass billing bag to billing().
  */
 export function createDrizzleRepositories(db: DrizzleDB) {
   return {
     transaction: createDrizzleTransactionRepo(db),
+    webhookEvent: createDrizzleWebhookEventRepo(db),
     subscription: createDrizzleSubscriptionRepo(db),
     entitlement: createDrizzleEntitlementRepo(db),
     customer: createDrizzleCustomerRepo(db),
