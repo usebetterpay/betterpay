@@ -29,7 +29,7 @@
   "author": "BetterPay Team",
   "license": "MIT",
   "dependencies": {
-    "@betterpay/core": "workspace:*"
+    "@betterpay/core": "file:../core"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

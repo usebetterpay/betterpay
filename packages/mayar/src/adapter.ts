@@ -32,6 +32,8 @@ export class MayarProvider implements PaymentProvider {
     qris: true,
     creditCard: true,
     retail: true,
+    /** Field-match merchantId only — use IP allowlist in production. */
+    weakWebhookAuth: true,
   };
 
   private config: MayarConfig;

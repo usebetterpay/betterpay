@@ -1,7 +1,13 @@
 // ── @betterpay/duitku — Duitku plugin for BetterPay ──────────────────────
 export { duitkuProvider } from './adapter';
 export type { DuitkuConfig } from './adapter';
-export { verifyDuitkuSignature, extractDuitkuSignature, parseDuitkuPayload } from './signature';
+export {
+  verifyDuitkuSignature,
+  extractDuitkuSignature,
+  parseDuitkuPayload,
+  signDuitkuInquiry,
+  signDuitkuStatus,
+} from './signature';
 
 import type { BetterPayPlugin } from '@betterpay/core';
 import { duitkuProvider } from './adapter';
@@ -10,11 +16,18 @@ import type { DuitkuConfig } from './adapter';
 /**
  * Create a Duitku plugin for BetterPay.
  *
- * Usage:
+ * @example
  * ```ts
- * betterPay({
- *   plugins: [duitku({ apiKey: '...', merchantCode: '...' })],
- * })
+ * import { betterPay } from '@betterpay/core';
+ * import { duitku } from '@betterpay/duitku';
+ *
+ * const pay = betterPay({
+ *   plugins: [duitku({
+ *     apiKey: process.env.DUITKU_API_KEY!,
+ *     merchantCode: process.env.DUITKU_MERCHANT_CODE!,
+ *     isSandbox: true,
+ *   })],
+ * });
  * ```
  */
 export function duitku(config: DuitkuConfig): BetterPayPlugin {

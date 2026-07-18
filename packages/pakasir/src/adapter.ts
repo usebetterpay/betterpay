@@ -45,6 +45,8 @@ export function pakasirProvider(config: PakasirConfig): PaymentProvider & { prio
       recurring: false,
       refund: false,
       qris: true,
+      /** Project slug field-match only — use IP allowlist in production. */
+      weakWebhookAuth: true,
     },
     priority: config.priority,
 

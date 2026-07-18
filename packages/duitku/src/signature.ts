@@ -1,16 +1,48 @@
 // ── Duitku Signature Verification ────────────────────────────────────────
-// Extracted : SHA256(merchantCode + amount + merchantOrderId + apiKey)
-// Duitku sends webhooks as form-urlencoded, NOT JSON.
+// Create/status: HMAC-SHA256(message, apiKey)
+// Callback body: form-urlencoded (NOT JSON)
+// Callback sig:  HMAC-SHA256(merchantCode + amount + merchantOrderId, apiKey)
 
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
-function sha256Hex(data: string): string {
-  return createHash('sha256').update(data, 'utf8').digest('hex');
+function hmacSha256Hex(message: string, apiKey: string): string {
+  return createHmac('sha256', apiKey).update(message, 'utf8').digest('hex');
+}
+
+function ctEqualHex(a: string, b: string): boolean {
+  try {
+    const ba = Buffer.from(a.toLowerCase(), 'utf8');
+    const bb = Buffer.from(b.toLowerCase(), 'utf8');
+    if (ba.length !== bb.length) return false;
+    if (ba.length === 0) return true;
+    return timingSafeEqual(ba, bb);
+  } catch {
+    return false;
+  }
+}
+
+/** Inquiry: HMAC_SHA256(merchantCode + merchantOrderId + paymentAmount, apiKey) */
+export function signDuitkuInquiry(
+  merchantCode: string,
+  merchantOrderId: string,
+  paymentAmount: number | string,
+  apiKey: string,
+): string {
+  return hmacSha256Hex(`${merchantCode}${merchantOrderId}${paymentAmount}`, apiKey);
+}
+
+/** Status check: HMAC_SHA256(merchantCode + merchantOrderId, apiKey) */
+export function signDuitkuStatus(
+  merchantCode: string,
+  merchantOrderId: string,
+  apiKey: string,
+): string {
+  return hmacSha256Hex(`${merchantCode}${merchantOrderId}`, apiKey);
 }
 
 /**
- * Verify Duitku webhook signature.
- * Signature = SHA256(merchantCode + amount + merchantOrderId + apiKey)
+ * Verify Duitku callback signature.
+ * Signature = HMAC_SHA256(merchantCode + amount + merchantOrderId, apiKey)
  * The signature is included IN the form-urlencoded payload.
  */
 export function verifyDuitkuSignature(
@@ -25,12 +57,8 @@ export function verifyDuitkuSignature(
     const merchantCode = params.get('merchantCode') ?? '';
     const amount = params.get('amount') ?? '';
     const merchantOrderId = params.get('merchantOrderId') ?? '';
-
-    const expected = sha256Hex(`${merchantCode}${amount}${merchantOrderId}${apiKey}`);
-    return timingSafeEqual(
-      Buffer.from(signature.toLowerCase(), 'utf8'),
-      Buffer.from(expected.toLowerCase(), 'utf8'),
-    );
+    const expected = hmacSha256Hex(`${merchantCode}${amount}${merchantOrderId}`, apiKey);
+    return ctEqualHex(signature, expected);
   } catch {
     return false;
   }

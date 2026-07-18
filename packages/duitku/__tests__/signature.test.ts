@@ -1,9 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { createHash } from 'node:crypto';
-import { verifyDuitkuSignature, extractDuitkuSignature, parseDuitkuPayload } from '../src/signature';
+import { createHmac } from 'node:crypto';
+import {
+  verifyDuitkuSignature,
+  extractDuitkuSignature,
+  parseDuitkuPayload,
+  signDuitkuInquiry,
+  signDuitkuStatus,
+} from '../src/signature';
 
-function sha256Hex(data: string): string {
-  return createHash('sha256').update(data, 'utf8').digest('hex');
+function hmac(msg: string, key: string): string {
+  return createHmac('sha256', key).update(msg, 'utf8').digest('hex');
 }
 
 describe('Duitku Signature', () => {
@@ -24,13 +30,23 @@ describe('Duitku Signature', () => {
     return params.toString();
   }
 
-  function computeSignature() {
-    return sha256Hex(`${merchantCode}${amount}${orderId}${apiKey}`);
+  function computeCallbackSignature() {
+    return hmac(`${merchantCode}${amount}${orderId}`, apiKey);
   }
 
-  it('should verify valid signature', () => {
+  it('should sign inquiry with HMAC-SHA256(merchantCode+orderId+amount)', () => {
+    const sig = signDuitkuInquiry(merchantCode, orderId, 100000, apiKey);
+    expect(sig).toBe(hmac(`${merchantCode}${orderId}100000`, apiKey));
+  });
+
+  it('should sign status with HMAC-SHA256(merchantCode+orderId)', () => {
+    const sig = signDuitkuStatus(merchantCode, orderId, apiKey);
+    expect(sig).toBe(hmac(`${merchantCode}${orderId}`, apiKey));
+  });
+
+  it('should verify valid callback signature', () => {
     const payload = buildPayload();
-    const sig = computeSignature();
+    const sig = computeCallbackSignature();
     expect(verifyDuitkuSignature(payload, sig, apiKey)).toBe(true);
   });
 

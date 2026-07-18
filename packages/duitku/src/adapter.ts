@@ -1,5 +1,6 @@
 // ── Duitku Provider Adapter ──────────────────────────────────────────────
-// Extracted  DuitkuAdapter, converted to function-based PaymentProvider.
+// API: https://sandbox.duitku.com/webapi/api/merchant/...
+// Auth: HMAC-SHA256 body signatures (not MD5).
 
 import type {
   PaymentProvider,
@@ -9,36 +10,55 @@ import type {
   WebhookData,
   NormalizedWebhookEvent,
 } from '@betterpay/core';
-import { createHash } from 'node:crypto';
-import { verifyDuitkuSignature, extractDuitkuSignature, parseDuitkuPayload } from './signature';
+import {
+  verifyDuitkuSignature,
+  extractDuitkuSignature,
+  parseDuitkuPayload,
+  signDuitkuInquiry,
+  signDuitkuStatus,
+} from './signature';
 
 export interface DuitkuConfig {
   apiKey: string;
   merchantCode: string;
   isSandbox?: boolean;
   priority?: number;
+  /**
+   * Default payment method code (2 chars), e.g. SP (ShopeePay), NQ (QRIS), BC (BCA VA).
+   * Overridden per request via CreatePaymentLinkInput.paymentMethod.
+   */
+  defaultPaymentMethod?: string;
 }
 
-/** Map Duitku result code → canonical status. */
-function mapStatus(code: string): StatusResult['status'] {
-  const map: Record<string, StatusResult['status']> = {
-    '00': 'completed',
-    '01': 'failed',
-    '02': 'canceled',
-  };
-  return map[code] ?? 'pending';
+/** Map Duitku result/status code → canonical status. */
+function mapCallbackStatus(code: string): StatusResult['status'] {
+  // Callback: 00 success, 01 failed
+  if (code === '00') return 'completed';
+  if (code === '01') return 'failed';
+  return 'pending';
 }
 
-function md5Hex(data: string): string {
-  return createHash('md5').update(data).digest('hex');
+function mapCheckStatus(code: string): StatusResult['status'] {
+  // transactionStatus: 00 success, 01 pending, 02 canceled
+  if (code === '00') return 'completed';
+  if (code === '01') return 'pending';
+  if (code === '02') return 'canceled';
+  return 'pending';
+}
+
+function eventNameForStatus(status: StatusResult['status']): string {
+  if (status === 'completed') return 'payment.completed';
+  if (status === 'failed') return 'payment.failed';
+  if (status === 'canceled') return 'payment.canceled';
+  return 'payment.pending';
 }
 
 /** Create a Duitku PaymentProvider. */
 export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priority?: number } {
   const isSandbox = config.isSandbox ?? true;
   const baseUrl = isSandbox
-    ? 'https://sandbox.duitku.com'
-    : 'https://passport.duitku.com';
+    ? 'https://sandbox.duitku.com/webapi/api/merchant'
+    : 'https://passport.duitku.com/webapi/api/merchant';
 
   return {
     id: 'duitku',
@@ -58,25 +78,30 @@ export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priori
     getApiEndpoint: () => baseUrl,
 
     async createPaymentLink(data: CreatePaymentLinkInput): Promise<PaymentLinkResult> {
-      // Signature: MD5(merchantCode + amount + orderId + apiKey)
-      const signature = md5Hex(
-        `${config.merchantCode}${data.amount}${data.orderId}${config.apiKey}`,
+      const paymentMethod =
+        data.paymentMethod ?? config.defaultPaymentMethod ?? 'SP';
+      const signature = signDuitkuInquiry(
+        config.merchantCode,
+        data.orderId,
+        data.amount,
+        config.apiKey,
       );
 
       const body = {
         merchantCode: config.merchantCode,
         paymentAmount: data.amount,
-        paymentMethod: data.paymentMethod ?? 'VA',
+        paymentMethod,
         merchantOrderId: data.orderId,
-        productDetails: data.description,
-        customerVaName: data.customerName ?? data.customerEmail,
+        productDetails: data.description || `Order ${data.orderId}`,
+        customerVaName: (data.customerName ?? data.customerEmail ?? 'Customer').slice(0, 20),
         email: data.customerEmail,
         callbackUrl: data.callbackUrl,
         returnUrl: data.returnUrl,
         signature,
+        expiryPeriod: data.expiryMinutes,
       };
 
-      const response = await fetch(`${baseUrl}/webapi/merchant/v2/inquiry`, {
+      const response = await fetch(`${baseUrl}/v2/inquiry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -91,7 +116,17 @@ export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priori
         reference?: string;
         paymentUrl?: string;
         vaNumber?: string;
+        qrString?: string;
+        statusCode?: string;
+        statusMessage?: string;
+        amount?: string;
       };
+
+      if (result.statusCode && result.statusCode !== '00') {
+        throw new Error(
+          `Duitku create failed: ${result.statusCode} ${result.statusMessage ?? ''}`.trim(),
+        );
+      }
 
       return {
         providerTransactionId: result.reference ?? '',
@@ -113,20 +148,20 @@ export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priori
     async normalizeWebhook(data: WebhookData): Promise<NormalizedWebhookEvent[]> {
       const parsed = parseDuitkuPayload(data.body);
       if (!parsed) return [];
+      const status = mapCallbackStatus(parsed.resultCode);
       return [
         {
-          name: `payment.${mapStatus(parsed.resultCode) === 'completed' ? 'completed' : mapStatus(parsed.resultCode) === 'failed' ? 'failed' : 'canceled'}`,
+          name: eventNameForStatus(status),
           payload: parsed as unknown as Record<string, unknown>,
-          providerEventId: parsed.reference,
+          providerEventId: parsed.reference || parsed.merchantOrderId,
         },
       ];
     },
 
     async checkStatus(orderId: string): Promise<StatusResult> {
-      // Status signature: MD5(merchantCode + merchantOrderId + apiKey)
-      const signature = md5Hex(`${config.merchantCode}${orderId}${config.apiKey}`);
+      const signature = signDuitkuStatus(config.merchantCode, orderId, config.apiKey);
 
-      const response = await fetch(`${baseUrl}/webapi/merchant/transactionStatus`, {
+      const response = await fetch(`${baseUrl}/transactionStatus`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -137,7 +172,8 @@ export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priori
       });
 
       if (!response.ok) {
-        throw new Error(`Duitku status check failed: ${response.status}`);
+        const text = await response.text().catch(() => 'unknown');
+        throw new Error(`Duitku status check failed: ${response.status} ${text}`);
       }
 
       const data = (await response.json()) as {
@@ -148,7 +184,7 @@ export function duitkuProvider(config: DuitkuConfig): PaymentProvider & { priori
 
       return {
         providerTransactionId: data.reference ?? '',
-        status: mapStatus(data.statusCode ?? ''),
+        status: mapCheckStatus(data.statusCode ?? ''),
         amount: Number.parseFloat(data.amount ?? '0'),
         currency: 'IDR',
         raw: data,
