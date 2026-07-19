@@ -1,21 +1,7 @@
-// ── @betterpay/client — Proxy-based Client SDK ───────────────────────────
+// ── @betterpay/client — Typed Client SDK ─────────────────────────────────
 //
-// Usage:
-// ```ts
-// import { createPayClient } from "@betterpay/client";
-//
-// const pay = createPayClient({ baseURL: "/api/pay" });
-//
-// // Create a transaction
-// const result = await pay.createTransaction({
-//   orderId: "order_001",
-//   amount: 100000,
-//   customerEmail: "user@example.com",
-// });
-//
-// // Check status
-// const status = await pay.status({ orderId: "order_001" });
-// ```
+// Only methods that map to real core router endpoints are typed.
+// Use `call()` for experimental/plugin routes — no infinite proxy.
 
 export interface PayClientOptions {
   /** Base URL for the BetterPay API. Default: "/pay" */
@@ -29,7 +15,6 @@ export interface PayClientOptions {
 }
 
 export interface PayClient {
-  /** Create a one-time payment transaction. */
   createTransaction(data: {
     orderId: string;
     amount: number;
@@ -51,7 +36,6 @@ export interface PayClient {
     currency: string;
   }>;
 
-  /** Check the status of a transaction. */
   status(data: { orderId: string }): Promise<{
     orderId: string;
     status: string;
@@ -61,13 +45,49 @@ export interface PayClient {
     providerTransactionId?: string | null;
   }>;
 
-  /** Generic API call — for advanced use or plugin endpoints. */
+  /** POST /api/reconcile — usually server-side / cron only. */
+  reconcile(): Promise<{
+    success: boolean;
+    totalChecked: number;
+    updated: number;
+    conflicts: number;
+    errors: number;
+  }>;
+
+  subscribe(data: {
+    customerId: string;
+    planId: string;
+  }): Promise<{
+    subscriptionId: string;
+    status: string;
+    paymentUrl?: string;
+  }>;
+
+  check(data: {
+    customerId: string;
+    featureId: string;
+  }): Promise<{ allowed: boolean; balance: unknown }>;
+
+  report(data: {
+    customerId: string;
+    featureId: string;
+    amount: number;
+  }): Promise<{ success: boolean; balance: unknown }>;
+
+  createCustomer(data: {
+    email: string;
+    name?: string;
+    phone?: string;
+  }): Promise<{ id: string; email: string }>;
+
+  getInvoices(data: { subscriptionId: string }): Promise<{ invoices: unknown[] }>;
+
+  /** Escape hatch for plugin or custom paths (relative to baseURL). */
   call<T = unknown>(path: string, data?: unknown): Promise<T>;
 }
 
 /**
- * Create a BetterPay client SDK.
- * Uses a proxy to dynamically route method calls to API endpoints.
+ * Create a BetterPay client for the HTTP API exposed by @betterpay/core.
  */
 export function createPayClient(options: PayClientOptions = {}): PayClient {
   const baseURL = (options.baseURL ?? '/pay').replace(/\/$/, '');
@@ -100,8 +120,7 @@ export function createPayClient(options: PayClientOptions = {}): PayClient {
     return response.json() as Promise<T>;
   }
 
-  // Build the client with explicit methods + a generic `call` escape hatch.
-  const client: PayClient = {
+  return {
     async createTransaction(data) {
       return apiCall('POST', '/api/create-transaction', data);
     },
@@ -110,24 +129,33 @@ export function createPayClient(options: PayClientOptions = {}): PayClient {
       return apiCall('GET', `/api/status/${data.orderId}`);
     },
 
+    async reconcile() {
+      return apiCall('POST', '/api/reconcile');
+    },
+
+    async subscribe(data) {
+      return apiCall('POST', '/api/subscribe', data);
+    },
+
+    async check(data) {
+      return apiCall('POST', '/api/check', data);
+    },
+
+    async report(data) {
+      return apiCall('POST', '/api/report', data);
+    },
+
+    async createCustomer(data) {
+      return apiCall('POST', '/api/customer', data);
+    },
+
+    async getInvoices(data) {
+      return apiCall('GET', `/api/invoices/${data.subscriptionId}`);
+    },
+
     async call<T>(path: string, data?: unknown): Promise<T> {
-      const method = data ? 'POST' : 'GET';
+      const method = data !== undefined ? 'POST' : 'GET';
       return apiCall<T>(method, path, data);
     },
   };
-
-  // Also wrap in a Proxy so that `pay.someMethod(data)` auto-maps to
-  // POST /api/some-method (kebab-case) — generic billing SDKs-style dynamic dispatch.
-  return new Proxy(client, {
-    get(target, prop: string) {
-      if (prop in target) {
-        return (target as unknown as Record<string, unknown>)[prop];
-      }
-      // Dynamic dispatch: pay.someEndpoint(data) → POST /api/some-endpoint
-      return (data?: unknown) => {
-        const kebab = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
-        return apiCall('POST', `/api/${kebab}`, data);
-      };
-    },
-  });
 }

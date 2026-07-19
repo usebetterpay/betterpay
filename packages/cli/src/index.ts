@@ -43,12 +43,17 @@ Usage: betterpay <command> [options]
 
 Commands:
   init          Initialize BetterPay in your project (detect framework, generate config)
-  push          Apply database migrations and sync products (required in production)
+  push          Apply BetterPay SQL migrations (requires DATABASE_URL)
   status        Check current BetterPay configuration and migration status
   credentials   Manage encrypted provider credentials (set/get/list/delete)
 
 Options:
-  -h, --help  Show this help message
+  -h, --help     Show this help message
+  --dry-run      (push) List pending migrations without applying
+
+Environment:
+  DATABASE_URL                 Postgres connection string (required for push)
+  BETTERPAY_MIGRATIONS_PATH    Override path to *.sql migrations
 `);
 }
 

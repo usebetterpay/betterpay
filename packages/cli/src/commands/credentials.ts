@@ -50,7 +50,6 @@ async function createDBCredentialStore(): Promise<CredentialStore> {
     const drizzleMod = await import('drizzle-orm/postgres-js');
     // @ts-expect-error — optional runtime dependency
     const postgresMod = await import('postgres');
-    // @ts-expect-error — optional runtime dependency
     const adapterMod = await import('@betterpay/drizzle-adapter');
 
     const sql = postgresMod.default(dbUrl);

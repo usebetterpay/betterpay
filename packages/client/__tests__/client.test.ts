@@ -123,16 +123,24 @@ describe('createPayClient', () => {
     expect(init.method).toBe('GET');
   });
 
-  it('proxy dispatches unknown methods to /api/kebab-case', async () => {
+  it('does not invent methods via proxy', () => {
     const client = createPayClient({ fetch: mockFetch });
-    mockResponse({ result: 'ok' });
+    expect((client as unknown as Record<string, unknown>).someCustomEndpoint).toBeUndefined();
+  });
 
-    // call a non-standard method via proxy
-    const result = await (client as any).someCustomEndpoint({ foo: 'bar' });
-    expect(result).toEqual({ result: 'ok' });
+  it('reconcile / subscribe / check hit real paths', async () => {
+    const client = createPayClient({ fetch: mockFetch });
+    mockResponse({ success: true, totalChecked: 0, updated: 0, conflicts: 0, errors: 0 });
+    await client.reconcile();
+    expect(mockFetch.mock.calls[0][0]).toBe('/pay/api/reconcile');
 
-    const [url] = mockFetch.mock.calls[0];
-    expect(url).toBe('/pay/api/some-custom-endpoint');
+    mockResponse({ subscriptionId: 's1', status: 'active' });
+    await client.subscribe({ customerId: 'c1', planId: 'pro' });
+    expect(mockFetch.mock.calls[1][0]).toBe('/pay/api/subscribe');
+
+    mockResponse({ allowed: true, balance: {} });
+    await client.check({ customerId: 'c1', featureId: 'messages' });
+    expect(mockFetch.mock.calls[2][0]).toBe('/pay/api/check');
   });
 
   it('includes custom headers', async () => {
