@@ -16,5 +16,18 @@
     "vitest": "^3.2.1",
     "typescript": "^5.8.3"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "docs"
+    ],
+    "catalog": {
+      "typescript": "^5.8.3",
+      "vitest": "^3.2.1",
+      "better-call": "^1.1.0",
+      "drizzle-orm": "^0.44.2",
+      "@types/node": "^22.15.0"
+    }
+  }
 }
