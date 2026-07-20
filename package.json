@@ -8,8 +8,7 @@
     "test": "vitest",
     "lint": "biome check .",
     "format": "biome format . --write",
-    "typecheck": "turbo typecheck",
-    "dogfood": "pnpm --filter @betterpay/dogfood dev"
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

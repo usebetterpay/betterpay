@@ -16,3 +16,6 @@ docs/out/
 
 # Local webhook catcher logs
 **/.webhook-logs/
+
+.playwright-cli/
+docs/.playwright-cli/
