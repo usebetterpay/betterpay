@@ -36,15 +36,17 @@ const buttonVariants = cva(
         link: 'h-auto rounded-none px-0 text-primary leading-normal underline-offset-4 shadow-none hover:underline',
       },
       size: {
-        // leading-none after text-* so twMerge keeps label centered in fixed heights
-        default: 'h-10 min-h-10 px-5 text-sm leading-none',
-        xs: 'h-8 min-h-8 gap-1.5 rounded-md px-3 text-xs leading-none [&_svg:not([class*="size-"])]:size-3',
-        sm: 'h-9 min-h-9 gap-1.5 rounded-md px-4 text-[0.8125rem] leading-none [&_svg:not([class*="size-"])]:size-3.5',
-        lg: 'h-11 min-h-11 gap-2.5 px-6 text-[0.9375rem] leading-none',
-        icon: 'size-10 leading-none',
-        'icon-xs': 'size-8 leading-none [&_svg:not([class*="size-"])]:size-3',
-        'icon-sm': 'size-9 leading-none [&_svg:not([class*="size-"])]:size-3.5',
-        'icon-lg': 'size-11 leading-none',
+        // Padding uses ! so it wins unlayered preflight `button { padding: 0 }`
+        // (docs/fumadocs + Tailwind layers — layered utilities alone lose).
+        // leading-none after text-* so twMerge keeps the label centered.
+        default: 'h-10 min-h-10 px-5! text-sm leading-none',
+        xs: 'h-8 min-h-8 gap-1.5 rounded-md px-3! text-xs leading-none [&_svg:not([class*="size-"])]:size-3',
+        sm: 'h-9 min-h-9 gap-1.5 rounded-md px-4! text-[0.8125rem] leading-none [&_svg:not([class*="size-"])]:size-3.5',
+        lg: 'h-11 min-h-11 gap-2.5 px-6! text-[0.9375rem] leading-none',
+        icon: 'size-10 leading-none p-0!',
+        'icon-xs': 'size-8 leading-none p-0! [&_svg:not([class*="size-"])]:size-3',
+        'icon-sm': 'size-9 leading-none p-0! [&_svg:not([class*="size-"])]:size-3.5',
+        'icon-lg': 'size-11 leading-none p-0!',
       },
     },
     defaultVariants: {
