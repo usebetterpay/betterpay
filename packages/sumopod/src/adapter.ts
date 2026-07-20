@@ -27,19 +27,15 @@ const LIVE_BASE = 'https://api-pay.sumopod.com/api/v1';
 export class SumopodProvider implements PaymentProvider {
   public readonly id = 'sumopod';
   public readonly name = 'SumoPod';
-  public readonly paymentMethods: PaymentMethod[] = [
-    'qris',
-    'virtual_account',
-    'ewallet',
-    'bank_transfer',
-  ];
+  /** SumoPod currently supports QRIS only (via payment link). */
+  public readonly paymentMethods: PaymentMethod[] = ['qris'];
   public readonly capabilities: ProviderCapabilities = {
     paymentLink: true,
     recurring: false,
     refund: false,
     qris: true,
-    virtualAccount: true,
-    ewallet: true,
+    virtualAccount: false,
+    ewallet: false,
   };
 
   private readonly config: Required<

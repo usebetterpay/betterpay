@@ -131,7 +131,7 @@ await pay.billing.report({ customerId: "user_1", featureId: "messages", amount: 
 | **Pakasir** | — | ✅ | ✅ | — | — |
 | **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **SumoPod** | ✅ | ✅ | ✅ | — | — |
+| **SumoPod** | — | — | ✅ | — | — |
 
 Multiple providers can be registered; the highest-priority provider is selected by default. `createTransaction` uses **retry + per-provider circuit breaker**. **Failover** (try next provider after retryable failures) is **opt-in** via `betterPay({ failover: true })` and only applies to create-link failures before the customer pays — never mid-payment.
 
