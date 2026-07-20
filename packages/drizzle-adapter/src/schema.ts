@@ -116,7 +116,7 @@ export const betterpayInvoice = pgTable('betterpay_invoice', {
   index('betterpay_invoice_status_due_idx').on(table.status, table.dueAt),
 ]);
 
-// ── Payment tables  ────────────────────────────────
+// ── Payment tables ──────────────────────────────────────────────────────
 
 export const paymentTransaction = pgTable('payment_transaction', {
   id: text('id').primaryKey(),
