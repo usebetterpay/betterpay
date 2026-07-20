@@ -12,7 +12,7 @@ BetterPay adalah payment framework TypeScript yang menyatukan multiple payment g
     Dirancang untuk landscape pembayaran Indonesia
   </Card>
   <Card title="🏦 Multi-Provider" href="/docs/core/providers">
-    Priority-based provider selection dengan automatic failover
+    Priority-based selection; opt-in `failover: true` on create-link only
   </Card>
   <Card title="🎨 UI Kit" href="/docs/ui">
     React billing components — pricing, portal, invoices, usage
@@ -20,8 +20,8 @@ BetterPay adalah payment framework TypeScript yang menyatukan multiple payment g
   <Card title="🔌 Plugin System" href="/docs/plugins/overview">
     Extend dengan billing, notifications, dan custom plugins
   </Card>
-  <Card title="🛡️ Production Ready" href="/docs/core/security">
-    Security middleware, rate limiting, dan error handling
+  <Card title="🛡️ Security hooks" href="/docs/core/security">
+    Rate limiting helpers and middleware hooks (Alpha — inject durable stores for prod)
   </Card>
 </Cards>
 
@@ -85,9 +85,9 @@ const pay = betterPay({
 ```
 
 BetterPay akan:
-- Otomatis pilih provider dengan priority tertinggi
-- Fallback ke provider lain jika provider utama down (circuit breaker)
-- Load balance berdasarkan priority
+- Otomatis pilih provider dengan priority tertinggi (default)
+- Failover antar provider hanya jika `failover: true` (create-link saja)
+- Memerlukan durable repos di production (lihat Production checklist di README)
 
 ### 3. Billing as Plugin
 
@@ -114,20 +114,19 @@ const pay = betterPay({
 
 User yang cuma butuh one-time payment tidak perlu load billing logic.
 
-### 4. Production Ready
+### 4. Alpha — production path
 
-BetterPay sudah dipakai di production dengan:
-- **4 payment providers** (Midtrans, Xendit, Duitku, Pakasir)
-- **5 framework integrations** (Next.js, Hono, Express, Bun, Cloudflare)
-- **Security middleware** (auth, CSRF, rate limiting)
-- **Error handling** (13 error types)
-- **Webhook security** (signature verification + replay protection)
+Status **Alpha**. Untuk production, inject durable repos (drizzle) dan jalankan cron reconcile + billing cycle. Yang sudah ada di framework:
+- **7 payment providers** (Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod)
+- **5 framework handlers** (Next.js, Hono, Express, Bun, Cloudflare)
+- **Webhook** signature verify + durable idempotency store (inject)
+- **Billing** subscriptions, dunning, `betterpay push` migrations
 
 ## Comparison
 
 | Feature | BetterPay | Stripe.js | generic billing SDKs |
 |---------|-----------|-----------|---------|
-| Indonesian Providers | ✅ 6 providers | ❌ No | ❌ No |
+| Indonesian Providers | ✅ 7 providers | ❌ No | ❌ No |
 | Multi-Provider | ✅ Built-in | ❌ No | ❌ No |
 | Billing | ✅ Plugin | ✅ Built-in | ✅ Built-in |
 | Framework Agnostic | ✅ Yes | ✅ Yes | ✅ Yes |

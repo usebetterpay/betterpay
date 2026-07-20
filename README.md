@@ -2,6 +2,8 @@
 
 One API for every Indonesian payment gateway.
 
+**Status: Alpha** — suitable for evaluation and careful production use only when you follow the [Production checklist](#production-checklist). Defaults are in-memory (dev/test). Durable Postgres stores must be injected for real deployments.
+
 [![npm version](https://img.shields.io/npm/v/@betterpay/core?style=flat&colorA=000&colorB=000)](https://www.npmjs.com/package/@betterpay/core)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat&colorA=000&colorB=000)](./LICENSE)
 
@@ -11,9 +13,9 @@ One API for every Indonesian payment gateway.
 
 ## Why BetterPay
 
-Indonesia has 6+ payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar — each with different APIs, signature schemes, webhook formats, and status codes. Integrating one takes days. Integrating all of them takes weeks.
+Indonesia has many payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod — each with different APIs, signature schemes, webhook formats, and status codes. Integrating one takes days. Integrating all of them takes weeks.
 
-BetterPay unifies them under a single API. You write your payment logic once, plug in whichever provider you need, and BetterPay handles signature verification, webhook idempotency, circuit breakers, reconciliation, and status normalization — so you never have to read another payment gateway docs.
+BetterPay unifies them under a single API. You write payment create/status/webhook logic once, plug in providers, and get signature verification, status normalization, and optional durable webhook idempotency. Provider-specific quirks still exist (especially weak webhook auth on Mayar/Pakasir) — this is an abstraction layer, not a substitute for reading gateway docs when debugging.
 
 ## Install
 
@@ -29,6 +31,7 @@ pnpm add @betterpay/core @betterpay/duitku    # Duitku
 pnpm add @betterpay/core @betterpay/pakasir   # Pakasir
 pnpm add @betterpay/core @betterpay/tripay    # Tripay
 pnpm add @betterpay/core @betterpay/mayar     # Mayar
+pnpm add @betterpay/core @betterpay/sumopod   # SumoPod
 ```
 
 ## Quick Start
@@ -128,8 +131,9 @@ await pay.billing.report({ customerId: "user_1", featureId: "messages", amount: 
 | **Pakasir** | — | ✅ | ✅ | — | — |
 | **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **SumoPod** | ✅ | ✅ | ✅ | — | — |
 
-Multiple providers can run simultaneously with automatic failover and circuit breaker.
+Multiple providers can be registered; the highest-priority provider is selected by default. `createTransaction` uses **retry + per-provider circuit breaker**. **Failover** (try next provider after retryable failures) is **opt-in** via `betterPay({ failover: true })` and only applies to create-link failures before the customer pays — never mid-payment.
 
 ## Frameworks
 
@@ -142,6 +146,60 @@ Multiple providers can run simultaneously with automatic failover and circuit br
 | Cloudflare Workers | `@betterpay/cloudflare` |
 
 All handlers wrap the same core `Request → Response` handler. Zero framework lock-in.
+
+## Production checklist
+
+Before production traffic:
+
+1. **Durable transaction store** — pass `transactionRepository` from `@betterpay/drizzle-adapter` (or your own). Do not rely on the default in-memory map.
+2. **Durable webhook idempotency** — pass `webhookEventRepository` (drizzle `repos.webhookEvent`). Process-local stores lose dedup on restart and can double-apply status updates.
+3. **Durable billing repos** — if you use `@betterpay/billing`, pass `repositories: { subscription, entitlement, customer, invoice }` from drizzle. Omitting them uses in-memory only (a warning is logged when `NODE_ENV=production`).
+4. **Prefer crypto webhook providers** — Midtrans, Xendit, Duitku, Tripay, and SumoPod (Svix HMAC or token) verify with signatures. **Mayar and Pakasir use field-match only** (`weakWebhookAuth`); add IP allowlisting or edge secrets if you must use them.
+5. **Credential store** — optional AES-256-GCM store needs `BETTERPAY_MASTER_KEY` (min 32 chars) plus a credential repository.
+6. **Replay timestamps** — BetterPay validates `x-webhook-timestamp` only when the provider sends it; this is not global replay protection for every gateway.
+7. **Reconciliation cron** — call `pay.runReconciliation()` or `POST /api/reconcile` on a schedule (e.g. hourly). Do not rely on in-process `setInterval` on serverless. Optional: `reconciliation: { enabled: true, startInterval: true }` for long-lived Node only.
+8. **Billing cycle cron** — if you use subscriptions, schedule `pay.billing.runBillingCycle()` (ID market: no auto-debit; generates invoices + payment links).
+
+### Production bootstrap example
+
+```typescript
+import { betterPay } from "@betterpay/core";
+import { midtrans } from "@betterpay/midtrans";
+import { billing, feature, plan } from "@betterpay/billing";
+import { createDrizzleRepositories } from "@betterpay/drizzle-adapter";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool);
+const repos = createDrizzleRepositories(db);
+
+const messages = feature({ id: "messages", type: "metered" });
+const pro = plan({
+  id: "pro",
+  group: "base",
+  name: "Pro",
+  price: { amount: 199_000, currency: "IDR", interval: "month" },
+  includes: [messages({ limit: 5_000, reset: "month" })],
+});
+
+const pay = betterPay({
+  transactionRepository: repos.transaction,
+  webhookEventRepository: repos.webhookEvent,
+  plugins: [
+    midtrans({ serverKey: process.env.MIDTRANS_SERVER_KEY! }),
+    billing({
+      products: [pro],
+      repositories: {
+        subscription: repos.subscription,
+        entitlement: repos.entitlement,
+        customer: repos.customer,
+        invoice: repos.invoice,
+      },
+    }),
+  ],
+});
+```
 
 ## Credential Management
 
@@ -178,6 +236,7 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/pakasir` | Pakasir adapter |
 | `@betterpay/tripay` | Tripay adapter |
 | `@betterpay/mayar` | Mayar adapter |
+| `@betterpay/sumopod` | SumoPod adapter (sandbox + Svix/token webhooks) |
 | `@betterpay/client` | Proxy-based client SDK |
 | `@betterpay/ui` | React billing UI (pricing, portal, invoices, usage) |
 | `@betterpay/cli` | CLI tools (init, push, status, credentials) |
@@ -187,19 +246,23 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/express` | Express handler |
 | `@betterpay/bun` | Bun handler |
 | `@betterpay/cloudflare` | Cloudflare Workers handler |
-| `@betterpay/notification-email` | Email notification plugin |
-| `@betterpay/notification-whatsapp` | WhatsApp notification plugin |
+| `@betterpay/notification-email` | Resend email notifications (`invoice.created`, `payment.failed`, …) |
+| `@betterpay/notification-whatsapp` | Fonnte WhatsApp (`apiKey` / `FONNTE_TOKEN`) |
 
 ## Features
 
-- **Plugin-first** — providers, billing, and notifications are all plugins
-- **Auto-fallback** — priority-based provider selection with circuit breaker per provider
-- **Webhook pipeline** — idempotent processing, replay protection, reconciliation worker
-- **Subscription engine** — 5-state machine, entitlement tracking with lazy reset, billing cycles, dunning
-- **Encrypted credentials** — AES-256-GCM storage for provider API keys
+- **Plugin-first** — providers, billing, Resend email; merge `endpoints` + `onRequest`/`onResponse`
+- **Notifications** — `NotificationChannel`; Resend email + Fonnte WhatsApp plugins
+- **Priority provider selection** — default by priority; opt-in failover on create-link only
+- **Retry + circuit breaker** — wired into `createTransaction` / HTTP create path
+- **Reconciliation** — `runReconciliation` / `POST /api/reconcile` polls `checkStatus` for pending/active txns
+- **Webhook pipeline** — signature verify, optional timestamp check, injectable durable idempotency store
+- **Subscription engine** — 5-state machine, entitlement tracking, multi-stage dunning, billing cycle runner
+- **CLI push** — `betterpay push` applies SQL migrations from `@betterpay/drizzle-adapter` (`DATABASE_URL`)
+- **Encrypted credentials** — optional AES-256-GCM storage for provider API keys
 - **Test clock** — simulate billing cycles without waiting months
 - **Currency utilities** — ISO 4217 minor units, IDR/USD/VND conversion
-- **Security middleware** — auth, CSRF, rate limiting, role-based access, audit logging hooks
+- **Security middleware helpers** — hooks for auth/CSRF/roles; your app implements policies
 
 ## Architecture
 
@@ -210,7 +273,7 @@ Your App (Next.js / Hono / Express / Bun / Cloudflare)
         │
    ┌────┼──────┬──────┬──────┬──────┬──────┐
    │    │      │      │      │      │      │
-  Core  Midtrans Xendit Duitku Pakasir Tripay Mayar   ← Provider plugins
+  Core  Midtrans Xendit Duitku Pakasir Tripay Mayar SumoPod  ← Provider plugins
    │
    ├── billing          ← Subscription + entitlement plugin
    ├── notification-*   ← Email / WhatsApp plugins

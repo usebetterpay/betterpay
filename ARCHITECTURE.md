@@ -1,28 +1,30 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture, subscription billing, 6 payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar.
+> **Indonesian billing framework** — Plugin-first architecture, subscription billing, payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod.
 >
-> **Status:** Production-ready. 18 packages, 6 provider adapters, 443 tests passing.
+> **Status: Alpha.** Defaults are in-memory. Production requires injected durable repositories (see README Production checklist).
+> Wired: createTransaction retry + circuit breaker; opt-in failover; reconciliation via `runReconciliation` / `POST /api/reconcile`; billing cycle `__wireBillingCycle` + multi-stage dunning; Resend email + Fonnte WhatsApp; CLI `push` migrations; plugin `endpoints` + `onRequest`/`onResponse`.
+> Not ready: product sync on push, database/transaction hooks, multi-tenant SaaS, OJK package.
 
 ---
 
 ## What Is BetterPay
 
-BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, payment reconciliation, dan webhook processing — tanpa user perlu tahu detail API masing-masing provider.
+BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple payment gateway di bawah satu API. User define plans di code, plug in provider, dan BetterPay handle subscription lifecycle, entitlement tracking, invoice generation, dan webhook processing — dengan store yang kamu inject untuk data yang harus survive restart.
 
-**Foundation:** Bukan greenfield. Provider adapters diekstrak dari production-grade payment gateway yang sudah teruji dengan state machine, circuit breaker, reconciliation worker, dan replay protection.
+**Foundation:** Provider adapters menormalisasi signature/status per gateway. Reliability primitives (circuit breaker, reconciliation) are implemented as modules; treat anything not on the create/webhook hot path as optional until wired.
 
 **15 Key Decisions (all locked):**
 1. **Framework** (not standalone service) — embed di app user
 2. **BetterPay-managed billing cycle** — karena 80-90% metode pembayaran Indonesia tidak support auto-debit
-3. **Priority-based provider selection** — auto-fallback dengan circuit breaker
+3. **Priority-based provider selection** — default by priority; opt-in `failover: true` on create-link only
 4. **Cron template + runBillingCycle()** — framework-specific cron generation via CLI
 5. **API-only checkout** — provider serves checkout UI (Midtrans Snap, Xendit Payment Link)
-6. **Auto-migrate dev, block prod** — CLI push for production
-7. **Plugin-based notifications** — core fires events, plugins send
-8. **Proxy client SDK** — type inference dari server instance
-9. **Transaction record matching** — DB as source of truth
-10. **Extract providers, rewrite rest** — battle-tested adapters + new framework core
+6. **Auto-migrate via CLI** — `betterpay push` runs SQL from `@betterpay/drizzle-adapter/migrations` (`DATABASE_URL`); product sync still deferred
+7. **Plugin-based notifications** — `NotificationChannel`; Resend email + Fonnte WhatsApp
+8. **Typed client SDK** — explicit methods for real HTTP endpoints (`call` escape hatch)
+9. **Transaction record matching** — DB as source of truth when repos injected
+10. **Extract providers, rewrite rest** — adapters + framework core
 11. **Full test pyramid + test clock** — time simulation for billing
 12. **Layered: core + billing plugin** — progressive complexity
 13. **Single merchant** — multi-tenancy = user's responsibility
@@ -40,12 +42,11 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   Pillar 1: ARCHITECTURE (plugin-first)                             │
 │   ├── Plugin-first design                                           │
 │   ├── better-call type-safe API router                              │
-│   ├── Hook system (before/after with matchers)                      │
-│   ├── Database hooks (before/after CRUD)                            │
-│   ├── Transaction-aware hook queue                                  │
-│   ├── Adapter factory (multi-DB)                                    │
+│   ├── Plugin endpoints + onRequest/onResponse (wired)               │
+│   ├── Matcher hooks / DB hooks / txn queue — NOT implemented        │
+│   ├── Drizzle adapter (inject repos)                                │
 │   ├── Multi-framework handlers                                      │
-│   └── Client SDK + framework adapters                               │
+│   └── Typed client SDK + framework adapters                         │
 │                                                                      │
 │   Pillar 2: DOMAIN MODEL (subscriptions + entitlements)             │
 │   ├── Plan & Feature DSL (feature(), plan())                        │
@@ -58,10 +59,10 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │                                                                      │
 │   Pillar 3: PAYMENT INFRA (production-proven)                       │
 │   ├── Provider adapter pattern (Xendit, Midtrans, Duitku, Pakasir, Tripay) │
-│   ├── Circuit breaker per provider                                  │
-│   ├── Retry with exponential backoff + jitter                       │
-│   ├── Replay protection (timestamp window)                          │
-│   ├── Reconciliation worker (poll for missed webhooks)              │
+│   ├── Circuit breaker + retry on createTransaction path             │
+│   ├── Opt-in failover (create-link only)                            │
+│   ├── Replay protection (timestamp window when header present)      │
+│   ├── Reconciliation worker (checkStatus + listPending)             │
 │   ├── Idempotency keys (atomic INSERT)                              │
 │   ├── State machine (payment status transitions)                    │
 │   ├── Per-provider signature verification                           │
@@ -87,11 +88,18 @@ import { xendit } from "@betterpay/xendit";
 import { duitku } from "@betterpay/duitku";
 import { tripay } from "@betterpay/tripay";
 import { billing, feature, plan } from "@betterpay/billing";
-import { notificationWhatsapp } from "@betterpay/notification-whatsapp";
+import { notificationEmail } from "@betterpay/notification-email";
 import { free, pro, enterprise } from "./plans";
 
+// Production: inject durable repos (see README Production checklist).
+// Dev can omit repositories and use in-memory defaults.
+import { createDrizzleRepositories } from "@betterpay/drizzle-adapter";
+
+const repos = createDrizzleRepositories(db);
+
 export const pay = betterPay({
-  database: process.env.DATABASE_URL!,
+  transactionRepository: repos.transaction,
+  webhookEventRepository: repos.webhookEvent,
 
   plugins: [
     midtrans({
@@ -112,8 +120,19 @@ export const pay = betterPay({
       privateKey: process.env.TRIPAY_PRIVATE_KEY!,
       isSandbox: process.env.NODE_ENV !== "production",
     }),
-    billing({ products: [free, pro, enterprise] }),
-    notificationWhatsapp({ apiKey: process.env.WA_API_KEY! }),
+    billing({
+      products: [free, pro, enterprise],
+      repositories: {
+        subscription: repos.subscription,
+        entitlement: repos.entitlement,
+        customer: repos.customer,
+        invoice: repos.invoice,
+      },
+    }),
+    notificationEmail({
+      apiKey: process.env.RESEND_API_KEY!,
+      from: "billing@myapp.com",
+    }),
   ],
 
   identify: async (request) => {
@@ -202,10 +221,11 @@ betterpay/
 │   ├── pakasir/                     # Pakasir adapter
 │   ├── tripay/                      # Tripay adapter
 │   ├── mayar/                       # Mayar adapter
+│   ├── sumopod/                     # SumoPod adapter (Svix + token webhooks)
 │   │
 │   │  ═══ Notification Plugins ═══
-│   ├── notification-email/
-│   ├── notification-whatsapp/
+│   ├── notification-email/          # Resend (wired)
+│   ├── notification-whatsapp/       # Fonnte (wired)
 │   │
 │   │  ═══ DB Adapters ═══
 │   ├── drizzle-adapter/             # PostgreSQL (Drizzle ORM)
@@ -218,18 +238,18 @@ betterpay/
 │   ├── cloudflare/                  # Cloudflare Workers
 │   │
 │   │  ═══ Tools ═══
-│   ├── cli/                         # npx @betterpay/cli (init, push, status)
-│   ├── client/                      # Core client (fetch-based proxy SDK)
+│   ├── cli/                         # init, push (migrations), status, credentials
+│   ├── client/                      # Typed fetch client (real endpoints only)
 │   │
-│   │  ═══ Planned (v2) ═══
-│   ├── notification-sms/            # Planned
-│   ├── compliance-ojk/              # Planned
-│   ├── reconciliation/              # Planned (standalone package; currently in core)
-│   ├── memory-adapter/              # Planned
-│   ├── fastify/                     # Planned
+│   │  ═══ UI ═══
 │   ├── ui/                          # React billing UI (pricing, portal, invoices)
-│   ├── client-react/                # Planned
-│   └── client-vue/                  # Planned
+│   │
+│   │  ═══ Notifications ═══
+│   ├── notification-email/          # Email channel plugin
+│   ├── notification-whatsapp/       # WhatsApp (Fonnte) channel plugin
+│   │
+│   │  ═══ Not near-term ═══
+│   ├── client-react / OJK / multi-tenant SaaS — after dogfood + legal
 │
 ├── docs/                            # Fumadocs documentation website
 ├── demo/                            # Demo app with all providers + billing
@@ -240,7 +260,7 @@ betterpay/
 
 ## Payment Provider Layer
 
-Ini adalah **jantung** BetterPay — sudah battle-tested di production dengan 6 Indonesian payment gateway.
+Ini adalah **jantung** BetterPay — enam adapter provider dengan signature/status mapping dan unit tests. Treat adapters as the mature layer; framework defaults remain Alpha until durable stores are injected.
 
 ### Provider Interface
 
@@ -525,15 +545,16 @@ Provider webhook → /pay/api/webhook/:provider
   │
   ├─ 1. provider.verifyWebhook(data)          (async, returns boolean)
   ├─ 2. provider.normalizeWebhook(data)       → NormalizedWebhookEvent[]
-  ├─ 3. validateTimestamp()                   (replay protection, 5min window)
-  ├─ 4. repository.recordWebhook()            (UNIQUE constraint = dedup)
-  │     └─ If duplicate → return { wasDuplicate: true }
+  ├─ 3. validateTimestamp()                   (only if x-webhook-timestamp present)
+  ├─ 4. webhookEventRepository.tryRecord()    (inject durable store in prod)
+  │     └─ If duplicate → return { success, duplicate: true } (no status re-apply)
   ├─ 5. Find transaction by orderId
   ├─ 6. validateTransactionTransition()       (state machine check)
-  ├─ 7. repository.updateTransactionStatus()  (apply new status)
-  ├─ 8. repository.recordEvent()              (audit log)
-  └─ 9. Emit customer.updated event
+  └─ 7. repository.updateTransactionStatus()  (apply new status)
 ```
+
+Default store is process-local `InMemoryWebhookEventRepository`. Production must pass
+`webhookEventRepository` (e.g. drizzle `repos.webhookEvent` on `payment_webhook_event`).
 
 ---
 
@@ -607,41 +628,25 @@ export function midtrans(config: MidtransConfig): BetterPayPlugin {
 }
 ```
 
-### Database Hooks
+### Notifications (wired)
 
 ```typescript
-const pay = betterPay({
-  databaseHooks: {
-    subscription: {
-      create: {
-        after: async (sub) => {
-          await sendWelcomeEmail(sub.customerId);
-        },
-      },
-    },
-    payment: {
-      create: {
-        after: async (payment) => {
-          await sendReceiptWhatsApp(payment);
-        },
-      },
-    },
-  },
+import { notificationEmail } from "@betterpay/notification-email";
+
+betterPay({
+  plugins: [
+    notificationEmail({
+      apiKey: process.env.RESEND_API_KEY!,
+      from: "billing@myapp.com",
+    }),
+  ],
 });
+
+// Events: invoice.created, payment.failed, subscription.canceled, transaction.completed
+// Custom: implement NotificationChannel and set plugin.notificationChannels
 ```
 
-### Transaction-Aware Hook Queue
-
-```typescript
-// Hooks fire AFTER transaction commits — no phantom notifications
-await runWithTransaction(db, async () => {
-  await createSubscription(tx, ...);
-  await createEntitlements(tx, ...);
-  await queueAfterCommit(async () => {
-    await sendInvoiceEmail(invoice);  // Only fires after COMMIT
-  });
-});
-```
+Database CRUD hooks and transaction-aware queues are **not implemented**. Use app-level code after `subscribe` / webhook handlers.
 
 ---
 
@@ -1178,28 +1183,18 @@ const ISO_4217_DECIMALS = {
 │  Domain:        Plans, subscriptions, entitlements           │
 │  Providers:     Midtrans + Xendit + Duitku + Pakasir +      │
 │                 Tripay + Mayar (6 adapters, all with tests)  │
-│  Reliability:   Circuit breaker, retry, replay protection,  │
-│                 reconciliation, idempotency, state machine   │
-│  Framework:     Agnostic (Next/Hono/Express/Fastify/Bun/CF) │
-│  UI:            Planned v2 (@betterpay/ui or build your own)│
+│  Reliability:   CB+retry on create; opt-in failover;        │
+│                 reconcile + durable webhook store           │
+│  Framework:     Next/Hono/Express/Bun/Cloudflare            │
+│  UI / OJK:      Explicitly deferred (Phase 7 growth)        │
 │  Currency:      IDR first (ISO 4217 minor units ready)      │
 │                                                              │
-│  User writes:                                               │
-│    betterPay({ plugins: [midtrans(...)], products: [...] })  │
-│                                                              │
-│  And gets:                                                  │
-│    ✅ Payment processing (VA, e-wallet, QRIS, CC, retail)   │
-│    ✅ Subscription lifecycle                                 │
-│    ✅ Feature gating + usage billing                         │
-│    ✅ Webhook reconciliation (poll missed webhooks)         │
-│    ✅ Invoice generation + dunning                           │
-│    ✅ Multi-channel notifications                            │
-│    ✅ Circuit breaker per provider                           │
-│    ✅ Replay attack protection                               │
-│    ✅ Idempotency (no duplicate payments)                    │
-│    ✅ Encrypted credential store (AES-256-GCM + CLI)       │
-│    ✅ Append-only audit log                                  │
-│    ✅ ISO 4217 currency utilities                            │
+│  With durable repos + cron:                                 │
+│    ✅ Payment create + status + webhook                     │
+│    ✅ Subscription + billing cycle + multi-stage dunning    │
+│    ✅ Resend email + Fonnte WhatsApp (optional plugins)     │
+│    ✅ POST /api/reconcile + runBillingCycle + betterpay push│
+│    ⚠️  Product sync on push / multi-tenant / OJK            │
 │                                                              │
 │  Without knowing:                                           │
 │    ❌ Midtrans Snap vs Core API                              │
@@ -1218,4 +1213,4 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Last updated: 2026-06-13*
+*Last updated: 2026-07-19*
