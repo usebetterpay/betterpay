@@ -6,6 +6,7 @@ dist/
 .env.local
 coverage/
 sample/
+.worktrees/
 
 # Docs (Fumadocs / Next.js)
 docs/.next/
