@@ -4,13 +4,11 @@
   "type": "registry:lib",
   "title": "Dates",
   "description": "formatDisplayDate",
-  "dependencies": [],
-  "registryDependencies": [],
   "files": [
     {
-      "path": "src/lib/dates.ts",
+      "path": "registry/betterpay/lib/dates.ts",
       "type": "registry:lib",
-      "target": "lib/dates.ts",
+      "target": "@lib/dates.ts",
       "content": "/** Format date for id-ID product UI. */\nexport function formatDisplayDate(value: string | Date | null | undefined): string {\n  if (!value) return '—';\n  const d = typeof value === 'string' ? new Date(value) : value;\n  if (Number.isNaN(d.getTime())) return '—';\n  return new Intl.DateTimeFormat('id-ID', {\n    day: 'numeric',\n    month: 'short',\n    year: 'numeric',\n  }).format(d);\n}\n"
     }
   ]

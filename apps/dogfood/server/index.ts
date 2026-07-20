@@ -119,7 +119,7 @@ function withProviders<T extends Record<string, unknown>>(snap: T) {
 api.get('/health', (c) =>
   c.json({
     ok: true,
-    service: 'acme-ai-demo',
+    service: 'demo-corp',
     origin: publicOrigin(),
     providers: providerStatus(),
   }),
@@ -464,7 +464,7 @@ if (hasDist) {
 const port = Number(process.env.DOGFOOD_API_PORT ?? 8791);
 const host = process.env.DOGFOOD_HOST ?? '127.0.0.1';
 console.log(
-  `Acme AI demo → http://${host}:${port}` +
+  `DEMO CORP demo → http://${host}:${port}` +
     (hasDist ? ' (api + static dist)' : ' (api only)') +
     ` · ${publicOrigin()} · provider=${getDefaultProviderId()}`,
 );

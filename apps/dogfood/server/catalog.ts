@@ -1,4 +1,4 @@
-/** Product catalog — Acme AI sells monthly plans + one-shot credit packs. */
+/** Product catalog — DEMO CORP monthly plans + one-shot credit packs. */
 
 export type PlanId = 'free' | 'starter' | 'pro';
 export type PackId = 'pack_100' | 'pack_500' | 'pack_2000';
@@ -30,7 +30,7 @@ export const PLANS: PlanDef[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'Try Acme AI with a small monthly allowance.',
+    description: 'Try DEMO CORP with a small monthly allowance.',
     monthlyAmount: 0,
     yearlyAmount: 0,
     creditsPerPeriod: 100,

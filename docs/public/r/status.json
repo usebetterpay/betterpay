@@ -4,13 +4,11 @@
   "type": "registry:lib",
   "title": "Status",
   "description": "Status presentation maps",
-  "dependencies": [],
-  "registryDependencies": [],
   "files": [
     {
-      "path": "src/lib/status.ts",
+      "path": "registry/betterpay/lib/status.ts",
       "type": "registry:lib",
-      "target": "lib/status.ts",
+      "target": "@lib/status.ts",
       "content": "/** BetterPay subscription lifecycle statuses. */\nexport type SubscriptionStatus =\n  | 'scheduled'\n  | 'active'\n  | 'past_due'\n  | 'canceled'\n  | 'ended';\n\n/** BetterPay invoice statuses. */\nexport type InvoiceStatus = 'draft' | 'open' | 'paid' | 'overdue' | 'void';\n\n/** Payment / banner callout kinds. */\nexport type PaymentCalloutStatus = 'success' | 'failed' | 'past_due' | 'pending';\n\nexport type BadgeTone = 'default' | 'success' | 'warning' | 'danger' | 'muted';\n\nexport interface StatusPresentation {\n  label: string;\n  tone: BadgeTone;\n}\n\nconst SUBSCRIPTION_MAP: Record<SubscriptionStatus, StatusPresentation> = {\n  scheduled: { label: 'Scheduled', tone: 'muted' },\n  active: { label: 'Active', tone: 'success' },\n  past_due: { label: 'Past due', tone: 'warning' },\n  canceled: { label: 'Canceled', tone: 'muted' },\n  ended: { label: 'Ended', tone: 'muted' },\n};\n\nconst INVOICE_MAP: Record<InvoiceStatus, StatusPresentation> = {\n  draft: { label: 'Draft', tone: 'muted' },\n  open: { label: 'Open', tone: 'default' },\n  paid: { label: 'Paid', tone: 'success' },\n  overdue: { label: 'Overdue', tone: 'danger' },\n  void: { label: 'Void', tone: 'muted' },\n};\n\nconst CALLOUT_MAP: Record<PaymentCalloutStatus, StatusPresentation> = {\n  success: { label: 'Payment successful', tone: 'success' },\n  failed: { label: 'Payment failed', tone: 'danger' },\n  past_due: { label: 'Payment past due', tone: 'warning' },\n  pending: { label: 'Payment pending', tone: 'default' },\n};\n\nexport function subscriptionStatusPresentation(status: SubscriptionStatus): StatusPresentation {\n  return SUBSCRIPTION_MAP[status];\n}\n\nexport function invoiceStatusPresentation(status: InvoiceStatus): StatusPresentation {\n  return INVOICE_MAP[status];\n}\n\nexport function paymentCalloutPresentation(status: PaymentCalloutStatus): StatusPresentation {\n  return CALLOUT_MAP[status];\n}\n\nexport function isTerminalSubscription(status: SubscriptionStatus): boolean {\n  return status === 'canceled' || status === 'ended';\n}\n"
     }
   ]

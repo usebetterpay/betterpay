@@ -3,10 +3,13 @@
   "name": "billing-ui-types",
   "type": "registry:lib",
   "title": "Billing UI Types",
-  "description": "PlanView, SubscriptionView, InvoiceView, etc.",
+  "description": "PlanView, SubscriptionView, InvoiceView, and related view-models",
+  "registryDependencies": [
+    "@betterpay/status"
+  ],
   "files": [
     {
-      "path": "src/types/billing-ui.ts",
+      "path": "registry/betterpay/types/billing-ui.ts",
       "type": "registry:lib",
       "target": "types/billing-ui.ts",
       "content": "import type {\n  InvoiceStatus,\n  PaymentCalloutStatus,\n  SubscriptionStatus,\n} from '@/lib/status';\n\n/** Presentational plan model for pricing and switchers. */\nexport interface PlanView {\n  id: string;\n  name: string;\n  description?: string;\n  /** Amount in major units for the given currency (IDR: whole rupiah). */\n  monthlyAmount: number;\n  yearlyAmount: number;\n  currency?: string;\n  /** Highlight as recommended / popular. */\n  recommended?: boolean;\n  badge?: string;\n  features: Array<{\n    id: string;\n    label: string;\n    included?: boolean;\n  }>;\n  ctaLabel?: string;\n}\n\nexport type BillingInterval = 'month' | 'year';\n\nexport interface SubscriptionView {\n  id: string;\n  planId: string;\n  planName: string;\n  status: SubscriptionStatus;\n  interval: BillingInterval | 'custom';\n  /** Next charge amount in major units. */\n  nextAmount?: number;\n  currency?: string;\n  currentPeriodEnd?: string | Date | null;\n  paymentMethodLabel?: string;\n  cancelAtPeriodEnd?: boolean;\n}\n\nexport interface InvoiceView {\n  id: string;\n  number: string;\n  /** Amount in major units. */\n  amount: number;\n  currency?: string;\n  status: InvoiceStatus;\n  issuedAt: string | Date;\n  paidAt?: string | Date | null;\n  downloadUrl?: string;\n}\n\nexport interface EntitlementView {\n  featureId: string;\n  label: string;\n  used: number;\n  /** null = unlimited */\n  limit: number | null;\n  resetLabel?: string;\n  /** Optional free-form unit label (e.g. \"messages\"). */\n  unit?: string;\n}\n\nexport interface PaymentCalloutView {\n  status: PaymentCalloutStatus;\n  title?: string;\n  description?: string;\n}\n"

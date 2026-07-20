@@ -1,20 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { AlertCircleIcon, CheckCircle2Icon, ClockIcon, XIcon } from 'lucide-react';
+import {
+  AlertCircleIcon,
+  CheckCircle2Icon,
+  ClockIcon,
+  XIcon,
+} from 'lucide-react';
 import { cn } from '../lib/cn';
-import { paymentCalloutPresentation, type PaymentCalloutStatus } from '../lib/status';
+import type { PaymentCalloutStatus } from '../lib/status';
 import { Button } from '../primitives/button';
-
-export interface PaymentStatusBannerProps {
-  status: PaymentCalloutStatus;
-  title?: string;
-  description?: string;
-  dismissible?: boolean;
-  onDismiss?: () => void;
-  className?: string;
-  action?: React.ReactNode;
-}
 
 const ICONS: Record<PaymentCalloutStatus, React.ReactNode> = {
   success: <CheckCircle2Icon className="size-4 shrink-0" aria-hidden />,
@@ -23,16 +18,32 @@ const ICONS: Record<PaymentCalloutStatus, React.ReactNode> = {
   pending: <ClockIcon className="size-4 shrink-0" aria-hidden />,
 };
 
-/** Full-border tinted surfaces (no side-stripe accents). */
-const TONE_CLASS: Record<PaymentCalloutStatus, string> = {
+const TONE: Record<PaymentCalloutStatus, string> = {
   success:
-    'border-success/25 bg-[color-mix(in_oklch,var(--success)_10%,var(--background))] text-success',
+    'border-success/25 bg-[color-mix(in_oklch,var(--success)_8%,var(--card))]',
   failed:
-    'border-destructive/25 bg-[color-mix(in_oklch,var(--destructive)_9%,var(--background))] text-destructive',
+    'border-destructive/25 bg-[color-mix(in_oklch,var(--destructive)_8%,var(--card))]',
   past_due:
-    'border-warning/30 bg-[color-mix(in_oklch,var(--warning)_12%,var(--background))] text-warning',
-  pending: 'border-border bg-muted text-foreground',
+    'border-warning/30 bg-[color-mix(in_oklch,var(--warning)_10%,var(--card))]',
+  pending: 'border-border bg-muted/40',
 };
+
+const DEFAULT_TITLE: Record<PaymentCalloutStatus, string> = {
+  success: 'Payment successful',
+  failed: 'Payment failed',
+  past_due: 'Payment past due',
+  pending: 'Payment pending',
+};
+
+export interface PaymentStatusBannerProps {
+  status: PaymentCalloutStatus;
+  title?: string;
+  description?: string;
+  dismissible?: boolean;
+  onDismiss?: () => void;
+  actions?: React.ReactNode;
+  className?: string;
+}
 
 export function PaymentStatusBanner({
   status,
@@ -40,45 +51,57 @@ export function PaymentStatusBanner({
   description,
   dismissible = false,
   onDismiss,
+  actions,
   className,
-  action,
 }: PaymentStatusBannerProps) {
-  const presentation = paymentCalloutPresentation(status);
-  const heading = title ?? presentation.label;
+  const heading = title ?? DEFAULT_TITLE[status];
 
   return (
     <div
       data-slot="payment-status-banner"
+      data-status={status}
       role="status"
       className={cn(
-        'flex items-start gap-3 rounded-lg border px-3.5 py-3 shadow-none',
-        TONE_CLASS[status],
+        'flex flex-col gap-4 rounded-xl border px-5 py-4 shadow-none sm:flex-row sm:items-center sm:gap-5',
+        TONE[status],
         className,
       )}
     >
-      <span className="mt-0.5 shrink-0">{ICONS[status]}</span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-sm font-medium text-current">{heading}</p>
-        {description ? (
-          <p className="text-sm leading-relaxed text-foreground/85">{description}</p>
-        ) : null}
-        {action ? (
-          <div className="mt-1.5 flex flex-wrap gap-2 [&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto">
-            {action}
-          </div>
-        ) : null}
-      </div>
-      {dismissible ? (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="shrink-0 text-current opacity-70 hover:opacity-100"
-          aria-label="Dismiss"
-          onClick={onDismiss}
+      <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:items-center">
+        <span
+          className={cn(
+            'mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-card/80 text-foreground ring-1 ring-border/60 sm:mt-0',
+          )}
         >
-          <XIcon />
-        </Button>
-      ) : null}
+          {ICONS[status]}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="text-sm font-semibold tracking-tight text-[var(--foreground)]">{heading}</p>
+          {description ? (
+            <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
+          ) : null}
+        </div>
+      </div>
+      {(actions || dismissible) && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2.5 ps-12 sm:ps-0">
+          {actions ? (
+            <div className="flex flex-wrap items-center gap-2.5 [&_[data-slot=button]]:w-full sm:[&_[data-slot=button]]:w-auto">
+              {actions}
+            </div>
+          ) : null}
+          {dismissible ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onDismiss}
+              className="shrink-0 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+              aria-label="Dismiss"
+            >
+              <XIcon />
+            </Button>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

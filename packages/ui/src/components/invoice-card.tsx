@@ -1,4 +1,5 @@
-import type * as React from 'react';
+'use client';
+
 import { FileTextIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { formatDisplayDate } from '../lib/dates';
@@ -8,87 +9,80 @@ import type { InvoiceView } from '../types/billing-ui';
 import { Badge } from '../primitives/badge';
 import { Button } from '../primitives/button';
 
-export interface InvoiceCardProps extends React.ComponentProps<'div'> {
+export interface InvoiceCardProps {
   invoice: InvoiceView;
   onDownload?: (invoiceId: string) => void;
   compact?: boolean;
+  className?: string;
 }
 
-/**
- * Single invoice surface for mobile lists or dense stacks.
- * Pair with InvoiceTable for desktop history.
- */
 export function InvoiceCard({
   invoice,
   onDownload,
   compact = false,
   className,
-  ...props
 }: InvoiceCardProps) {
   const status = invoiceStatusPresentation(invoice.status);
   const currency = invoice.currency ?? 'IDR';
 
   return (
-    <div
+    <article
       data-slot="invoice-card"
       className={cn(
-        'flex flex-col gap-3 rounded-lg border border-border bg-card text-card-foreground shadow-none',
-        'transition-colors duration-[var(--duration-fast,120ms)] hover:bg-muted/40',
-        'sm:flex-row sm:items-center',
-        compact ? 'p-3' : 'p-4',
+        'flex flex-col gap-4 rounded-xl border border-border/70 bg-card text-card-foreground shadow-none',
+        compact ? 'p-4' : 'p-5',
         className,
       )}
-      {...props}
     >
-      <div className="flex min-w-0 flex-1 items-start gap-3">
+      <div className="flex min-w-0 flex-1 items-start gap-3.5">
         <div
-          data-slot="invoice-card-icon"
-          className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted/70 text-muted-foreground"
+          aria-hidden
         >
-          <FileTextIcon className="size-5" aria-hidden />
+          <FileTextIcon className="size-5" />
         </div>
-
-        <div data-slot="invoice-card-body" className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
+        <div data-slot="invoice-card-body" className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="truncate text-sm font-medium">{invoice.number}</span>
             <Badge tone={status.tone}>{status.label}</Badge>
           </div>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {formatDisplayDate(invoice.issuedAt)}
           </span>
         </div>
       </div>
-
-      <div className="flex shrink-0 items-center justify-between gap-3 ps-[3.25rem] sm:flex-col sm:items-end sm:justify-center sm:gap-1.5 sm:ps-0">
-        <span className="text-sm font-medium tabular-nums">
+      <div className="flex shrink-0 items-center justify-between gap-4 ps-[3.375rem] sm:flex-col sm:items-end sm:justify-center sm:gap-2 sm:ps-0">
+        <span className="text-base font-semibold tabular-nums">
           {formatMoney(invoice.amount, { currency })}
         </span>
         {onDownload ? (
-          <Button variant="ghost" size="xs" onClick={() => onDownload(invoice.id)}>
+          <Button variant="outline" size="sm" onClick={() => onDownload(invoice.id)}>
             Download
           </Button>
         ) : null}
       </div>
-    </div>
+    </article>
   );
 }
 
-export interface InvoiceCardListProps extends React.ComponentProps<'div'> {
+export interface InvoiceCardListProps {
   invoices: InvoiceView[];
   onDownload?: (invoiceId: string) => void;
   emptyMessage?: string;
   loading?: boolean;
+  compact?: boolean;
+  className?: string;
 }
 
-function InvoiceCardListSkeleton() {
+function InvoiceCardListLoading() {
   return (
-    <div data-slot="invoice-card-list-loading" className="flex flex-col gap-2" aria-hidden>
+    <div data-slot="invoice-card-list-loading" className="flex flex-col gap-3" aria-hidden>
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="flex items-center gap-3 rounded-lg border border-border p-4"
+          className="flex items-center gap-3.5 rounded-xl border border-border p-5"
         >
-          <div className="size-10 animate-pulse rounded-md bg-muted" />
+          <div className="size-10 animate-pulse rounded-lg bg-muted" />
           <div className="flex flex-1 flex-col gap-2">
             <div className="h-4 w-1/2 animate-pulse rounded-md bg-muted" />
             <div className="h-3 w-1/3 animate-pulse rounded-md bg-muted" />
@@ -104,18 +98,13 @@ export function InvoiceCardList({
   onDownload,
   emptyMessage = 'No invoices yet.',
   loading = false,
+  compact,
   className,
-  ...props
 }: InvoiceCardListProps) {
   if (loading) {
     return (
-      <div
-        data-slot="invoice-card-list"
-        className={cn(className)}
-        aria-busy="true"
-        {...props}
-      >
-        <InvoiceCardListSkeleton />
+      <div data-slot="invoice-card-list" className={cn(className)} aria-busy>
+        <InvoiceCardListLoading />
       </div>
     );
   }
@@ -131,11 +120,15 @@ export function InvoiceCardList({
   return (
     <div
       data-slot="invoice-card-list"
-      className={cn('flex flex-col gap-2', className)}
-      {...props}
+      className={cn('flex flex-col gap-3', className)}
     >
       {invoices.map((invoice) => (
-        <InvoiceCard key={invoice.id} invoice={invoice} onDownload={onDownload} />
+        <InvoiceCard
+          key={invoice.id}
+          invoice={invoice}
+          onDownload={onDownload}
+          compact={compact}
+        />
       ))}
     </div>
   );

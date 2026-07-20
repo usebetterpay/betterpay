@@ -28,13 +28,13 @@ export interface InvoiceTableProps {
 
 function InvoiceTableSkeleton() {
   return (
-    <div data-slot="invoice-table-loading" className="flex flex-col gap-3 px-4 pb-4" aria-hidden>
+    <div data-slot="invoice-table-loading" className="flex flex-col gap-4 px-6 pb-6" aria-hidden>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="flex items-center gap-3">
-          <div className="h-4 w-20 animate-pulse rounded-md bg-muted" />
-          <div className="h-4 flex-1 animate-pulse rounded-md bg-muted" />
-          <div className="h-4 w-16 animate-pulse rounded-md bg-muted" />
+        <div key={i} className="flex items-center gap-4">
           <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 flex-1 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-20 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-28 animate-pulse rounded-md bg-muted" />
         </div>
       ))}
     </div>
@@ -66,7 +66,7 @@ export function InvoiceTable({
         ) : invoices.length === 0 ? (
           <p
             data-slot="invoice-table-empty"
-            className="px-5 pb-5 text-sm text-muted-foreground"
+            className="px-6 pb-6 text-sm text-muted-foreground"
           >
             {emptyMessage}
           </p>

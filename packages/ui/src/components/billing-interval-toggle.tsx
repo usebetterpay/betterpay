@@ -13,8 +13,7 @@ export interface BillingIntervalToggleProps {
 }
 
 /**
- * Compact Monthly / Yearly control (content-sized, never full-bleed).
- * Labels stay put; only the switch thumb moves inside an overflow-hidden track.
+ * Monthly / Yearly control — padded pill, never cramped labels.
  */
 export function BillingIntervalToggle({
   value,
@@ -29,8 +28,8 @@ export function BillingIntervalToggle({
       data-slot="billing-interval-toggle"
       data-interval={value}
       className={cn(
-        'inline-flex w-fit max-w-full shrink-0 items-center gap-2.5',
-        'rounded-full bg-muted/70 px-3 py-1.5 text-sm ring-1 ring-border/80',
+        'inline-flex w-fit max-w-full shrink-0 items-center gap-3.5',
+        'rounded-full bg-muted/60 px-5 py-2.5 text-sm ring-1 ring-border/60',
         className,
       )}
     >
@@ -39,9 +38,9 @@ export function BillingIntervalToggle({
         onClick={() => onChange('month')}
         aria-pressed={!yearly}
         className={cn(
-          'whitespace-nowrap rounded-md px-1 py-0.5 text-sm transition-colors',
+          'whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors',
           !yearly
-            ? 'font-medium text-foreground'
+            ? 'font-semibold text-foreground'
             : 'text-muted-foreground hover:text-foreground',
         )}
       >
@@ -61,9 +60,9 @@ export function BillingIntervalToggle({
         onClick={() => onChange('year')}
         aria-pressed={yearly}
         className={cn(
-          'whitespace-nowrap rounded-md px-1 py-0.5 text-sm transition-colors',
+          'whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors',
           yearly
-            ? 'font-medium text-foreground'
+            ? 'font-semibold text-foreground'
             : 'text-muted-foreground hover:text-foreground',
         )}
       >

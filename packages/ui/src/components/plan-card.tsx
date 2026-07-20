@@ -17,11 +17,11 @@ import {
   CardTitle,
 } from '../primitives/card';
 
-const planCardShell = cva('relative h-full', {
+const planCardShell = cva('relative h-full transition-[box-shadow,ring-color]', {
   variants: {
     emphasis: {
       default: '',
-      recommended: 'ring-2 ring-primary/35',
+      recommended: 'z-[1] ring-1 ring-primary/30 shadow-sm',
     },
   },
   defaultVariants: { emphasis: 'default' },
@@ -62,27 +62,45 @@ function PlanCard({
       <Card
         data-slot="plan-card"
         elevated={isElevated}
-        className={cn(planCardShell({ emphasis: resolvedEmphasis }), className)}
+        className={cn(
+          planCardShell({ emphasis: resolvedEmphasis }),
+          plan?.recommended && 'overflow-hidden',
+          className,
+        )}
         {...props}
       >
-        <CardHeader>
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <CardTitle className="min-w-0 flex-1">{plan.name}</CardTitle>
+        {plan?.recommended ? (
+          <div
+            data-slot="plan-card-shader-strip"
+            className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-[3px] overflow-hidden rounded-t-[inherit]"
+            aria-hidden
+            style={{
+              background:
+                'linear-gradient(90deg, var(--shader-cyan), var(--primary-soft), var(--shader-lavender), var(--primary-subtle))',
+            }}
+          />
+        ) : null}
+        <CardHeader className="gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <CardTitle className="min-w-0 flex-1 text-lg">{plan.name}</CardTitle>
             {plan.badge || plan.recommended ? (
               <Badge tone={plan.recommended ? 'default' : 'muted'} className="shrink-0">
                 {plan.badge ?? 'Recommended'}
               </Badge>
             ) : null}
           </div>
-          {plan.description ? <CardDescription>{plan.description}</CardDescription> : null}
+          {plan.description ? (
+            <CardDescription className="leading-relaxed">{plan.description}</CardDescription>
+          ) : null}
         </CardHeader>
-        <CardContent className="flex min-w-0 flex-1 flex-col gap-4">
+        <CardContent className="flex min-w-0 flex-1 flex-col gap-6">
           <PlanCardPrice amount={amount} currency={currency} period={period} />
           <PlanCardFeatures features={plan.features} />
         </CardContent>
-        <CardFooter className="min-w-0">
+        <CardFooter className="min-w-0 shrink-0">
           <Button
             className="w-full min-w-0"
+            size="lg"
             variant={plan.recommended ? 'default' : 'outline'}
             onClick={() => onSelect?.(plan.id, interval)}
           >
@@ -133,14 +151,14 @@ function PlanCardPrice({
   return (
     <div
       data-slot="plan-card-price"
-      className={cn('flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5', className)}
+      className={cn('flex flex-wrap items-baseline gap-x-2 gap-y-1', className)}
       {...props}
     >
-      <span className="break-words text-xl font-semibold tracking-tight tabular-nums sm:text-2xl md:text-3xl">
+      <span className="break-words text-3xl font-semibold tracking-tight tabular-nums sm:text-[2rem]">
         {formatMoney(amount, { currency })}
       </span>
       {period ? (
-        <span className="shrink-0 text-sm text-muted-foreground">{period}</span>
+        <span className="shrink-0 text-sm font-medium text-muted-foreground">{period}</span>
       ) : null}
     </div>
   );
@@ -154,15 +172,15 @@ function PlanCardFeatures({ features, className, ...props }: PlanCardFeaturesPro
   return (
     <ul
       data-slot="plan-card-features"
-      className={cn('flex flex-col gap-2', className)}
+      className={cn('flex flex-col gap-3', className)}
       {...props}
     >
       {features.map((feature) => (
-        <li key={feature.id} className="flex items-start gap-2 text-sm leading-snug">
+        <li key={feature.id} className="flex items-start gap-3 text-sm leading-relaxed">
           <CheckIcon
             className={cn(
               'mt-0.5 size-4 shrink-0',
-              feature.included === false ? 'text-muted-foreground/50' : 'text-success',
+              feature.included === false ? 'text-muted-foreground/40' : 'text-primary/70',
             )}
             aria-hidden
           />

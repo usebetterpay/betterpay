@@ -3,6 +3,7 @@
   "defaultOpen": true,
   "pages": [
     "index",
+    "registry",
     "---Pricing---",
     "components/plan-card",
     "components/plan-group",

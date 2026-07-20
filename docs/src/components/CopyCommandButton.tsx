@@ -4,8 +4,7 @@ import * as React from 'react';
 import { CheckIcon, CopyIcon, TerminalIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-const REGISTRY_BASE =
-  process.env.NEXT_PUBLIC_BETTERPAY_REGISTRY_URL || 'https://betterpay-docs.pages.dev/r';
+const REGISTRY_NS = '@betterpay';
 
 export interface CopyCommandButtonProps {
   command?: string;
@@ -27,17 +26,14 @@ export function CopyCommandButton({
 }: CopyCommandButtonProps) {
   const [copied, setCopied] = React.useState(false);
 
-  const display =
-    command ||
-    (registryName
-      ? `npx shadcn@latest add ${REGISTRY_BASE}/${registryName}.json`
-      : 'pnpm add @betterpay/ui');
+  const nsCmd = registryName
+    ? `npx shadcn@latest add ${REGISTRY_NS}/${registryName}`
+    : null;
 
-  const value =
-    copyCommand ||
-    (registryName
-      ? `npx shadcn@latest add ${REGISTRY_BASE}/${registryName}.json`
-      : display);
+  const display =
+    command || nsCmd || 'pnpm add @betterpay/ui';
+
+  const value = copyCommand || display;
 
   const onCopy = async () => {
     try {

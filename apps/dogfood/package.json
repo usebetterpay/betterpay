@@ -9,9 +9,11 @@
     "dev:web": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:structure": "tsx src/polish-structure.test.ts"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@betterpay/core": "workspace:^",
     "@betterpay/midtrans": "workspace:^",
     "@betterpay/sumopod": "workspace:^",
@@ -19,10 +21,16 @@
     "@betterpay/ui": "workspace:^",
     "@betterpay/xendit": "workspace:^",
     "@hono/node-server": "^1.14.0",
+    "@paper-design/shaders-react": "0.0.77",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "hono": "^4.7.0",
+    "lucide-react": "^0.511.0",
+    "motion": "^12.42.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.2",

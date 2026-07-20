@@ -118,7 +118,7 @@ export function PlanComparison({
   return (
     <div
       data-slot="plan-comparison"
-      className={cn('flex w-full min-w-0 flex-col gap-3', className)}
+      className={cn('flex w-full min-w-0 flex-col gap-5', className)}
       {...props}
     >
       {showIntervalToggle ? (
@@ -127,13 +127,13 @@ export function PlanComparison({
         </div>
       ) : null}
 
-      <div className="w-full min-w-0 overflow-x-auto rounded-lg border border-border bg-card [-webkit-overflow-scrolling:touch]">
-        <table className="w-full min-w-[32rem] border-collapse text-sm" aria-label={ariaLabel}>
+      <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-border bg-card [-webkit-overflow-scrolling:touch]">
+        <table className="w-full min-w-[40rem] border-collapse text-sm" aria-label={ariaLabel}>
           <thead>
             <tr className="border-b border-border bg-muted/40">
               <th
                 scope="col"
-                className="sticky left-0 z-10 w-[9rem] bg-muted/95 px-3 py-3 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm sm:w-[11rem]"
+                className="sticky left-0 z-10 w-[10rem] bg-muted/95 px-5 py-4 text-left text-xs font-medium text-muted-foreground backdrop-blur-sm sm:w-[12rem]"
               >
                 Feature
               </th>
@@ -145,16 +145,16 @@ export function PlanComparison({
                     key={plan.id}
                     scope="col"
                     className={cn(
-                      'min-w-[7.5rem] border-l border-border px-3 py-3 text-center font-normal',
+                      'min-w-[8.5rem] border-l border-border px-5 py-4 text-center font-normal',
                       plan.recommended && 'bg-primary/5',
                     )}
                   >
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    <div className="flex flex-col items-center gap-2.5">
+                      <div className="flex flex-wrap items-center justify-center gap-2">
                         <span className="text-sm font-semibold text-foreground">{plan.name}</span>
                         {plan.recommended ? <Badge tone="default">Popular</Badge> : null}
                       </div>
-                      <span className="text-sm font-medium tabular-nums text-foreground">
+                      <span className="text-base font-medium tabular-nums text-foreground">
                         {formatMoney(amount, { currency })}
                         <span className="font-normal text-muted-foreground">
                           {interval === 'year' ? '/yr' : '/mo'}
@@ -162,7 +162,7 @@ export function PlanComparison({
                       </span>
                       {onSelectPlan ? (
                         <Button
-                          size="xs"
+                          size="sm"
                           variant={plan.recommended ? 'default' : 'outline'}
                           onClick={() => onSelectPlan(plan.id)}
                         >
@@ -187,7 +187,7 @@ export function PlanComparison({
                 <th
                   scope="row"
                   className={cn(
-                    'sticky left-0 z-10 px-3 py-2.5 text-left text-sm font-normal text-foreground backdrop-blur-sm',
+                    'sticky left-0 z-10 px-5 py-3.5 text-left text-sm font-normal text-foreground backdrop-blur-sm',
                     i % 2 === 1 ? 'bg-muted/90' : 'bg-card/95',
                   )}
                 >
@@ -197,7 +197,7 @@ export function PlanComparison({
                   <td
                     key={plan.id}
                     className={cn(
-                      'border-l border-border px-3 py-2.5 text-center',
+                      'border-l border-border px-5 py-3.5 text-center',
                       plan.recommended && 'bg-primary/[0.03]',
                     )}
                   >

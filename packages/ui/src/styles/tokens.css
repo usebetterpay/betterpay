@@ -1,56 +1,96 @@
 /**
  * BetterPay UI — design tokens
- *
- * Scene: ops reviewing invoices on a laptop in a bright office at mid-morning.
- * Strategy: Restrained — cool ink neutrals + one primary accent for actions/selection.
- * Never pure black/white; neutrals carry a cool slate-teal cast (hue ~235).
+ * Light Premium SaaS palette (hex-first). Teal ~5–8% of screen; shaders elsewhere.
  */
 
 :root {
   /* Shape */
-  --radius: 0.5rem;
-  --radius-sm: 0.375rem;
-  --radius-lg: 0.75rem;
+  --radius: 0.625rem;
+  --radius-sm: 0.4375rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
   --radius-full: 9999px;
 
-  /* Surfaces (cool-tinted, never pure white) */
-  --background: oklch(0.985 0.006 235);
-  --foreground: oklch(0.22 0.028 240);
-  --card: oklch(0.995 0.004 235);
-  --card-foreground: oklch(0.22 0.028 240);
-  --popover: oklch(0.995 0.004 235);
-  --popover-foreground: oklch(0.22 0.028 240);
+  /* Surfaces — never pure white full page */
+  --background: #f5f7f8;
+  --foreground: #15191c;
+  --card: #ffffff;
+  --card-foreground: #15191c;
+  --popover: #fafbfb;
+  --popover-foreground: #15191c;
+  --surface: #fafbfb;
+  --surface-soft: #f0f3f4;
+  --surface-hover: #ebeff1;
 
-  /* Brand action — deep ink-teal, used sparingly */
-  --primary: oklch(0.38 0.055 225);
-  --primary-foreground: oklch(0.985 0.008 235);
+  /* Brand teal — sparingly */
+  --primary: #174c5b;
+  --primary-hover: #123e4a;
+  --primary-foreground: #fafbfb;
+  --primary-soft: #e4eff1;
+  --primary-subtle: #f1f7f8;
 
   /* Quiet chrome */
-  --secondary: oklch(0.955 0.012 235);
-  --secondary-foreground: oklch(0.28 0.03 240);
-  --muted: oklch(0.96 0.01 235);
-  --muted-foreground: oklch(0.48 0.025 240);
-  --accent: oklch(0.95 0.014 230);
-  --accent-foreground: oklch(0.28 0.03 240);
+  --secondary: #f0f3f4;
+  --secondary-foreground: #15191c;
+  --muted: #f0f3f4;
+  --muted-foreground: #89939a;
+  --accent: #e4eff1;
+  --accent-foreground: #174c5b;
 
-  /* Feedback (desaturated at extremes) */
-  --destructive: oklch(0.52 0.16 28);
-  --destructive-foreground: oklch(0.985 0.008 235);
-  --success: oklch(0.48 0.1 155);
-  --success-foreground: oklch(0.985 0.008 235);
-  --warning: oklch(0.62 0.12 75);
-  --warning-foreground: oklch(0.28 0.04 75);
-  --info: oklch(0.5 0.08 240);
+  /* Text scale */
+  --text-secondary: #59636a;
+  --text-disabled: #adb5ba;
 
-  /* Lines & focus */
-  --border: oklch(0.9 0.012 235);
-  --input: oklch(0.9 0.012 235);
-  --ring: oklch(0.48 0.06 225);
+  /* Status — desaturated */
+  --destructive: #a64646;
+  --destructive-foreground: #fafbfb;
+  --destructive-bg: #fceeee;
+  --destructive-border: #f2d2d2;
+  --success: #247a57;
+  --success-foreground: #fafbfb;
+  --success-bg: #e8f5ee;
+  --success-border: #cbe8d8;
+  --warning: #8a6821;
+  --warning-foreground: #15191c;
+  --warning-bg: #fff7e2;
+  --warning-border: #f0dfc0;
+  --info: #456b8a;
+  --info-bg: #edf5fa;
+  --info-border: #d5e6f0;
 
-  /* Elevation (subtle, cool) */
-  --shadow-xs: 0 1px 2px oklch(0.22 0.03 240 / 0.04);
-  --shadow-sm: 0 1px 2px oklch(0.22 0.03 240 / 0.05), 0 2px 8px oklch(0.22 0.03 240 / 0.04);
-  --shadow-md: 0 4px 16px oklch(0.22 0.03 240 / 0.08), 0 1px 3px oklch(0.22 0.03 240 / 0.04);
+  /* Borders — soft */
+  --border: #e1e6e8;
+  --border-strong: #ccd5d9;
+  --border-soft: #edf0f1;
+  --input: #e1e6e8;
+  --ring: #174c5b;
+
+  /* Sidebar (shadcn / Efferd app-shell) */
+  --sidebar: #f0f3f4;
+  --sidebar-foreground: #15191c;
+  --sidebar-primary: #174c5b;
+  --sidebar-primary-foreground: #fafbfb;
+  --sidebar-accent: color-mix(in srgb, #174c5b 11%, #ffffff);
+  --sidebar-accent-foreground: #15191c;
+  --sidebar-border: #e1e6e8;
+  --sidebar-ring: #174c5b;
+
+  /* Elevation — almost invisible */
+  --shadow-xs: 0 1px 2px rgb(21 25 28 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(21 25 28 / 0.04), 0 4px 14px rgb(21 25 28 / 0.04);
+  --shadow-md: 0 2px 4px rgb(21 25 28 / 0.03), 0 12px 28px rgb(21 25 28 / 0.06);
+
+  /* Shader accents — mist teal (brand-adjacent), not candy pink/peach */
+  --shader-powder: #d2e8ef;
+  --shader-lavender: #b9d7e4;
+  --shader-violet: #a8c8d8;
+  --shader-blush: #c5dce8;
+  --shader-peach: #e4eef2;
+  --shader-cyan: #c8e4e0;
+  --shader-wash-a: color-mix(in srgb, var(--shader-powder) 40%, transparent);
+  --shader-wash-b: color-mix(in srgb, var(--shader-lavender) 32%, transparent);
+  --shader-wash-c: color-mix(in srgb, var(--shader-blush) 28%, transparent);
+  --shader-wash-d: color-mix(in srgb, var(--shader-cyan) 24%, transparent);
 
   /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -59,16 +99,28 @@
   --duration-slow: 240ms;
 
   /* Type */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Density */
-  --control-h: 2rem;
-  --control-h-sm: 1.75rem;
-  --control-h-lg: 2.25rem;
+  --text-display: 1.75rem;
+  --text-title: 1.375rem;
+  --text-heading: 1.0625rem;
+  --text-body: 0.875rem;
+  --text-caption: 0.75rem;
+  --tracking-tight: -0.03em;
+  --tracking-display: -0.035em;
 
-  /* Legacy aliases (domain components during migration) */
+  /* Control heights — match Button sizes (comfortable product density) */
+  --control-h: 2.5rem;
+  --control-h-sm: 2.25rem;
+  --control-h-lg: 2.75rem;
+  --control-px: 1.25rem;
+  --card-pad-x: 1.5rem;
+  --card-pad-y: 1.5rem;
+  --section-gap: 1.5rem;
+
+  /* Legacy aliases */
   --bp-radius: var(--radius);
   --bp-background: var(--background);
   --bp-foreground: var(--foreground);
@@ -85,65 +137,97 @@
   --bp-ring: var(--ring);
 }
 
-/* Global dark (html/body) and scoped preview dark (.bp-preview-surface.dark) */
 .dark,
 .bp-preview-surface.dark {
-  --background: oklch(0.18 0.02 240);
-  --foreground: oklch(0.94 0.01 235);
-  --card: oklch(0.22 0.022 240);
-  --card-foreground: oklch(0.94 0.01 235);
-  --popover: oklch(0.22 0.022 240);
-  --popover-foreground: oklch(0.94 0.01 235);
-  --primary: oklch(0.72 0.07 210);
-  --primary-foreground: oklch(0.18 0.02 240);
-  --secondary: oklch(0.26 0.02 240);
-  --secondary-foreground: oklch(0.92 0.01 235);
-  --muted: oklch(0.26 0.02 240);
-  --muted-foreground: oklch(0.72 0.02 235);
-  --accent: oklch(0.28 0.025 235);
-  --accent-foreground: oklch(0.94 0.01 235);
-  --destructive: oklch(0.62 0.15 28);
-  --destructive-foreground: oklch(0.98 0.01 235);
-  --success: oklch(0.68 0.1 155);
-  --warning: oklch(0.75 0.11 85);
-  --info: oklch(0.7 0.07 230);
-  --border: oklch(0.32 0.02 240);
-  --input: oklch(0.32 0.02 240);
-  --ring: oklch(0.7 0.06 210);
-  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.25);
-  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3), 0 2px 8px oklch(0 0 0 / 0.2);
-  --shadow-md: 0 8px 24px oklch(0 0 0 / 0.35);
+  --background: #121618;
+  --foreground: #f0f3f4;
+  --card: #1a1f22;
+  --card-foreground: #f0f3f4;
+  --popover: #1a1f22;
+  --popover-foreground: #f0f3f4;
+  --surface: #1a1f22;
+  --surface-soft: #22282c;
+  --surface-hover: #2a3136;
+  --primary: #5eb0c4;
+  --primary-hover: #7bc0d0;
+  --primary-foreground: #121618;
+  --primary-soft: #1a3038;
+  --primary-subtle: #162428;
+  --secondary: #22282c;
+  --secondary-foreground: #f0f3f4;
+  --muted: #22282c;
+  --muted-foreground: #89939a;
+  --accent: #1a3038;
+  --accent-foreground: #aeebe8;
+  --text-secondary: #adb5ba;
+  --text-disabled: #59636a;
+  --destructive: #e08080;
+  --destructive-foreground: #121618;
+  --destructive-bg: #3a2020;
+  --destructive-border: #5a3030;
+  --success: #5cb88a;
+  --success-bg: #1a3028;
+  --success-border: #2a5040;
+  --warning: #d4b060;
+  --warning-bg: #302818;
+  --warning-border: #504020;
+  --info: #7aa8c8;
+  --info-bg: #1a2830;
+  --info-border: #304050;
+  --border: #2a3136;
+  --border-strong: #3a444a;
+  --border-soft: #22282c;
+  --input: #2a3136;
+  --ring: #5eb0c4;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 0.35);
 }
 
-/* Scoped light tokens when page is dark but preview is light */
 .bp-preview-surface:not(.dark) {
-  --background: oklch(0.985 0.006 235);
-  --foreground: oklch(0.22 0.028 240);
-  --card: oklch(0.995 0.004 235);
-  --card-foreground: oklch(0.22 0.028 240);
-  --popover: oklch(0.995 0.004 235);
-  --popover-foreground: oklch(0.22 0.028 240);
-  --primary: oklch(0.38 0.055 225);
-  --primary-foreground: oklch(0.985 0.008 235);
-  --secondary: oklch(0.955 0.012 235);
-  --secondary-foreground: oklch(0.28 0.03 240);
-  --muted: oklch(0.96 0.01 235);
-  --muted-foreground: oklch(0.48 0.025 240);
-  --accent: oklch(0.95 0.014 230);
-  --accent-foreground: oklch(0.28 0.03 240);
-  --destructive: oklch(0.52 0.16 28);
-  --destructive-foreground: oklch(0.985 0.008 235);
-  --success: oklch(0.48 0.1 155);
-  --success-foreground: oklch(0.985 0.008 235);
-  --warning: oklch(0.62 0.12 75);
-  --warning-foreground: oklch(0.28 0.04 75);
-  --info: oklch(0.5 0.08 240);
-  --border: oklch(0.9 0.012 235);
-  --input: oklch(0.9 0.012 235);
-  --ring: oklch(0.48 0.06 225);
-  --shadow-xs: 0 1px 2px oklch(0.22 0.03 240 / 0.04);
-  --shadow-sm: 0 1px 2px oklch(0.22 0.03 240 / 0.05), 0 2px 8px oklch(0.22 0.03 240 / 0.04);
-  --shadow-md: 0 4px 16px oklch(0.22 0.03 240 / 0.08), 0 1px 3px oklch(0.22 0.03 240 / 0.04);
+  --background: #f5f7f8;
+  --foreground: #15191c;
+  --card: #ffffff;
+  --card-foreground: #15191c;
+  --popover: #fafbfb;
+  --popover-foreground: #15191c;
+  --surface: #fafbfb;
+  --surface-soft: #f0f3f4;
+  --surface-hover: #ebeff1;
+  --primary: #174c5b;
+  --primary-hover: #123e4a;
+  --primary-foreground: #fafbfb;
+  --primary-soft: #e4eff1;
+  --primary-subtle: #f1f7f8;
+  --secondary: #f0f3f4;
+  --secondary-foreground: #15191c;
+  --muted: #f0f3f4;
+  --muted-foreground: #89939a;
+  --accent: #e4eff1;
+  --accent-foreground: #174c5b;
+  --text-secondary: #59636a;
+  --text-disabled: #adb5ba;
+  --destructive: #a64646;
+  --destructive-foreground: #fafbfb;
+  --destructive-bg: #fceeee;
+  --destructive-border: #f2d2d2;
+  --success: #247a57;
+  --success-bg: #e8f5ee;
+  --success-border: #cbe8d8;
+  --warning: #8a6821;
+  --warning-bg: #fff7e2;
+  --warning-border: #f0dfc0;
+  --info: #456b8a;
+  --info-bg: #edf5fa;
+  --info-border: #d5e6f0;
+  --border: #e1e6e8;
+  --border-strong: #ccd5d9;
+  --border-soft: #edf0f1;
+  --input: #e1e6e8;
+  --ring: #174c5b;
+  --shadow-xs: 0 1px 2px rgb(21 25 28 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(21 25 28 / 0.04), 0 4px 14px rgb(21 25 28 / 0.04);
+  --shadow-md: 0 2px 4px rgb(21 25 28 / 0.03), 0 12px 28px rgb(21 25 28 / 0.06);
   color-scheme: light;
 }
 
@@ -151,7 +235,6 @@
   color-scheme: dark;
 }
 
-/* Prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast: 0ms;
@@ -160,7 +243,7 @@
   }
 }
 
-/* ── Semantic utility bridges (hosts without full Tailwind theme map) ── */
+/* Semantic bridges */
 .bg-background { background-color: var(--background); }
 .bg-foreground { background-color: var(--foreground); }
 .bg-card { background-color: var(--card); }
@@ -211,90 +294,126 @@
 .rounded-sm { border-radius: var(--radius-sm); }
 .rounded-md { border-radius: var(--radius); }
 .rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
 .rounded-full { border-radius: var(--radius-full); }
 
-/* Container-query friendly: components use @container + @sm/@md against own width */
-@container (min-width: 24rem) {
-  /* reserved for host bridges if needed */
-}
-
-/* ── Switch (coss geometry + single-axis motion) ─────────────────────
- * Base UI stamps data-checked / data-unchecked on Root + Thumb.
- *
- * Track: h = thumb+2px, w = thumb*2-2px, padding 1px each side.
- * Free travel = w − 2·pad − thumb = thumb − 4px  →  translateX(thumb − 4px).
- *
- * IMPORTANT: motion is ONLY here (transform). Do not also apply Tailwind
- * translate-x / translate on the thumb — both stack and the knob flies out.
- */
-[data-slot='switch'] {
-  --thumb-size: 1.25rem;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  height: calc(var(--thumb-size) + 2px);
-  width: calc(var(--thumb-size) * 2 - 2px);
-  min-width: calc(var(--thumb-size) * 2 - 2px);
-  padding: 1px;
-  border-radius: 9999px;
+/* CSS fallback washes (when MeshGradient not mounted) */
+.bp-shader-wash {
+  position: relative;
+  isolation: isolate;
   overflow: hidden;
-  flex-shrink: 0;
-  background-color: var(--input);
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-@media (min-width: 640px) {
-  [data-slot='switch']:not([data-size='sm']) {
-    --thumb-size: 1rem;
-  }
+.bp-shader-wash::before {
+  content: '';
+  position: absolute;
+  inset: -15% -8% auto -8%;
+  height: 70%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 65% 80% at 10% 15%, var(--shader-wash-a), transparent 58%),
+    radial-gradient(ellipse 50% 65% at 90% 5%, var(--shader-wash-b), transparent 52%),
+    radial-gradient(ellipse 45% 55% at 55% 90%, var(--shader-wash-c), transparent 55%),
+    radial-gradient(ellipse 40% 45% at 72% 40%, var(--shader-wash-d), transparent 60%);
+  opacity: 0.9;
 }
 
-[data-slot='switch'][data-size='sm'] {
-  --thumb-size: 0.875rem;
+.bp-shader-wash > * {
+  position: relative;
+  z-index: 1;
 }
 
-[data-slot='switch'][data-checked],
-[data-slot='switch'][aria-checked='true'] {
-  background-color: var(--primary);
+.bp-shader-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
 
-[data-slot='switch'][data-unchecked],
-[data-slot='switch'][aria-checked='false'] {
-  background-color: var(--input);
+.bp-shader-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 90% 55% at 0% 0%, var(--shader-wash-a), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, var(--shader-wash-b), transparent 50%);
+  opacity: 0.65;
 }
 
-[data-slot='switch-thumb'] {
-  box-sizing: border-box;
+.bp-shader-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Real MeshGradient mount host */
+.bp-mesh-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Siblings of the mesh host stay readable above the canvas */
+[data-slot='shader-accent'] ~ * {
+  position: relative;
+  z-index: 1;
+}
+
+.bp-mesh-host canvas,
+.bp-mesh-host > * {
+  width: 100% !important;
+  height: 100% !important;
   display: block;
-  height: var(--thumb-size);
-  width: var(--thumb-size);
-  min-width: var(--thumb-size);
-  max-width: var(--thumb-size);
-  border-radius: 9999px;
-  background-color: var(--background);
-  box-shadow: 0 1px 2px oklch(0 0 0 / 0.12);
-  /* Reset any Tailwind translate / transform utilities */
-  translate: none;
-  transform: translate3d(0, 0, 0);
-  transform-origin: left center;
-  transition: transform 0.15s ease;
 }
 
-[data-slot='switch-thumb'][data-checked],
-[data-slot='switch'][data-checked] > [data-slot='switch-thumb'],
-[data-slot='switch'][aria-checked='true'] > [data-slot='switch-thumb'] {
-  transform: translate3d(calc(var(--thumb-size) - 4px), 0, 0);
+.bp-mesh-fade {
+  opacity: 0.32;
 }
 
-[data-slot='switch-thumb'][data-unchecked],
-[data-slot='switch'][data-unchecked] > [data-slot='switch-thumb'],
-[data-slot='switch'][aria-checked='false'] > [data-slot='switch-thumb'] {
-  transform: translate3d(0, 0, 0);
+.bp-mesh-fade-soft {
+  opacity: 0.2;
+}
+
+.bp-mesh-strip {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  opacity: 0.85;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-slot='switch'],
-  [data-slot='switch-thumb'] {
-    transition: none;
+  .bp-mesh-fade,
+  .bp-mesh-fade-soft {
+    opacity: 0.22;
   }
+}
+
+@container (min-width: 24rem) {
+  /* reserved */
+}
+
+/* Switch geometry + motion live in primitives/switch.tsx (framer-motion springs).
+   Scroll-area thumb sizing vars filled by Base UI at runtime. */
+[data-slot='scroll-area'] {
+  --scroll-area-thumb-height: 40%;
+  --scroll-area-thumb-width: 40%;
+}
+
+[data-slot='scroll-area-viewport'] {
+  outline: none;
+}
+
+[data-slot='scroll-area-viewport']:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
 }

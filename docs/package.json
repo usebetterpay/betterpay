@@ -10,8 +10,9 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "registry:build": "node scripts/build-registry.mjs",
-    "pages:build": "pnpm registry:build && pnpm build",
-    "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-docs"
+    "pages:build": "BETTERPAY_REGISTRY_URL=https://ui.betterpay.dev/r BETTERPAY_DOCS_URL=https://ui.betterpay.dev pnpm registry:build && pnpm build",
+    "deploy": "pnpm pages:build && wrangler pages deploy out --project-name betterpay-ui-site --branch main --commit-dirty=true && wrangler pages deploy out --project-name betterpay-ui --branch main --commit-dirty=true && wrangler pages deploy out --project-name betterpay-docs --branch main --commit-dirty=true",
+    "deploy:quick": "wrangler pages deploy out --project-name betterpay-ui-site --branch main --commit-dirty=true && wrangler pages deploy out --project-name betterpay-ui --branch main --commit-dirty=true && wrangler pages deploy out --project-name betterpay-docs --branch main --commit-dirty=true"
   },
   "dependencies": {
     "@betterpay/ui": "workspace:^",

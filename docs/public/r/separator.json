@@ -8,14 +8,14 @@
     "@base-ui/react"
   ],
   "registryDependencies": [
-    "https://betterpay-docs.pages.dev/r/utils.json"
+    "@betterpay/utils"
   ],
   "files": [
     {
-      "path": "src/primitives/separator.tsx",
+      "path": "registry/betterpay/ui/separator.tsx",
       "type": "registry:ui",
-      "target": "components/ui/separator.tsx",
-      "content": "'use client';\n\nimport { Separator as SeparatorPrimitive } from '@base-ui/react/separator';\nimport { cn } from '@/lib/utils';\n\n/**\n * Quiet structural rule (Base UI). Prefer over ad-hoc border divs.\n */\nfunction Separator({\n  className,\n  orientation = 'horizontal',\n  ...props\n}: SeparatorPrimitive.Props) {\n  return (\n    <SeparatorPrimitive\n      data-slot=\"separator\"\n      orientation={orientation}\n      className={cn(\n        'shrink-0 bg-border',\n        'data-horizontal:h-px data-horizontal:w-full',\n        'data-vertical:h-full data-vertical:w-px data-vertical:self-stretch',\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport { Separator };\n"
+      "target": "@ui/separator.tsx",
+      "content": "'use client';\n\nimport { Separator as SeparatorPrimitive } from '@base-ui/react/separator';\nimport { cn } from '@/lib/utils';\n\n/**\n * Quiet structural rule (Base UI). Prefer over ad-hoc border divs.\n */\nfunction Separator({\n  className,\n  orientation = 'horizontal',\n  ...props\n}: SeparatorPrimitive.Props) {\n  return (\n    <SeparatorPrimitive\n      data-slot=\"separator\"\n      orientation={orientation}\n      className={cn(\n        // coss: data-[orientation=...] (Base UI orientation attr)\n        'shrink-0 bg-border',\n        'data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full',\n        'data-[orientation=vertical]:w-px data-[orientation=vertical]:self-stretch',\n        // legacy Base UI data-horizontal fallback\n        'data-horizontal:h-px data-horizontal:w-full',\n        'data-vertical:h-full data-vertical:w-px data-vertical:self-stretch',\n        className,\n      )}\n      {...props}\n    />\n  );\n}\n\nexport { Separator };\n"
     }
   ]
 }

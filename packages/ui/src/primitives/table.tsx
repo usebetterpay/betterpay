@@ -4,8 +4,7 @@ import * as React from 'react';
 import { cn } from '../lib/cn';
 
 /**
- * Dense data table. Always scrollable on narrow viewports.
- * Amounts should use tabular-nums in cells.
+ * Data table. Always scrollable on narrow viewports.
  */
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
@@ -74,7 +73,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'h-10 px-3 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground whitespace-nowrap sm:h-9',
+        'h-12 px-5 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground whitespace-nowrap',
         className,
       )}
       {...props}
@@ -86,11 +85,7 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
       data-slot="table-cell"
-      className={cn(
-        // Comfortable tap row height on mobile
-        'px-3 py-3 align-middle text-sm sm:py-2.5',
-        className,
-      )}
+      className={cn('px-5 py-3.5 align-middle text-sm', className)}
       {...props}
     />
   );
@@ -100,7 +95,7 @@ function TableCaption({ className, ...props }: React.ComponentProps<'caption'>) 
   return (
     <caption
       data-slot="table-caption"
-      className={cn('mt-3 text-sm text-muted-foreground', className)}
+      className={cn('mt-4 text-sm text-muted-foreground', className)}
       {...props}
     />
   );

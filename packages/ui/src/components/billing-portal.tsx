@@ -65,15 +65,15 @@ export function BillingPortal({
     <div
       data-slot="billing-portal"
       className={cn(
-        '@container mx-auto flex w-full min-w-0 max-w-4xl flex-col gap-5 font-sans @md:gap-7',
+        '@container mx-auto flex w-full min-w-0 max-w-4xl flex-col gap-8 font-sans @md:gap-10',
         className,
       )}
     >
-      <header className="flex min-w-0 flex-col gap-1">
-        <h1 className="text-lg font-semibold tracking-tight @sm:text-xl @md:text-2xl">
+      <header className="flex min-w-0 flex-col gap-2">
+        <h1 className="text-xl font-semibold tracking-tight @sm:text-[1.375rem]">
           {title}
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm leading-relaxed text-muted-foreground">
           Plan, usage, and invoices for this account.
         </p>
       </header>
@@ -92,7 +92,7 @@ export function BillingPortal({
 
       {plans.length > 0 || onCancel ? (
         <div
-          className="flex flex-wrap items-center gap-2"
+          className="flex flex-wrap items-center gap-3 sm:gap-4"
           data-slot="billing-portal-actions"
         >
           {plans.length > 0 ? (
@@ -112,19 +112,19 @@ export function BillingPortal({
       {usageLoading && entitlements.length === 0 ? (
         <div
           data-slot="billing-portal-usage-loading"
-          className="rounded-lg border border-border p-4"
+          className="rounded-xl border border-border p-6"
           aria-busy="true"
         >
-          <div className="mb-3 h-4 w-24 animate-pulse rounded-md bg-muted" />
-          <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
+          <div className="mb-4 h-4 w-28 animate-pulse rounded-md bg-muted" />
+          <div className="h-2.5 w-full animate-pulse rounded-full bg-muted" />
         </div>
       ) : entitlements.length > 0 ? (
         <UsageSummary entitlements={entitlements} periodLabel={usagePeriodLabel} />
       ) : null}
 
       {invoiceLayout === 'cards' ? (
-        <section className="flex flex-col gap-3" data-slot="billing-portal-invoices">
-          <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
+        <section className="flex flex-col gap-4" data-slot="billing-portal-invoices">
+          <h2 className="text-base font-semibold tracking-tight">Invoices</h2>
           <InvoiceCardList
             invoices={invoices}
             onDownload={onDownloadInvoice}
@@ -141,10 +141,10 @@ export function BillingPortal({
             />
           </div>
           <section
-            className="flex flex-col gap-3 @md:hidden"
+            className="flex flex-col gap-4 @md:hidden"
             data-slot="billing-portal-invoices-mobile"
           >
-            <h2 className="text-sm font-semibold tracking-tight">Invoices</h2>
+            <h2 className="text-base font-semibold tracking-tight">Invoices</h2>
             <InvoiceCardList
               invoices={invoices}
               onDownload={onDownloadInvoice}

@@ -1,0 +1,6 @@
+{
+  "name": "@betterpay",
+  "homepage": "https://ui.betterpay.dev",
+  "url": "https://ui.betterpay.dev/r/{name}.json",
+  "description": "Billing and payments UI for Indonesia — pricing tables, subscription portal, invoices, usage meters. Base UI + Tailwind. Install with the shadcn CLI."
+}

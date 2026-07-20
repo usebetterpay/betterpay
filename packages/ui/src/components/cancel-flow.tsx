@@ -72,17 +72,17 @@ export function CancelFlow({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{body}</DialogDescription>
         </DialogHeader>
-        <fieldset data-slot="cancel-flow-reasons" className="flex flex-col gap-2">
-          <legend className="mb-1 text-sm font-medium">Why are you leaving? (optional)</legend>
+        <fieldset data-slot="cancel-flow-reasons" className="flex flex-col gap-3.5">
+          <legend className="text-sm font-medium">Why are you leaving? (optional)</legend>
           <div
             role="radiogroup"
             aria-label="Cancellation reason"
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-2.5"
           >
             {reasons.map((reason) => (
               <label
                 key={reason.id}
-                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 py-2.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                className="flex min-h-12 cursor-pointer items-center gap-3.5 rounded-xl border border-border px-4 py-3.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
               >
                 <input
                   type="radio"

@@ -9,7 +9,7 @@ const shellVariants = cva('mx-auto w-full min-w-0 max-w-5xl px-0', {
   variants: {
     density: {
       comfortable: '',
-      compact: '[&_[data-slot=plan-group]]:gap-4',
+      compact: '[&_[data-slot=plan-group]]:gap-6 [&_[data-slot=plan-group]_header]:gap-4',
     },
   },
   defaultVariants: { density: 'comfortable' },
@@ -34,8 +34,8 @@ export interface PricingTableProps extends VariantProps<typeof shellVariants> {
  */
 export function PricingTable({
   plans,
-  title = 'Choose a plan',
-  description = 'Transparent pricing for Indonesian payment infrastructure.',
+  title,
+  description,
   interval,
   defaultInterval = 'month',
   onIntervalChange,
@@ -44,6 +44,14 @@ export function PricingTable({
   density,
   className,
 }: PricingTableProps) {
+  // Empty string = intentionally hide (e.g. page already has a header).
+  // undefined = component defaults for standalone / docs usage.
+  const resolvedTitle = title === undefined ? 'Choose a plan' : title || undefined;
+  const resolvedDescription =
+    description === undefined
+      ? 'Transparent pricing for Indonesian payment infrastructure.'
+      : description || undefined;
+
   return (
     <section
       data-slot="pricing-table"
@@ -51,8 +59,8 @@ export function PricingTable({
     >
       <PlanGroup
         plans={plans}
-        title={title}
-        description={description}
+        title={resolvedTitle}
+        description={resolvedDescription}
         interval={interval}
         defaultInterval={defaultInterval}
         onIntervalChange={onIntervalChange}

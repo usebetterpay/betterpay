@@ -6,13 +6,12 @@ import type { BadgeTone } from '../lib/status';
 
 /**
  * Status / meta badge. Prefer `tone` for domain status; `variant` for chrome.
- * Composition via Base UI useRender (`render` prop).
  */
 const badgeVariants = cva(
   [
-    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1',
-    'rounded-md border border-transparent px-1.5 text-[0.6875rem] font-medium tracking-wide',
-    'whitespace-nowrap uppercase transition-colors',
+    'group/badge inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1.5',
+    'rounded-full border border-transparent px-2.5 py-0.5 text-xs font-medium tracking-wide',
+    'whitespace-nowrap transition-colors',
     'duration-[var(--duration-fast,120ms)] ease-[var(--ease-out,cubic-bezier(0.16,1,0.3,1))]',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
     '[&>svg]:pointer-events-none [&>svg]:size-3',
@@ -20,20 +19,21 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground',
+        default:
+          'bg-[color-mix(in_oklch,var(--primary)_12%,var(--background))] text-primary border-[color-mix(in_oklch,var(--primary)_14%,transparent)]',
         secondary: 'bg-secondary text-secondary-foreground',
-        outline: 'border-border bg-card text-foreground',
+        outline:
+          'border-border/80 bg-card/80 text-muted-foreground font-medium normal-case tracking-normal',
         ghost: 'text-muted-foreground',
-        // Domain tones
         success:
-          'border-transparent bg-[color-mix(in_oklch,var(--success)_14%,var(--background))] text-success',
+          'border-transparent bg-[color-mix(in_oklch,var(--success)_12%,var(--background))] text-success',
         warning:
-          'border-transparent bg-[color-mix(in_oklch,var(--warning)_16%,var(--background))] text-warning',
+          'border-transparent bg-[color-mix(in_oklch,var(--warning)_14%,var(--background))] text-warning',
         danger:
-          'border-transparent bg-[color-mix(in_oklch,var(--destructive)_12%,var(--background))] text-destructive',
-        muted: 'border-border bg-muted text-muted-foreground normal-case tracking-normal',
-        info:
-          'border-transparent bg-[color-mix(in_oklch,var(--info)_12%,var(--background))] text-[var(--info)]',
+          'border-transparent bg-[color-mix(in_oklch,var(--destructive)_10%,var(--background))] text-destructive',
+        muted:
+          'border-border/60 bg-muted/80 text-muted-foreground normal-case tracking-normal',
+        info: 'border-transparent bg-[color-mix(in_oklch,var(--info)_10%,var(--background))] text-[var(--info)]',
       },
     },
     defaultVariants: {
@@ -71,7 +71,6 @@ function Badge({
       {
         className: cn(badgeVariants({ variant: resolved }), className),
       },
-      // data-slot is a custom attribute; cast keeps useRender typings happy
       { ...props, 'data-slot': 'badge' } as typeof props & { 'data-slot': string },
     ),
     render,

@@ -8,9 +8,11 @@ import {
   CardHeader,
   CardTitle,
   EntitlementMeter,
-  PaymentStatusBanner,
   formatIdr,
 } from '@betterpay/ui';
+import { CalloutBanner } from '../components/CalloutBanner';
+import { PageHeader } from '../components/PageHeader';
+import { ShaderAccent } from '../components/ShaderAccent';
 import { api } from '../lib/api';
 import { useDogfood } from '../lib/state';
 
@@ -20,53 +22,50 @@ export function CreditsPage() {
 
   return (
     <div className="stack">
-      <div>
-        <h1 className="page-title">Credits</h1>
-        <p className="page-desc">
-          Payment use case: <strong>buy credit pack</strong> — one-shot top-up that adds bonus
-          tokens without changing your plan.
-        </p>
-      </div>
+      <PageHeader title="Credits">
+        Payment use case: <strong>buy credit pack</strong> — one-shot top-up that adds bonus tokens
+        without changing your plan.
+      </PageHeader>
 
-      {state.views.callout && (
-        <PaymentStatusBanner
-          status={state.views.callout.status}
-          title={state.views.callout.title}
-          description={state.views.callout.description}
-          dismissible
-          onDismiss={() =>
-            void run(async () => {
-              setState(await api.dismissCallout());
-            })
-          }
-        />
-      )}
+      <CalloutBanner />
 
-      <EntitlementMeter entitlement={state.views.entitlement} />
+      <EntitlementMeter entitlement={state.views.entitlement} className="bp-shader-card" />
 
       <div>
-        <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 0.65rem' }}>Credit packs</h2>
+        <h2 className="section-label">Credit packs</h2>
         <div className="pack-grid">
-          {state.catalog.packs.map((pack) => (
-            <Card key={pack.id}>
+          {state.catalog.packs.map((pack, index) => (
+            <Card
+              key={pack.id}
+              elevated={Boolean(pack.badge)}
+              className="h-full relative overflow-hidden"
+            >
+              {index === 1 ? <ShaderAccent variant="card" /> : null}
               <CardHeader>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    minHeight: '1.5rem',
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <CardTitle className="text-base">{pack.name}</CardTitle>
-                  {pack.badge && <Badge>{pack.badge}</Badge>}
+                  {pack.badge ? <Badge tone="default">{pack.badge}</Badge> : null}
                 </div>
-                <CardDescription>{pack.description}</CardDescription>
+                <CardDescription className="min-h-[2.75rem]">{pack.description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div style={{ fontSize: '1.35rem', fontWeight: 600 }}>
-                  {formatIdr(pack.amountIdr)}
-                </div>
-                <p className="muted" style={{ marginTop: '0.25rem' }}>
+              <CardContent className="flex flex-1 flex-col">
+                <div className="pack-price">{formatIdr(pack.amountIdr)}</div>
+                <p className="muted" style={{ marginTop: '0.35rem' }}>
                   +{pack.credits.toLocaleString('id-ID')} AI credits · one-time
                 </p>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="mt-auto">
                 <Button
                   className="w-full"
+                  variant={pack.badge ? 'default' : 'outline'}
                   onClick={() =>
                     void run(async () => {
                       const res = await api.buyPack(pack.id);

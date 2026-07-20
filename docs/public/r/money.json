@@ -3,14 +3,12 @@
   "name": "money",
   "type": "registry:lib",
   "title": "Money",
-  "description": "formatMoney helpers",
-  "dependencies": [],
-  "registryDependencies": [],
+  "description": "formatMoney helpers (IDR-first)",
   "files": [
     {
-      "path": "src/lib/money.ts",
+      "path": "registry/betterpay/lib/money.ts",
       "type": "registry:lib",
-      "target": "lib/money.ts",
+      "target": "@lib/money.ts",
       "content": "export interface FormatMoneyOptions {\n  /** ISO 4217 currency code. Default: IDR */\n  currency?: string;\n  /** BCP 47 locale. Default: id-ID */\n  locale?: string;\n  /**\n   * Amount unit:\n   * - `major` — whole currency units (150000 = Rp 150.000) — default for IDR UX\n   * - `minor` — ISO minor units (150000 = Rp 1.500 for IDR with 0 decimals would be wrong;\n   *   use minor only when you store cents/yen-style units consistently)\n   */\n  unit?: 'major' | 'minor';\n  /** Override fraction digits (IDR defaults to 0). */\n  minimumFractionDigits?: number;\n  maximumFractionDigits?: number;\n}\n\nconst ZERO_DECIMAL = new Set(['IDR', 'VND', 'JPY', 'KRW']);\n\nfunction defaultFractionDigits(currency: string): number {\n  return ZERO_DECIMAL.has(currency.toUpperCase()) ? 0 : 2;\n}\n\n/**\n * Format a monetary amount for display.\n * Defaults to Indonesian Rupiah (`id-ID` / `IDR`) with no fraction digits.\n */\nexport function formatMoney(amount: number, options: FormatMoneyOptions = {}): string {\n  if (!Number.isFinite(amount)) {\n    throw new TypeError('formatMoney: amount must be a finite number');\n  }\n\n  const currency = (options.currency ?? 'IDR').toUpperCase();\n  const locale = options.locale ?? 'id-ID';\n  const unit = options.unit ?? 'major';\n  const defaults = defaultFractionDigits(currency);\n  const min = options.minimumFractionDigits ?? defaults;\n  const max = options.maximumFractionDigits ?? defaults;\n\n  let value = amount;\n  if (unit === 'minor') {\n    const divisor = 10 ** defaults;\n    value = amount / (divisor === 0 ? 1 : divisor);\n  }\n\n  return new Intl.NumberFormat(locale, {\n    style: 'currency',\n    currency,\n    minimumFractionDigits: min,\n    maximumFractionDigits: max,\n  }).format(value);\n}\n\n/** Convenience: IDR major units. */\nexport function formatIdr(amount: number): string {\n  return formatMoney(amount, { currency: 'IDR', locale: 'id-ID', unit: 'major' });\n}\n"
     }
   ]

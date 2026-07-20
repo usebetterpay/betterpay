@@ -59,7 +59,8 @@ export {
   DialogFooter,
 } from './primitives/dialog';
 export { Separator } from './primitives/separator';
-export { Switch } from './primitives/switch';
+export { Switch, type SwitchProps } from './primitives/switch';
+export { ScrollArea, ScrollBar, type ScrollAreaProps } from './primitives/scroll-area';
 export {
   Table,
   TableHeader,

@@ -3,17 +3,16 @@
   "name": "utils",
   "type": "registry:lib",
   "title": "Utils",
-  "description": "cn() helper",
+  "description": "cn() helper (clsx + tailwind-merge)",
   "dependencies": [
     "clsx",
     "tailwind-merge"
   ],
-  "registryDependencies": [],
   "files": [
     {
-      "path": "src/lib/cn.ts",
+      "path": "registry/betterpay/lib/utils.ts",
       "type": "registry:lib",
-      "target": "lib/utils.ts",
+      "target": "@lib/utils.ts",
       "content": "import { clsx, type ClassValue } from 'clsx';\nimport { twMerge } from 'tailwind-merge';\n\n/** Merge Tailwind classes with conflict resolution. */\nexport function cn(...inputs: ClassValue[]): string {\n  return twMerge(clsx(inputs));\n}\n"
     }
   ]

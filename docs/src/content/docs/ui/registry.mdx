@@ -1,0 +1,76 @@
+---
+title: shadcn Registry
+description: Install BetterPay UI components with the shadcn CLI via the @betterpay namespace.
+---
+
+The BetterPay component registry is a flat, public [shadcn registry](https://ui.shadcn.com/docs/registry) hosted at [ui.betterpay.dev](https://ui.betterpay.dev).
+
+## Namespace setup
+
+Add the registry once per project (requires a `components.json` from `shadcn init`):
+
+```bash title="Terminal"
+npx shadcn@latest registry add @betterpay=https://ui.betterpay.dev/r/{name}.json
+```
+
+Or edit `components.json`:
+
+```json title="components.json"
+{
+  "registries": {
+    "@betterpay": "https://ui.betterpay.dev/r/{name}.json"
+  }
+}
+```
+
+The `{name}` placeholder is replaced by the item name. `@betterpay/plan-card` resolves to `https://ui.betterpay.dev/r/plan-card.json`.
+
+## Commands
+
+```bash title="Terminal"
+# list catalog
+npx shadcn@latest list @betterpay
+# or
+npx shadcn@latest list https://ui.betterpay.dev/r/registry.json
+
+# search
+npx shadcn@latest search @betterpay --query invoice
+
+# view one item
+npx shadcn@latest view @betterpay/plan-card
+
+# install
+npx shadcn@latest add @betterpay/pricing-table
+npx shadcn@latest add @betterpay/billing-portal
+```
+
+Direct URL install (no namespace):
+
+```bash title="Terminal"
+npx shadcn@latest add https://ui.betterpay.dev/r/plan-card.json
+```
+
+## Catalog URL
+
+| Resource | URL |
+|----------|-----|
+| Catalog | https://ui.betterpay.dev/r/registry.json |
+| Homepage | https://ui.betterpay.dev |
+| Template | `https://ui.betterpay.dev/r/{name}.json` |
+
+The catalog (`registry.json`) lists items **without** file `content` — that matches the [registry directory](https://ui.shadcn.com/docs/registry/registry-index) requirements. Individual `{name}.json` files include source for `shadcn add`.
+
+## Official directory
+
+To use `@betterpay/...` without pasting the URL template, the namespace can be submitted to the [open source registry index](https://ui.shadcn.com/docs/registry/registry-index) (`apps/v4/registry/directory.json` in [shadcn-ui/ui](https://github.com/shadcn-ui/ui)).
+
+Entry template (also in-repo as `docs/registry-directory-entry.json`):
+
+```json
+{
+  "name": "@betterpay",
+  "homepage": "https://ui.betterpay.dev",
+  "url": "https://ui.betterpay.dev/r/{name}.json",
+  "description": "Billing and payments UI for Indonesia — pricing tables, subscription portal, invoices, usage meters. Base UI + Tailwind. Install with the shadcn CLI."
+}
+```

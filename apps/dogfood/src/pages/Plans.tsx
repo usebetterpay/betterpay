@@ -1,4 +1,6 @@
-import { PricingTable, PaymentStatusBanner } from '@betterpay/ui';
+import { PricingTable } from '@betterpay/ui';
+import { CalloutBanner } from '../components/CalloutBanner';
+import { PageHeader } from '../components/PageHeader';
 import { api } from '../lib/api';
 import { useDogfood } from '../lib/state';
 
@@ -8,32 +10,18 @@ export function PlansPage() {
 
   return (
     <div className="stack">
-      <div>
-        <h1 className="page-title">Plans</h1>
-        <p className="page-desc">
-          Payment use case: <strong>buy plan</strong> — monthly/yearly allowance of AI credits.
-          Paid plans open a real sandbox checkout (SumoPod QRIS or Midtrans).
-        </p>
-      </div>
+      <PageHeader title="Plans">
+        Monthly or yearly AI credit allowance. Paid plans open sandbox checkout (SumoPod QRIS or
+        Midtrans). Top-ups live on Credits.
+      </PageHeader>
 
-      {state.views.callout && (
-        <PaymentStatusBanner
-          status={state.views.callout.status}
-          title={state.views.callout.title}
-          description={state.views.callout.description}
-          dismissible
-          onDismiss={() =>
-            void run(async () => {
-              setState(await api.dismissCallout());
-            })
-          }
-        />
-      )}
+      <CalloutBanner />
 
       <PricingTable
+        className="plans-table"
         plans={state.views.plans}
-        title="AI credit plans"
-        description="Subscribe for a monthly token allowance. Top-ups are on the Credits page."
+        title=""
+        description=""
         defaultInterval="month"
         onSelectPlan={(planId, interval) => {
           void run(async () => {

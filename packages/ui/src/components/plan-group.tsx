@@ -27,7 +27,7 @@ export function usePlanGroup(): PlanGroupContextValue {
  * Grid uses @container breakpoints so layout follows the component width
  * (docs mobile preview frames, sidebars), not only the browser viewport.
  */
-const planGroupGrid = cva('grid w-full min-w-0 grid-cols-1 gap-3 @md:gap-4', {
+const planGroupGrid = cva('grid w-full min-w-0 grid-cols-1 gap-5 @md:gap-6', {
   variants: {
     columns: {
       1: 'grid-cols-1',
@@ -97,17 +97,16 @@ export function PlanGroup({
       <div
         data-slot="plan-group"
         className={cn(
-          // Container query root — @sm/@md follow this width (not browser)
-          '@container w-full min-w-0 flex flex-col gap-5 font-sans @md:gap-6',
+          '@container w-full min-w-0 flex flex-col gap-8 font-sans @md:gap-10',
           className,
         )}
         {...props}
       >
         {(title || description || showIntervalToggle) && (
-          <header className="flex w-full min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-            <div className="flex min-w-0 max-w-xl flex-col gap-1.5">
+          <header className="flex w-full min-w-0 flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="flex min-w-0 max-w-xl flex-col gap-2.5">
               {title ? (
-                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-[1.375rem]">
                   {title}
                 </h2>
               ) : null}

@@ -1,4 +1,4 @@
-import { Button, Badge } from '@betterpay/ui';
+import { Button, Badge, ScrollArea } from '@betterpay/ui';
 import { api, type ProviderId, type Snapshot } from '../lib/api';
 import { useDogfood } from '../lib/state';
 
@@ -52,12 +52,66 @@ export function HelpersPanel() {
   const ps = state.providers;
 
   return (
-    <aside className="dogfood-helpers" aria-label="Demo helpers">
+    <ScrollArea
+      className="dogfood-helpers-scroll h-full min-h-0"
+      viewportClassName="dogfood-helpers-viewport"
+      orientation="vertical"
+    >
       <div className="helper-section">
-        <h2>Helpers</h2>
-        <p className="muted" style={{ margin: 0 }}>
-          Seed state & burn credits. Checkout uses real sandbox gateways.
+        <h2>Gateway</h2>
+        <div className="helper-row">
+          {GATEWAYS.map((g) => {
+            const st = ps?.[g.statusKey] as { configured?: boolean } | undefined;
+            const configured = st?.configured !== false;
+            const selected = state.provider === g.id;
+            return (
+              <Button
+                key={g.id}
+                size="sm"
+                variant={selected ? 'secondary' : 'outline'}
+                disabled={Boolean(ps) && st?.configured === false}
+                aria-pressed={selected}
+                onClick={() =>
+                  void run(async () => {
+                    setState(await api.setProvider(g.id));
+                  })
+                }
+              >
+                {g.label}
+                {!configured ? ' · off' : ''}
+              </Button>
+            );
+          })}
+        </div>
+        <p className="muted" style={{ marginTop: '0.45rem' }}>
+          {ps ? gatewayHint(ps) : 'Loading gateway status…'}
         </p>
+        <div className="helper-row" style={{ marginTop: '0.35rem' }}>
+          <Button
+            size="sm"
+            variant={state.paymentMode === 'live' ? 'secondary' : 'outline'}
+            aria-pressed={state.paymentMode === 'live'}
+            onClick={() =>
+              void run(async () => {
+                setState(await api.paymentMode('live'));
+              })
+            }
+          >
+            Live sandbox
+          </Button>
+          <Button
+            size="sm"
+            variant={state.paymentMode === 'simulate' ? 'secondary' : 'outline'}
+            aria-pressed={state.paymentMode === 'simulate'}
+            onClick={() =>
+              void run(async () => {
+                setState(await api.paymentMode('simulate'));
+              })
+            }
+          >
+            Simulate only
+          </Button>
+        </div>
       </div>
 
       <div className="helper-section">
@@ -67,7 +121,7 @@ export function HelpersPanel() {
             <Button
               key={t.id}
               size="sm"
-              variant="secondary"
+              variant="outline"
               onClick={() =>
                 void run(async () => {
                   setState(await api.seed(t.id));
@@ -115,7 +169,7 @@ export function HelpersPanel() {
         <div className="helper-row">
           <Button
             size="sm"
-            variant="secondary"
+            variant="outline"
             onClick={() =>
               void run(async () => {
                 setState(await api.grant(100));
@@ -134,61 +188,6 @@ export function HelpersPanel() {
             }
           >
             Reset period
-          </Button>
-        </div>
-      </div>
-
-      <div className="helper-section">
-        <h2>Gateway</h2>
-        <div className="helper-row">
-          {GATEWAYS.map((g) => {
-            const st = ps?.[g.statusKey] as
-              | { configured?: boolean }
-              | undefined;
-            const configured = st?.configured !== false;
-            return (
-              <Button
-                key={g.id}
-                size="sm"
-                variant={state.provider === g.id ? 'default' : 'outline'}
-                disabled={Boolean(ps) && st?.configured === false}
-                onClick={() =>
-                  void run(async () => {
-                    setState(await api.setProvider(g.id));
-                  })
-                }
-              >
-                {g.label}
-                {!configured ? ' · off' : ''}
-              </Button>
-            );
-          })}
-        </div>
-        <p className="muted" style={{ marginTop: '0.45rem' }}>
-          {ps ? gatewayHint(ps) : 'Loading gateway status…'}
-        </p>
-        <div className="helper-row" style={{ marginTop: '0.35rem' }}>
-          <Button
-            size="sm"
-            variant={state.paymentMode === 'live' ? 'default' : 'outline'}
-            onClick={() =>
-              void run(async () => {
-                setState(await api.paymentMode('live'));
-              })
-            }
-          >
-            Live sandbox
-          </Button>
-          <Button
-            size="sm"
-            variant={state.paymentMode === 'simulate' ? 'default' : 'outline'}
-            onClick={() =>
-              void run(async () => {
-                setState(await api.paymentMode('simulate'));
-              })
-            }
-          >
-            Simulate only
           </Button>
         </div>
       </div>
@@ -259,6 +258,6 @@ export function HelpersPanel() {
           ))}
         </ul>
       </div>
-    </aside>
+    </ScrollArea>
   );
 }

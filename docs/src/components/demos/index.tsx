@@ -180,7 +180,7 @@ export function DemoPaymentStatusBanner() {
       <PaymentStatusBanner
         status="past_due"
         description="Update payment to keep Pro features."
-        action={
+        actions={
           <Button size="sm" variant="outline">
             Retry payment
           </Button>

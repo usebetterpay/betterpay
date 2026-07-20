@@ -89,9 +89,9 @@ function periodEnd(days = 30): string {
 
 function baseState(): DogfoodState {
   return {
-    customerId: 'cus_demo_acme',
+    customerId: 'cus_demo_corp',
     customerName: 'Ayu Demo',
-    customerEmail: 'ayu@acme-ai.dev',
+    customerEmail: 'ayu@demo.corp',
     planId: 'free',
     subscriptionId: 'sub_demo_free',
     subscriptionStatus: 'active',
@@ -102,11 +102,7 @@ function baseState(): DogfoodState {
     bonusCredits: 0,
     payments: [],
     invoices: [],
-    callout: {
-      status: 'pending',
-      title: 'Welcome to Acme AI',
-      description: 'Demo dashboard — buy a plan or top up credits via sandbox QRIS.',
-    },
+    callout: null,
     paymentMode: 'live',
     provider: 'sumopod',
     activity: [{ at: new Date().toISOString(), message: 'Seeded Free plan (100 credits/mo)' }],
@@ -174,7 +170,7 @@ export function getSnapshot() {
         label: 'AI credits',
         used: bal.poolUsed,
         limit: bal.poolLimit,
-        resetLabel: 'Resets with billing period',
+        resetLabel: 'with billing period',
         unit: 'credits',
       },
       entitlements: [
@@ -183,7 +179,7 @@ export function getSnapshot() {
           label: 'AI credits',
           used: bal.poolUsed,
           limit: bal.poolLimit,
-          resetLabel: 'Resets with billing period',
+          resetLabel: 'with billing period',
           unit: 'credits',
         },
       ],
@@ -403,8 +399,8 @@ function createPendingPayment(input: {
     title: 'Payment pending',
     description:
       input.provider === 'simulate'
-        ? `${input.label} · Helpers → Simulate paid`
-        : `${input.label} · open checkout link to pay (sandbox)`,
+        ? `${input.label} · use Helpers → Mark paid to complete`
+        : `${input.label} · finish payment in the sandbox checkout`,
   };
   pushActivity(
     `Payment created (${input.provider}): ${input.label} (Rp ${input.amountIdr.toLocaleString('id-ID')})`,

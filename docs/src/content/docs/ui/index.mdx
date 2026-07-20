@@ -48,10 +48,20 @@ pnpm add @betterpay/ui
 **Option B — shadcn registry (copy source into your app):**
 
 ```bash title="Terminal"
-npx shadcn@latest add https://betterpay-docs.pages.dev/r/pricing-table.json
+# once per project — namespace
+npx shadcn@latest registry add @betterpay=https://ui.betterpay.dev/r/{name}.json
+
+# then install by name
+npx shadcn@latest add @betterpay/pricing-table
 ```
 
-Registry index: [https://betterpay-docs.pages.dev/r/index.json](https://betterpay-docs.pages.dev/r/index.json)
+Or by full URL:
+
+```bash title="Terminal"
+npx shadcn@latest add https://ui.betterpay.dev/r/pricing-table.json
+```
+
+Catalog: [https://ui.betterpay.dev/r/registry.json](https://ui.betterpay.dev/r/registry.json)
 
 ```ts title="Optional theme CSS"
 import '@betterpay/ui/styles.css';

@@ -83,7 +83,7 @@ export function PlanSwitcher({
           role="radiogroup"
           aria-label={title}
           onKeyDown={onListKeyDown}
-          className="flex max-h-[min(50vh,20rem)] flex-col gap-2 overflow-y-auto overscroll-contain pe-0.5"
+          className="flex max-h-[min(50vh,22rem)] flex-col gap-3 overflow-y-auto overscroll-contain pe-0.5"
         >
           {plans.map((plan) => {
             const amount = interval === 'year' ? plan.yearlyAmount : plan.monthlyAmount;
@@ -99,28 +99,28 @@ export function PlanSwitcher({
                   data-slot="plan-switcher-option"
                   onClick={() => setSelected(plan.id)}
                   className={cn(
-                    'flex w-full min-h-14 items-start justify-between gap-3 rounded-md border p-3 text-left transition-colors',
+                    'flex w-full min-h-[4.25rem] items-start justify-between gap-4 rounded-xl border px-4 py-4 text-left transition-colors',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                     active
                       ? 'border-primary bg-[color-mix(in_oklch,var(--primary)_6%,transparent)]'
                       : 'border-border hover:bg-muted',
                   )}
                 >
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <span className="font-medium">{plan.name}</span>
                       {isCurrent ? <Badge tone="muted">Current</Badge> : null}
                       {plan.recommended ? <Badge tone="default">Recommended</Badge> : null}
                     </div>
                     {plan.description ? (
-                      <span className="line-clamp-2 text-xs text-muted-foreground">
+                      <span className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                         {plan.description}
                       </span>
                     ) : null}
                   </div>
-                  <span className="shrink-0 text-sm font-medium tabular-nums">
+                  <span className="shrink-0 pt-0.5 text-sm font-medium tabular-nums">
                     {formatMoney(amount, { currency })}
-                    <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
                       {interval === 'year' ? '/yr' : '/mo'}
                     </span>
                   </span>

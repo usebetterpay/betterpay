@@ -1,0 +1,4 @@
+name = "betterpay-demo-proxy"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+account_id = "7f9c8992bf403e00a8feaa58f41a7de7"

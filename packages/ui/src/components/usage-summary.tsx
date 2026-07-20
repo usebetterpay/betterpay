@@ -42,30 +42,30 @@ export function UsageSummary({
   return (
     <Card data-slot="usage-summary" className={cn(className)}>
       <CardHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-          <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="text-sm font-semibold">{title}</CardTitle>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CardTitle className="text-base font-semibold tracking-tight">{title}</CardTitle>
             {description ? <CardDescription>{description}</CardDescription> : null}
           </div>
           {periodLabel ? (
-            <span className="shrink-0 text-xs font-medium text-muted-foreground">
+            <span className="shrink-0 rounded-full bg-muted/70 px-3 py-1 text-xs font-medium text-muted-foreground">
               {periodLabel}
             </span>
           ) : null}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-4">
         {entitlements.length === 0 ? (
           <p className="text-sm text-muted-foreground">No metered features on this plan.</p>
         ) : (
           <>
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               {visible.map((item) => (
                 <EntitlementMeter
                   key={item.featureId}
                   entitlement={item}
                   warnAt={warnAt}
-                  className="shadow-none ring-border/80"
+                  variant="embedded"
                 />
               ))}
             </div>
