@@ -13,8 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@betterpay/core": "file:../core",
-    "@betterpay/drizzle-adapter": "file:../drizzle-adapter"
+    "@betterpay/core": "workspace:*",
+    "@betterpay/drizzle-adapter": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

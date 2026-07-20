@@ -220,10 +220,10 @@ importers:
   packages/cli:
     dependencies:
       '@betterpay/core':
-        specifier: file:../core
+        specifier: workspace:*
         version: link:../core
       '@betterpay/drizzle-adapter':
-        specifier: file:../drizzle-adapter
+        specifier: workspace:*
         version: link:../drizzle-adapter
     devDependencies:
       '@types/node':
