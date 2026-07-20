@@ -13,7 +13,21 @@ Dashboard dogfood for **AI credit billing** using **`@betterpay/ui`**.
 
 Not a marketing landing page. Not a multi-provider playground.
 
-## Run
+## Public URL
+
+**https://dogfood.betterpay.dev** — nginx → systemd user `betterpay-dogfood` → `127.0.0.1:8791`
+
+Redeploy after UI changes:
+
+```bash
+cd apps/dogfood
+pnpm build
+systemctl --user restart betterpay-dogfood
+```
+
+Nginx/TLS setup (once): `bash deploy/setup-nginx.sh`
+
+## Local dev
 
 From repo root:
 
@@ -23,7 +37,7 @@ pnpm --filter @betterpay/dogfood dev
 ```
 
 - Web: http://127.0.0.1:5173  
-- API: http://127.0.0.1:8787  
+- API: http://127.0.0.1:8787 (dev) / production service uses **8791**  
 
 ## Stack
 
