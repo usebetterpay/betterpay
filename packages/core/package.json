@@ -1,9 +1,10 @@
 {
   "name": "@betterpay/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -11,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && esbuild src/index.ts --bundle --format=esm --platform=node --packages=external --outfile=dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -25,6 +26,7 @@
     "@types/node": "^22.15.0",
     "@types/pg": "^8.15.0",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.1"
+    "vitest": "^3.2.1",
+    "esbuild": "^0.28.1"
   }
 }
