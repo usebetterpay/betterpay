@@ -32,6 +32,7 @@ pnpm add @betterpay/core @betterpay/pakasir   # Pakasir
 pnpm add @betterpay/core @betterpay/tripay    # Tripay
 pnpm add @betterpay/core @betterpay/mayar     # Mayar
 pnpm add @betterpay/core @betterpay/sumopod   # SumoPod
+pnpm add @betterpay/core @betterpay/doku      # DOKU
 ```
 
 ## Quick Start
@@ -132,6 +133,7 @@ await pay.billing.report({ customerId: "user_1", featureId: "messages", amount: 
 | **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **SumoPod** | — | — | ✅ | — | — |
+| **DOKU** | ✅ | — | — | — | — |
 
 Multiple providers can be registered; the highest-priority provider is selected by default. `createTransaction` uses **retry + per-provider circuit breaker**. **Failover** (try next provider after retryable failures) is **opt-in** via `betterPay({ failover: true })` and only applies to create-link failures before the customer pays — never mid-payment.
 
@@ -237,6 +239,7 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/tripay` | Tripay adapter |
 | `@betterpay/mayar` | Mayar adapter |
 | `@betterpay/sumopod` | SumoPod adapter (sandbox + Svix/token webhooks) |
+| `@betterpay/doku` | DOKU SNAP B2B BCA Virtual Account adapter (`/virtual-accounts/bi-snap-va/v1/transfer-va/create-va`) |
 | `@betterpay/client` | Proxy-based client SDK |
 | `@betterpay/ui` | React billing UI (pricing, portal, invoices, usage) |
 | `@betterpay/cli` | CLI tools (init, push, status, credentials) |

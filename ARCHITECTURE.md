@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture, subscription billing, payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod.
+> **Indonesian billing framework** — Plugin-first architecture, subscription billing, payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod, DOKU.
 >
 > **Status: Alpha.** Defaults are in-memory. Production requires injected durable repositories (see README Production checklist).
 > Wired: createTransaction retry + circuit breaker; opt-in failover; reconciliation via `runReconciliation` / `POST /api/reconcile`; billing cycle `__wireBillingCycle` + multi-stage dunning; Resend email + Fonnte WhatsApp; CLI `push` migrations; plugin `endpoints` + `onRequest`/`onResponse`.
@@ -222,6 +222,7 @@ betterpay/
 │   ├── tripay/                      # Tripay adapter
 │   ├── mayar/                       # Mayar adapter
 │   ├── sumopod/                     # SumoPod adapter (Svix + token webhooks)
+│   ├── doku/                        # DOKU SNAP B2B BCA VA adapter
 │   │
 │   │  ═══ Notification Plugins ═══
 │   ├── notification-email/          # Resend (wired)
@@ -292,6 +293,7 @@ interface PaymentProvider {
 | **Pakasir** | `PakasirAdapter` | `POST /api/transaction` | API key in body | Project slug match |
 | **Tripay** | `TripayProvider` | `POST /transaction/create` | `Bearer apiKey` | HMAC-SHA256(merchantCode + merchantRef + amount, privateKey) |
 | **Mayar** | `MayarProvider` | `POST /payment/create` | `Bearer apiKey` | Trust-based (merchantId verification, no HMAC) |
+| **DOKU** | `DokuProvider` | `POST /virtual-accounts/bi-snap-va/v1/transfer-va/create-va` | B2B Bearer token | RSA-SHA256 SNAP signature |
 
 ### Per-Provider Status Mapping
 
