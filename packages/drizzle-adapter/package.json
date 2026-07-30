@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@betterpay/core": "file:../core",
+    "@betterpay/core": "^0.1.1",
     "drizzle-orm": "^0.44.2"
   },
   "devDependencies": {

@@ -17,6 +17,18 @@ Indonesia has many payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripa
 
 BetterPay unifies them under a single API. You write payment create/status/webhook logic once, plug in providers, and get signature verification, status normalization, and optional durable webhook idempotency. Provider-specific quirks still exist (especially weak webhook auth on Mayar/Pakasir) — this is an abstraction layer, not a substitute for reading gateway docs when debugging.
 
+## Publishing packages
+
+Releases are automated with Changesets and GitHub Actions. When changing a publishable package, add a changeset:
+
+```bash
+pnpm changeset
+```
+
+Select the affected package and release type, then commit the generated `.changeset/*.md` file. After the change reaches `main`, the release workflow opens a release PR. Merging that PR versions the packages, updates changelogs, builds, and publishes changed public packages to npm.
+
+Repository administrators must configure an `NPM_TOKEN` GitHub Actions secret with publish access to the `@betterpay` scope. Never commit npm tokens or place them in source files.
+
 ## Install
 
 ```bash
