@@ -1,0 +1,13 @@
+{
+  "name": "@betterpay/winpay",
+  "version": "0.1.0",
+  "description": "Winpay payment adapter for BetterPay (SNAP VA/QRIS/eWallet/Retail/CC)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc", "test": "vitest run", "typecheck": "tsc --noEmit" },
+  "dependencies": { "@betterpay/core": "^0.1.1" },
+  "devDependencies": { "@types/node": "^22.15.0", "typescript": "^5.8.3", "vitest": "^3.2.1" }
+}
