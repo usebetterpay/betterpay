@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest'; import {paylabs} from '../src'; describe('Paylabs plugin',()=>{ it('registers',()=>{const plugin=paylabs({merchantId:'MCH',secretKey:'secret', apiKey:'k'} as any); expect(plugin.id).toBe('paylabs'); expect(plugin.providers?.[0]?.id).toBe('paylabs');}); });
