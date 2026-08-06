@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest'; import {cashlez} from '../src'; describe('Cashlez plugin',()=>{ it('registers',()=>{const plugin=cashlez({merchantId:'MCH',secretKey:'secret', apiKey:'k'} as any); expect(plugin.id).toBe('cashlez'); expect(plugin.providers?.[0]?.id).toBe('cashlez');}); });

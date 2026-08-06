@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest'; import {flip} from '../src'; describe('Flip plugin',()=>{ it('registers',()=>{const plugin=flip({merchantId:'MCH',secretKey:'secret', apiKey:'k'} as any); expect(plugin.id).toBe('flip'); expect(plugin.providers?.[0]?.id).toBe('flip');}); });
