@@ -132,6 +132,22 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
+  packages/cashlez:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
   packages/cli:
     dependencies:
       '@betterpay/core':
@@ -265,6 +281,38 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
+  packages/durianpay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/espay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
   packages/express:
     dependencies:
       '@betterpay/core':
@@ -281,7 +329,87 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
+  packages/faspay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/finpay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/flip:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
   packages/hono:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/ipay88:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/ipaymu:
     dependencies:
       '@betterpay/core':
         specifier: ^0.1.1
@@ -348,6 +476,22 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
+  packages/nicepay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
   packages/notification-email:
     dependencies:
       '@betterpay/core':
@@ -380,7 +524,71 @@ importers:
         specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
+  packages/oy:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
   packages/pakasir:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/paylabs:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/prismalink:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/singapay:
     dependencies:
       '@betterpay/core':
         specifier: ^0.1.1
@@ -484,6 +692,22 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 'catalog:'
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
+
+  packages/winpay:
+    dependencies:
+      '@betterpay/core':
+        specifier: ^0.1.1
+        version: 0.1.1(@types/pg@8.20.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.0
+        version: 22.19.20
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@22.19.20)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@2.2.0))(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0)
 
   packages/xendit:

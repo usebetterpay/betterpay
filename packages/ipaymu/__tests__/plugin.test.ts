@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest'; import {ipaymu} from '../src'; describe('iPaymu plugin',()=>{ it('registers',()=>{const plugin=ipaymu({merchantId:'MCH',secretKey:'secret', apiKey:'k'} as any); expect(plugin.id).toBe('ipaymu'); expect(plugin.providers?.[0]?.id).toBe('ipaymu');}); });

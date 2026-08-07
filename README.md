@@ -13,7 +13,7 @@ One API for every Indonesian payment gateway.
 
 ## Why BetterPay
 
-Indonesia has many payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod — each with different APIs, signature schemes, webhook formats, and status codes. Integrating one takes days. Integrating all of them takes weeks.
+Indonesia has 22+ payment gateways — Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod, DOKU, Winpay, Espay, Nicepay, Faspay, OY!, SingaPay, Durianpay, Paylabs, Prismalink, Cashlez, Flip, iPaymu, IPay88, Finpay — each with different APIs, signature schemes, webhook formats, and status codes. Integrating one takes days. Integrating all of them takes weeks.
 
 BetterPay unifies them under a single API. You write payment create/status/webhook logic once, plug in providers, and get signature verification, status normalization, and optional durable webhook idempotency. Provider-specific quirks still exist (especially weak webhook auth on Mayar/Pakasir) — this is an abstraction layer, not a substitute for reading gateway docs when debugging.
 
@@ -38,13 +38,27 @@ pnpm add @betterpay/core @betterpay/midtrans
 Or pick your provider:
 
 ```bash
-pnpm add @betterpay/core @betterpay/xendit    # Xendit
-pnpm add @betterpay/core @betterpay/duitku    # Duitku
-pnpm add @betterpay/core @betterpay/pakasir   # Pakasir
-pnpm add @betterpay/core @betterpay/tripay    # Tripay
-pnpm add @betterpay/core @betterpay/mayar     # Mayar
-pnpm add @betterpay/core @betterpay/sumopod   # SumoPod
-pnpm add @betterpay/core @betterpay/doku      # DOKU
+pnpm add @betterpay/core @betterpay/xendit      # Xendit
+pnpm add @betterpay/core @betterpay/duitku      # Duitku
+pnpm add @betterpay/core @betterpay/pakasir     # Pakasir
+pnpm add @betterpay/core @betterpay/tripay      # Tripay
+pnpm add @betterpay/core @betterpay/mayar       # Mayar
+pnpm add @betterpay/core @betterpay/sumopod     # SumoPod (QRIS-only)
+pnpm add @betterpay/core @betterpay/doku        # DOKU (SNAP BCA VA)
+pnpm add @betterpay/core @betterpay/winpay      # Winpay (SNAP VA/QRIS/eWallet)
+pnpm add @betterpay/core @betterpay/espay       # Espay (SNAP Host-to-Host + VA)
+pnpm add @betterpay/core @betterpay/nicepay     # Nicepay (SNAP VA/QRIS)
+pnpm add @betterpay/core @betterpay/faspay      # Faspay (Payment + Billing)
+pnpm add @betterpay/core @betterpay/oy          # OY! Indonesia (Disbursement/Payout)
+pnpm add @betterpay/core @betterpay/singapay    # SingaPay (HMAC SHA512, B2B)
+pnpm add @betterpay/core @betterpay/durianpay   # Durianpay (B2B stack, VA/QRIS/Payout)
+pnpm add @betterpay/core @betterpay/paylabs     # Paylabs (Berlisensi BI)
+pnpm add @betterpay/core @betterpay/prismalink  # Prismalink (Payment Link)
+pnpm add @betterpay/core @betterpay/cashlez     # Cashlez (RSA Tbk)
+pnpm add @betterpay/core @betterpay/flip        # Flip (Disbursement/Payout #2)
+pnpm add @betterpay/core @betterpay/ipaymu      # iPaymu (SME, 30 channels)
+pnpm add @betterpay/core @betterpay/ipay88      # IPay88 (MY gateway)
+pnpm add @betterpay/core @betterpay/finpay      # Finpay (Telkom Indonesia)
 ```
 
 ## Quick Start
@@ -136,16 +150,30 @@ await pay.billing.report({ customerId: "user_1", featureId: "messages", amount: 
 
 ## Providers
 
-| Provider | VA | E-Wallet | QRIS | Credit Card | Retail |
-|----------|:--:|:--------:|:----:|:-----------:|:------:|
-| **Midtrans** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Xendit** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Duitku** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Pakasir** | — | ✅ | ✅ | — | — |
-| **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **SumoPod** | — | — | ✅ | — | — |
-| **DOKU** | ✅ | — | — | — | — |
+| Provider | VA | E-Wallet | QRIS | Credit Card | Retail | Payout |
+|----------|:--:|:--------:|:----:|:-----------:|:------:|:------:|
+| **Midtrans** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Xendit** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Duitku** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Pakasir** | — | ✅ | ✅ | — | — | — |
+| **Tripay** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Mayar** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **SumoPod** | — | — | ✅ | — | — | — |
+| **DOKU** | ✅ | — | — | — | — | — |
+| **Winpay** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Espay** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Nicepay** | ✅ | — | ✅ | ✅ | ✅ | — |
+| **Faspay** | ✅ | — | ✅ | ✅ | ✅ | — |
+| **OY! Indonesia** | — | — | — | — | — | ✅ |
+| **SingaPay** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Durianpay** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Paylabs** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Prismalink** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **Cashlez** | ✅ | — | ✅ | ✅ | — | — |
+| **Flip** | — | — | — | — | — | ✅ |
+| **iPaymu** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| **IPay88** | ✅ | ✅ | ✅ | ✅ | — | — |
+| **Finpay** | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 
 Multiple providers can be registered; the highest-priority provider is selected by default. `createTransaction` uses **retry + per-provider circuit breaker**. **Failover** (try next provider after retryable failures) is **opt-in** via `betterPay({ failover: true })` and only applies to create-link failures before the customer pays — never mid-payment.
 
@@ -252,6 +280,20 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/mayar` | Mayar adapter |
 | `@betterpay/sumopod` | SumoPod adapter (sandbox + Svix/token webhooks) |
 | `@betterpay/doku` | DOKU SNAP B2B BCA Virtual Account adapter (`/virtual-accounts/bi-snap-va/v1/transfer-va/create-va`) |
+| `@betterpay/winpay` | Winpay adapter (SNAP VA/QRIS/eWallet/Retail/CC, RSA-SHA256, `sandbox-snap.winpay.id`) |
+| `@betterpay/espay` | Espay adapter (SNAP Host-to-Host redirect + VA/QRIS, RSA-SHA256 + HMAC, `sandbox-api.espay.id`) |
+| `@betterpay/nicepay` | Nicepay adapter (SNAP VA/QRIS, RSA-SHA256, `dev.nicepay.co.id`) |
+| `@betterpay/faspay` | Faspay adapter (Payment + Billing, HMAC-SHA256 + optional SNAP RSA, `fpg-sandbox.faspay.co.id`) |
+| `@betterpay/oy` | OY! Indonesia adapter (Disbursement/Payout via `X-OY-Username`/`X-Api-Key` + IP allowlist, `partner.oyindonesia.com`) |
+| `@betterpay/singapay` | SingaPay adapter (HMAC SHA512 B2B, VA/QRIS/Disbursement, `api-lb.singapay.id`) |
+| `@betterpay/durianpay` | Durianpay adapter (B2B stack, VA/QRIS/Payouts, 130+ banks + e-wallets, `api.durianpay.id`) |
+| `@betterpay/paylabs` | Paylabs adapter (BI licensed, VA/QRIS/eWallet, `api.paylabs.co.id`) |
+| `@betterpay/prismalink` | Prismalink adapter (Payment gateway + link, `api.prismalink.co.id`) |
+| `@betterpay/cashlez` | Cashlez adapter (RSA Tbk, Link + Card, `api-link.cashlez.com`) |
+| `@betterpay/flip` | Flip adapter (Disbursement/Payout #2, bank transfer, `api.flip.id`) |
+| `@betterpay/ipaymu` | iPaymu adapter (SME Plug&Play, 30 channels, `my.ipaymu.com`) |
+| `@betterpay/ipay88` | IPay88 adapter (MY/ID gateway, card + VA, `payment.ipay88.co.id`) |
+| `@betterpay/finpay` | Finpay adapter (Telkom Indonesia, `api.finpay.id`) |
 | `@betterpay/client` | Proxy-based client SDK |
 | `@betterpay/ui` | React billing UI (pricing, portal, invoices, usage) |
 | `@betterpay/cli` | CLI tools (init, push, status, credentials) |
@@ -286,9 +328,9 @@ Your App (Next.js / Hono / Express / Bun / Cloudflare)
         │
    betterPay({ plugins: [...] })
         │
-   ┌────┼──────┬──────┬──────┬──────┬──────┐
-   │    │      │      │      │      │      │
-  Core  Midtrans Xendit Duitku Pakasir Tripay Mayar SumoPod  ← Provider plugins
+   ┌────┼──────┬──────┬──────┬──────┬──────┬────────┬───────┬─────────┬────────┬───────┬────┐
+   │    │      │      │      │      │      │        │       │         │        │       │    │
+  Core  Midtrans Xendit Duitku Pakasir Tripay Mayar SumoPod DOKU Winpay Espay Nicepay Faspay  OY!  ← 13 providers
    │
    ├── billing          ← Subscription + entitlement plugin
    ├── notification-*   ← Email / WhatsApp plugins

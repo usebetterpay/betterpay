@@ -1,0 +1,1 @@
+import {describe,expect,it} from 'vitest'; import {createSignature,verifySignature} from '../src/signature'; describe('iPaymu sig',()=>{ it('hmac',()=>{const sig=createSignature('MCH','INV1',10000,'secret'); expect(verifySignature('MCH','INV1',10000,sig,'secret')).toBe(true); expect(verifySignature('MCH','INV1',9999,sig,'secret')).toBe(false);}); });

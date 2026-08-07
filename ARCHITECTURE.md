@@ -1,6 +1,6 @@
 # BetterPay — Definitive Architecture
 
-> **Indonesian billing framework** — Plugin-first architecture, subscription billing, payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod, DOKU.
+> **Indonesian billing framework** — Plugin-first architecture, subscription billing, 22 payment providers: Midtrans, Xendit, Duitku, Pakasir, Tripay, Mayar, SumoPod, DOKU, Winpay, Espay, Nicepay, Faspay, OY! + SingaPay, Durianpay, Paylabs, Prismalink, Cashlez, Flip, iPaymu, IPay88, Finpay.
 >
 > **Status: Alpha.** Defaults are in-memory. Production requires injected durable repositories (see README Production checklist).
 > Wired: createTransaction retry + circuit breaker; opt-in failover; reconciliation via `runReconciliation` / `POST /api/reconcile`; billing cycle `__wireBillingCycle` + multi-stage dunning; Resend email + Fonnte WhatsApp; CLI `push` migrations; plugin `endpoints` + `onRequest`/`onResponse`.
@@ -214,7 +214,7 @@ betterpay/
 │   │       ├── dunning/             # Dunning manager
 │   │       └── test-clock.ts        # Time simulation for testing
 │   │
-│   │  ═══ Provider Plugins ═══
+│   │  ═══ Provider Plugins (22) ═══
 │   ├── midtrans/                    # Midtrans Snap adapter
 │   ├── xendit/                      # Xendit Payment Sessions adapter
 │   ├── duitku/                      # Duitku adapter
@@ -223,6 +223,20 @@ betterpay/
 │   ├── mayar/                       # Mayar adapter
 │   ├── sumopod/                     # SumoPod adapter (Svix + token webhooks)
 │   ├── doku/                        # DOKU SNAP B2B BCA VA adapter
+│   ├── winpay/                      # Winpay SNAP VA/QRIS/eWallet/Retail/CC
+│   ├── espay/                       # Espay SNAP Host-to-Host + VA/QRIS
+│   ├── nicepay/                     # Nicepay SNAP VA/QRIS
+│   ├── faspay/                      # Faspay Payment + Billing (HMAC + SNAP)
+│   ├── oy/                          # OY! Indonesia Disbursement/Payout (X-OY-Username)
+│   ├── singapay/                    # SingaPay HMAC SHA512 B2B
+│   ├── durianpay/                   # Durianpay B2B stack (VA/QRIS/Payout 130+ banks)
+│   ├── paylabs/                     # Paylabs BI licensed
+│   ├── prismalink/                  # Prismalink Payment Link
+│   ├── cashlez/                     # Cashlez RSA Tbk
+│   ├── flip/                        # Flip Disbursement #2
+│   ├── ipaymu/                      # iPaymu SME 30 channels
+│   ├── ipay88/                      # IPay88 MY/ID gateway
+│   ├── finpay/                      # Finpay Telkom Indonesia
 │   │
 │   │  ═══ Notification Plugins ═══
 │   ├── notification-email/          # Resend (wired)
@@ -261,7 +275,7 @@ betterpay/
 
 ## Payment Provider Layer
 
-Ini adalah **jantung** BetterPay — enam adapter provider dengan signature/status mapping dan unit tests. Treat adapters as the mature layer; framework defaults remain Alpha until durable stores are injected.
+Ini adalah **jantung** BetterPay — 22 adapter provider dengan signature/status mapping dan unit tests (8 ship sebelum + 14 baru: Winpay, Espay, Nicepay, Faspay, OY!, SingaPay, Durianpay, Paylabs, Prismalink, Cashlez, Flip, iPaymu, IPay88, Finpay). Treat adapters as the mature layer; framework defaults remain Alpha until durable stores are injected.
 
 ### Provider Interface
 
@@ -283,7 +297,7 @@ interface PaymentProvider {
 }
 ```
 
-### Provider Adapters (6 implemented)
+### Provider Adapters (22 implemented)
 
 | Provider | Adapter | API | Auth | Signature |
 |----------|---------|-----|------|-----------|
@@ -294,6 +308,20 @@ interface PaymentProvider {
 | **Tripay** | `TripayProvider` | `POST /transaction/create` | `Bearer apiKey` | HMAC-SHA256(merchantCode + merchantRef + amount, privateKey) |
 | **Mayar** | `MayarProvider` | `POST /payment/create` | `Bearer apiKey` | Trust-based (merchantId verification, no HMAC) |
 | **DOKU** | `DokuProvider` | `POST /virtual-accounts/bi-snap-va/v1/transfer-va/create-va` | B2B Bearer token | RSA-SHA256 SNAP signature |
+| **Winpay** | `WinpayProvider` | `POST /v1.0/transfer-va/create-va` + `POST /v1.0/qr/qr-mpm-generate` | `X-PARTNER-ID` + RSA | RSA-SHA256 SNAP (`HTTPMethod:Path:SHA256(minify):Timestamp`) |
+| **Espay** | `EspayProvider` | `POST /apimerchant/v1.0/debit/payment-host-to-host` (→ `webRedirectUrl`) | `X-PARTNER-ID` + RSA/HMAC | RSA-SHA256 SNAP + HMAC-SHA256 hash mode |
+| **Nicepay** | `NicepayProvider` | `POST /nicepay/api/v1.0/transfer-va/create-va` | `X-PARTNER-ID` + RSA | RSA-SHA256 SNAP (`dev.nicepay.co.id` dev) |
+| **Faspay** | `FaspayProvider` | `POST /payment` | `merchantId` + hash | HMAC-SHA256(`merchantId+tranId+amount`, secret) + optional SNAP RSA |
+| **OY!** | `OyProvider` | `POST /api/remit` (disbursement) | `X-OY-Username` + `X-Api-Key` | IP allowlist + header presence (payout-only) |
+| **SingaPay** | `SingaPayProvider` | `POST /api/v1/va/create` + `/api/v1/qris` | `X-PARTNER-ID` + `X-Signature` | HMAC SHA512 (`partnerId:timestamp:SHA256(body):token`) |
+| **Durianpay** | `DurianpayProvider` | `POST /v1/payments/charge` | Basic + `Authorization` | HMAC-SHA256 (`merchantId+orderId+amount`) + SNAP RSA |
+| **Paylabs** | `PaylabsProvider` | `POST /v1/payment/create` | `X-PARTNER-ID` | HMAC-SHA256 SNAP |
+| **Prismalink** | `PrismalinkProvider` | `POST /api/payment/create` | `X-PARTNER-ID` | HMAC-SHA256 |
+| **Cashlez** | `CashlezProvider` | `POST /generate_url_vendor` + `/validate_url` | `X-PARTNER-ID` | HMAC-SHA256 / RSA fallback |
+| **Flip** | `FlipProvider` | `POST /api/v1/disbursement` | `Authorization` | API key + HMAC (payout-only #2) |
+| **iPaymu** | `iPaymuProvider` | `POST /api/v2/payment` | `X-PARTNER-ID` | HMAC-SHA256 |
+| **IPay88** | `IPay88Provider` | `POST /api/payment` | `X-PARTNER-ID` | HMAC-SHA256 |
+| **Finpay** | `FinpayProvider` | `POST /api/payment` | `X-PARTNER-ID` | HMAC-SHA256 (Telkom) |
 
 ### Per-Provider Status Mapping
 
