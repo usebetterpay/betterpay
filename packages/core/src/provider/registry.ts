@@ -1,4 +1,5 @@
 import type { PaymentProvider, PaymentMethod } from './interface';
+import { NotFoundError, ValidationError } from '../errors/betterpay-error';
 
 /** Provider with an optional priority field (lower number = higher priority). */
 interface ProviderWithPriority extends PaymentProvider {
@@ -29,7 +30,7 @@ export class ProviderRegistry {
   getDefault(): PaymentProvider {
     const providers = this.list();
     if (providers.length === 0) {
-      throw new Error('No providers registered');
+      throw new ValidationError('No providers registered');
     }
     return this.sortByPriority(providers)[0]!;
   }
@@ -50,7 +51,7 @@ export class ProviderRegistry {
       failover: false,
     });
     if (candidates.length === 0) {
-      throw new Error(
+      throw new NotFoundError(
         input.paymentMethod
           ? `No provider supports payment method: ${input.paymentMethod}`
           : 'No providers registered',
@@ -73,7 +74,7 @@ export class ProviderRegistry {
   }): PaymentProvider[] {
     if (input.providerId) {
       const p = this.get(input.providerId);
-      if (!p) throw new Error(`Provider not found: ${input.providerId}`);
+      if (!p) throw new NotFoundError(`Provider not found: ${input.providerId}`);
       return [p];
     }
 
@@ -82,7 +83,7 @@ export class ProviderRegistry {
       const method = input.paymentMethod as PaymentMethod;
       candidates = this.findByMethod(method);
       if (candidates.length === 0) {
-        throw new Error(`No provider supports payment method: ${input.paymentMethod}`);
+        throw new NotFoundError(`No provider supports payment method: ${input.paymentMethod}`);
       }
     }
 

@@ -294,7 +294,7 @@ Requires `DATABASE_URL` and `BETTERPAY_MASTER_KEY` (min 32 chars) environment va
 | `@betterpay/ipaymu` | iPaymu adapter (SME Plug&Play, 30 channels, `my.ipaymu.com`) |
 | `@betterpay/ipay88` | IPay88 adapter (MY/ID gateway, card + VA, `payment.ipay88.co.id`) |
 | `@betterpay/finpay` | Finpay adapter (Telkom Indonesia, `api.finpay.id`) |
-| `@betterpay/client` | Proxy-based client SDK |
+| `@betterpay/client` | Typed client SDK (explicit methods + `call()` escape hatch) |
 | `@betterpay/ui` | React billing UI (pricing, portal, invoices, usage) |
 | `@betterpay/cli` | CLI tools (init, push, status, credentials) |
 | `@betterpay/drizzle-adapter` | PostgreSQL repositories (Drizzle ORM) |

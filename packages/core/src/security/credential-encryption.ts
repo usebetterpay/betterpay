@@ -1,7 +1,7 @@
 // Encrypted Credential Storage using AES-256-GCM
 // Securely store provider API keys and secrets
 
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, hkdfSync } from 'node:crypto';
 
 export interface EncryptedValue {
   iv: string; // Base64 encoded initialization vector
@@ -11,10 +11,19 @@ export interface EncryptedValue {
 
 export class CredentialEncryption {
   private key: Buffer;
+  private legacyKey?: Buffer;
 
   constructor(masterKey: string) {
-    // Derive 32-byte key from master key using SHA-256
-    this.key = createHash('sha256').update(masterKey).digest();
+    // Derive 32-byte key via HKDF-SHA256 (salted, versioned).
+    this.key = Buffer.from(hkdfSync('sha256', masterKey, 'betterpay-cred-v1', 'credential-encryption', 32) as ArrayBuffer);
+    // Legacy SHA-256 key for decrypting data written before HKDF migration.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    try {
+      const { createHash } = require('node:crypto') as typeof import('node:crypto');
+      this.legacyKey = createHash('sha256').update(masterKey).digest();
+    } catch {
+      this.legacyKey = undefined;
+    }
   }
 
   /**
@@ -41,14 +50,23 @@ export class CredentialEncryption {
   decrypt(encrypted: EncryptedValue): string {
     const iv = Buffer.from(encrypted.iv, 'base64');
     const tag = Buffer.from(encrypted.tag, 'base64');
-    const decipher = createDecipheriv('aes-256-gcm', this.key, iv);
-
-    decipher.setAuthTag(tag);
-
-    let decrypted = decipher.update(encrypted.ciphertext, 'base64', 'utf8');
-    decrypted += decipher.final('utf8');
-
-    return decrypted;
+    try {
+      const decipher = createDecipheriv('aes-256-gcm', this.key, iv);
+      decipher.setAuthTag(tag);
+      let decrypted = decipher.update(encrypted.ciphertext, 'base64', 'utf8');
+      decrypted += decipher.final('utf8');
+      return decrypted;
+    } catch {
+      // Fallback: data encrypted with legacy SHA-256(masterKey) key.
+      if (this.legacyKey) {
+        const decipher = createDecipheriv('aes-256-gcm', this.legacyKey, iv);
+        decipher.setAuthTag(tag);
+        let decrypted = decipher.update(encrypted.ciphertext, 'base64', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+      }
+      throw new Error('Failed to decrypt credential');
+    }
   }
 
   /**
@@ -64,17 +82,32 @@ export class CredentialEncryption {
 
   /**
    * Decrypt multiple credentials at once.
+   * Fail-closed: throws aggregated error listing failed keys.
+   * Use tryDecryptAll() for best-effort paths.
    */
   decryptAll(encrypted: Record<string, EncryptedValue>): Record<string, string> {
-    const result: Record<string, string> = {};
+    const { ok, failures } = this.tryDecryptAll(encrypted);
+    if (failures.length > 0) {
+      throw new Error(`Failed to decrypt credentials: ${failures.join(', ')}`);
+    }
+    return ok;
+  }
+
+  /** Best-effort decrypt: returns { ok, failures } without throwing. */
+  tryDecryptAll(encrypted: Record<string, EncryptedValue>): {
+    ok: Record<string, string>;
+    failures: string[];
+  } {
+    const ok: Record<string, string> = {};
+    const failures: string[] = [];
     for (const [key, value] of Object.entries(encrypted)) {
       try {
-        result[key] = this.decrypt(value);
-      } catch (error) {
-        result[key] = ''; // Return empty string on decryption failure
+        ok[key] = this.decrypt(value);
+      } catch {
+        failures.push(key);
       }
     }
-    return result;
+    return { ok, failures };
   }
 }
 
@@ -86,6 +119,9 @@ export function createCredentialEncryption(masterKey: string): CredentialEncrypt
   if (!masterKey || masterKey.length < 32) {
     throw new Error('Master key must be at least 32 characters long');
   }
+  // Note: validateMasterKey() is advisory only (weak-pattern/entropy warnings
+  // via logger in create-betterpay). Enforcing it here would break existing
+  // test keys like "test-master-key-..." containing "key".
   return new CredentialEncryption(masterKey);
 }
 

@@ -6,6 +6,7 @@ import {
   type TransactionStatus,
   isValidTransition,
 } from './schema';
+import { BillingError, ConflictError, NotFoundError } from '../errors/betterpay-error';
 
 /** Minimal repository contract the service depends on. */
 export interface TransactionRepository {
@@ -71,18 +72,18 @@ export class TransactionService {
   ): Promise<TransactionRecord> {
     const current = await this.repo.getTransactionByOrderId(orderId);
     if (!current) {
-      throw new Error(`Transaction not found: ${orderId}`);
+      throw new NotFoundError(`Transaction not found: ${orderId}`);
     }
 
     if (!isValidTransition(current.status, newStatus)) {
-      throw new Error(
+      throw new ConflictError(
         `Invalid state transition: ${current.status} → ${newStatus}`,
       );
     }
 
     const updated = await this.repo.updateStatus(orderId, newStatus, providerTransactionId);
     if (!updated) {
-      throw new Error(`Failed to update transaction: ${orderId}`);
+      throw new BillingError(`Failed to update transaction: ${orderId}`);
     }
 
     return updated;
@@ -99,5 +100,14 @@ export class TransactionService {
   ): Promise<TransactionRecord[]> {
     if (!this.repo.listPendingForReconciliation) return [];
     return this.repo.listPendingForReconciliation(providerIds, maxAge, limit);
+  }
+
+  /** Idempotency helpers (delegated to repository). */
+  async checkIdempotencyKey(key: string): Promise<string | undefined> {
+    return this.repo.checkIdempotencyKey(key);
+  }
+
+  async setIdempotencyKey(key: string, transactionId: string): Promise<void> {
+    return this.repo.setIdempotencyKey(key, transactionId);
   }
 }

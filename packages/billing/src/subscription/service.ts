@@ -2,6 +2,7 @@
 
 import type { SubscriptionRecord, SubscriptionStatus, PlanDefinition } from '../types';
 import { isValidSubscriptionTransition } from './state-machine';
+import { BillingError, NotFoundError, ConflictError } from '@betterpay/core';
 
 /** Minimal repository contract for subscriptions. */
 export interface SubscriptionRepository {
@@ -57,7 +58,7 @@ export class SubscriptionService {
     // Check for existing active subscription in same group
     const existing = await this.repo.getActiveByCustomerAndGroup(customerId, plan.group);
     if (existing) {
-      throw new Error(
+      throw new ConflictError(
         `Customer ${customerId} already has an active subscription in group "${plan.group}" (plan: ${existing.planId})`,
       );
     }
@@ -87,11 +88,11 @@ export class SubscriptionService {
   /** Cancel a subscription (immediately or at period end). */
   async cancel(id: string, atPeriodEnd = false): Promise<SubscriptionRecord> {
     const sub = await this.repo.getById(id);
-    if (!sub) throw new Error(`Subscription not found: ${id}`);
+    if (!sub) throw new NotFoundError(`Subscription not found: ${id}`);
 
     if (atPeriodEnd) {
       const updated = await this.repo.update(id, { cancelAtPeriodEnd: true });
-      if (!updated) throw new Error(`Failed to update subscription: ${id}`);
+      if (!updated) throw new BillingError(`Failed to update subscription: ${id}`);
       return updated;
     }
 
@@ -101,7 +102,7 @@ export class SubscriptionService {
   /** Mark a subscription as past_due (failed payment). Idempotent if already past_due. */
   async markPastDue(id: string): Promise<SubscriptionRecord> {
     const sub = await this.repo.getById(id);
-    if (!sub) throw new Error(`Subscription not found: ${id}`);
+    if (!sub) throw new NotFoundError(`Subscription not found: ${id}`);
     if (sub.status === 'past_due') return sub;
     return this.transition(id, 'past_due');
   }

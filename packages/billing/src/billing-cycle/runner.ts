@@ -6,6 +6,7 @@ import type { SubscriptionService } from '../subscription/service';
 import type { InvoiceService } from '../invoice/service';
 import type { EntitlementService } from '../entitlement/service';
 import { computeNextResetAt } from '../entitlement/service';
+import { NotFoundError } from '@betterpay/core';
 
 export interface BillingCycleResult {
   processed: number;
@@ -73,7 +74,7 @@ export class BillingCycleRunner {
   private async processSubscription(sub: SubscriptionRecord, now: Date): Promise<void> {
     const plan = this.deps.planMap.get(sub.planId);
     if (!plan) {
-      throw new Error(`Plan not found: ${sub.planId}`);
+      throw new NotFoundError(`Plan not found: ${sub.planId}`);
     }
 
     // If subscription is marked for cancel at period end → end it

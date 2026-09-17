@@ -102,7 +102,7 @@ describe('CredentialEncryption', () => {
       expect(decrypted).toEqual(credentials);
     });
 
-    it('should handle decryption failures gracefully', () => {
+    it('should throw aggregated error on decryption failure (fail-closed)', () => {
       const encrypted = {
         good: encryption.encrypt('secret'),
         bad: {
@@ -112,10 +112,23 @@ describe('CredentialEncryption', () => {
         },
       };
 
-      const decrypted = encryption.decryptAll(encrypted);
+      expect(() => encryption.decryptAll(encrypted)).toThrow('Failed to decrypt credentials: bad');
+    });
 
-      expect(decrypted.good).toBe('secret');
-      expect(decrypted.bad).toBe('');
+    it('should support partial decrypt via tryDecryptAll for best-effort paths', () => {
+      const encrypted = {
+        good: encryption.encrypt('secret'),
+        bad: {
+          iv: 'invalid',
+          tag: 'invalid',
+          ciphertext: 'invalid',
+        },
+      };
+
+      const { ok, failures } = encryption.tryDecryptAll(encrypted);
+
+      expect(ok.good).toBe('secret');
+      expect(failures).toEqual(['bad']);
     });
   });
 });

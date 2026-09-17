@@ -27,6 +27,7 @@ import {
   type CredentialStore,
   type CredentialRepository,
 } from './security/credential-store';
+import { validateMasterKey } from './security/credential-encryption';
 import {
   NotificationDispatcher,
   type NotificationChannel,
@@ -85,6 +86,12 @@ export interface BetterPayOptions {
     intervalMinutes?: number;
     batchSize?: number;
     maxAgeHours?: number;
+    /**
+     * Optional Bearer secret for POST /api/reconcile.
+     * Set via env BETTERPAY_RECONCILE_SECRET. When set, reconcile requires
+     * `Authorization: Bearer <secret>`; otherwise endpoint stays open (dev).
+     */
+    secret?: string;
   };
 
   /**
@@ -264,10 +271,22 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
   );
 
   // ── Credential store ──────────────────────────────────────────────────
+  if (options.masterKey) {
+    const check = validateMasterKey(options.masterKey);
+    if (!check.valid) {
+      logger.warn('BETTERPAY_MASTER_KEY looks weak — consider rotating', {
+        errors: check.errors,
+      });
+    }
+  }
+  const masterKeyOk = Boolean(options.masterKey && options.masterKey.length >= 32);
   const credentialStore: CredentialStore =
-    options.masterKey && options.credentialRepository
+    masterKeyOk && options.credentialRepository && options.masterKey
       ? new DefaultCredentialStore(options.credentialRepository, options.masterKey)
       : new NullCredentialStore();
+  if (options.credentialRepository && !masterKeyOk) {
+    logger.warn('credentialRepository set without valid masterKey — credential store disabled (NullCredentialStore). Set BETTERPAY_MASTER_KEY (min 32 chars).');
+  }
 
   logger.debug('Credential store', {
     enabled: !(credentialStore instanceof NullCredentialStore),
@@ -494,6 +513,7 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
     billing: billingData,
     logger,
     rateLimiter,
+    reconcileSecret: options.reconciliation?.secret ?? process.env.BETTERPAY_RECONCILE_SECRET ?? null,
     runReconciliation,
     extraEndpoints,
     createPaymentLink: async (input) => {
@@ -522,7 +542,12 @@ export function betterPay(options: BetterPayOptions = {}): BetterPayInstance {
 
   // ── Handler function ───────────────────────────────────────────────────
   async function handler(request: Request): Promise<Response> {
-    const requestId = Math.random().toString(36).substring(7);
+    const requestId =
+      request.headers.get('x-request-id') ??
+      request.headers.get('x-correlation-id') ??
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? `req_${(crypto as { randomUUID: () => string }).randomUUID()}`
+        : `req_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     const startTime = Date.now();
     
     logger.debug('Request received', { 
@@ -1051,8 +1076,12 @@ function createInMemoryRepository(): TransactionRepository {
 
   return {
     async createTransaction(data) {
+      const id =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? `txn_${(crypto as { randomUUID: () => string }).randomUUID().replace(/-/g, '').slice(0, 12)}`
+          : `txn_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
       const record = {
-        id: `txn_${Math.random().toString(36).slice(2, 10)}`,
+        id,
         orderId: data.orderId,
         providerId: data.providerId,
         status: 'pending' as const,

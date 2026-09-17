@@ -31,7 +31,14 @@ function getBreaker(breakers: Map<string, CircuitBreaker>, providerId: string): 
 /** Errors that should not burn circuit / retry budget (validation). */
 export function isNonRetryableProviderError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
+  // Structured code wins over substring matching.
+  const code = (error as Error & { code?: string; statusCode?: number }).code;
+  const status = (error as Error & { statusCode?: number }).statusCode;
+  if (code === 'VALIDATION_ERROR' || code === 'NOT_FOUND' || code === 'UNAUTHORIZED' || code === 'FORBIDDEN') return true;
+  if (typeof status === 'number' && status >= 400 && status < 500 && status !== 429) return true;
   const msg = error.message.toLowerCase();
+  // 4xx in message (e.g. "request failed: 400 ...") must not retry.
+  if (/\b(400|401|403|404|409|422)\b/.test(msg)) return true;
   return (
     msg.includes('validation') ||
     msg.includes('invalid') ||

@@ -31,5 +31,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Audit (high-severity only, non-blocking)
+        run: pnpm audit --audit-level=high || true
+
       - name: Test
         run: pnpm test --run

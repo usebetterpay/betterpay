@@ -179,7 +179,15 @@ export function validateInputStrict<T>(schema: z.ZodType<T>, data: unknown): T {
     const errorMessages = (result.errors ?? [])
       .map((e: ZodIssueLike) => `${e.path.join('.')}: ${e.message}`)
       .join(', ');
-    throw new Error(`Validation failed: ${errorMessages}`);
+    const err = new Error(`Validation failed: ${errorMessages}`) as Error & {
+      code?: string;
+      statusCode?: number;
+      details?: unknown;
+    };
+    err.code = 'VALIDATION_ERROR';
+    err.statusCode = 400;
+    err.details = result.errors;
+    throw err;
   }
 
   return result.data!;

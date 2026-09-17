@@ -118,6 +118,7 @@ export type {
 } from './security/credential-store';
 
 export { schemas, validateInput, validateInputStrict, validationMiddleware } from './security/input-validation';
+export { safeEqual, hmacMerchantOrder, verifyHmacMerchantOrder } from './security/signature';
 
 export {
   executeMiddlewareChain,

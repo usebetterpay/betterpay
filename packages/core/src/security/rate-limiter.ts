@@ -27,8 +27,11 @@ export class RateLimiter {
   private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor(private config: RateLimitConfig) {
-    // Cleanup expired entries every minute
+    // Cleanup expired entries every minute — unref so it never keeps Node alive.
     this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+    if (typeof (this.cleanupInterval as unknown as { unref?: () => void }).unref === 'function') {
+      (this.cleanupInterval as unknown as { unref: () => void }).unref();
+    }
   }
 
   /**

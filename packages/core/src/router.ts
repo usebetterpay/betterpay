@@ -18,6 +18,8 @@ export interface RouterContext {
   billing?: BillingPluginData | null;
   logger?: Logger;
   rateLimiter?: RateLimiter | null;
+  /** Optional Bearer secret for POST /api/reconcile. If set, request must send Authorization: Bearer <secret>. */
+  reconcileSecret?: string | null;
   /** Manual / cron reconciliation */
   runReconciliation?: () => Promise<{
     totalChecked: number;
@@ -99,6 +101,31 @@ export function createPayRouter(ctx: RouterContext) {
         
         // Input validation
         const validated = validateInputStrict(schemas.createTransaction, body);
+
+        // Idempotency-Key: replay same key returns existing transaction instead of double-charging.
+        const idempotencyKey = c.request.headers.get('idempotency-key') ?? c.request.headers.get('x-idempotency-key');
+        if (idempotencyKey) {
+          try {
+            const existingId = await ctx.transactionService.checkIdempotencyKey(idempotencyKey);
+            if (existingId) {
+              const existing = await ctx.transactionService.getByOrderId(existingId);
+              if (existing) {
+                logger?.debug('Idempotent replay', { idempotencyKey, orderId: existing.orderId });
+                return toResponse({
+                  orderId: existing.orderId,
+                  providerId: existing.providerId,
+                  providerTransactionId: existing.providerTransactionId,
+                  status: existing.status,
+                  amount: existing.amount,
+                  currency: existing.currency,
+                  idempotent: true,
+                });
+              }
+            }
+          } catch {
+            // Best-effort: fall through to normal create on store errors.
+          }
+        }
         
         logger?.debug('Creating transaction', { 
           orderId: validated.orderId,
@@ -168,6 +195,14 @@ export function createPayRouter(ctx: RouterContext) {
           result.providerTransactionId,
         );
 
+        if (idempotencyKey) {
+          try {
+            await ctx.transactionService.setIdempotencyKey(idempotencyKey, validated.orderId);
+          } catch {
+            // Best-effort: creation already succeeded.
+          }
+        }
+
         logger?.info('Transaction created successfully', { 
           orderId: txn.orderId,
           providerId,
@@ -233,8 +268,20 @@ export function createPayRouter(ctx: RouterContext) {
   const reconcileEndpoint = createEndpoint(
     '/api/reconcile',
     { method: 'POST' },
-    async (_c: any) => {
+    async (c: any) => {
       try {
+        // Opt-in auth: when reconcileSecret is configured, require Bearer match.
+        // Prevents unauthenticated polling abuse (previously same bucket as all routes).
+        if (ctx.reconcileSecret) {
+          const auth = c.request.headers.get('authorization') ?? '';
+          const { safeEqual } = await import('./security/signature.js').catch(() => ({
+            safeEqual: (a: string, b: string) => a === b,
+          }));
+          if (!safeEqual(auth, `Bearer ${ctx.reconcileSecret}`)) {
+            logger?.warn('Unauthorized reconcile attempt');
+            return toResponse({ error: 'Unauthorized' }, { status: 401 });
+          }
+        }
         logger?.info('Manual reconciliation triggered');
         if (!ctx.runReconciliation) {
           return toResponse(

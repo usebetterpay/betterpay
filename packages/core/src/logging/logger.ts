@@ -34,7 +34,14 @@ export class Logger {
     this.config = {
       level: config.level || 'info',
       pretty: config.pretty ?? process.env.NODE_ENV !== 'production',
-      redactPaths: config.redactPaths || ['password', 'apiKey', 'secret', 'token'],
+      redactPaths: config.redactPaths || [
+        'password', 'passwd', 'apiKey', 'api_key', 'apikey',
+        'secret', 'secretKey', 'secret_key', 'clientSecret',
+        'token', 'accessToken', 'refreshToken', 'authToken',
+        'serverKey', 'server_key', 'privateKey', 'private_key',
+        'publicKey', 'webhookSecret', 'webhook_secret', 'webhookToken',
+        'authorization', 'apiSecret', 'merchantKey',
+      ],
     };
   }
 
@@ -144,15 +151,28 @@ export class Logger {
   }
 
   private redactSensitiveData(data: Record<string, any>): Record<string, any> {
-    const redacted = { ...data };
-
-    for (const path of this.config.redactPaths!) {
-      if (path in redacted) {
-        redacted[path] = '[REDACTED]';
+    const patterns = (this.config.redactPaths ?? []).map((p) => p.toLowerCase());
+    const shouldRedact = (key: string): boolean => {
+      const k = key.toLowerCase().replace(/[_\-\s]/g, '');
+      return patterns.some((p) => {
+        const pp = p.toLowerCase().replace(/[_\-\s]/g, '');
+        return k === pp || k.includes(pp) || pp.includes(k);
+      });
+    };
+    const walk = (value: any, depth = 0): any => {
+      if (depth > 6 || value === null || value === undefined) return value;
+      if (Array.isArray(value)) return value.map((v) => walk(v, depth + 1));
+      if (typeof value === 'object') {
+        const out: Record<string, any> = {};
+        for (const [k, v] of Object.entries(value)) {
+          out[k] = shouldRedact(k) ? '[REDACTED]' : walk(v, depth + 1);
+        }
+        return out;
       }
-    }
-
-    return redacted;
+      return value;
+    };
+    if (Array.isArray(data)) return walk(data) as Record<string, any>;
+    return walk({ ...data });
   }
 }
 
@@ -203,7 +223,13 @@ export function createLoggerMiddleware(logger: Logger) {
  * Generate unique request ID.
  */
 function generateRequestId(): string {
-  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { randomUUID } = require('node:crypto') as typeof import('node:crypto');
+    return `req_${randomUUID()}`;
+  } catch {
+    return `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  }
 }
 
 /**

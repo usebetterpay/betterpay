@@ -9,6 +9,7 @@ import type {
   PlanDefinition,
   PlanPrice,
 } from './types';
+import { ValidationError } from '@betterpay/core';
 
 const FEATURE_BRAND = Symbol.for('betterpay.feature');
 
@@ -19,12 +20,12 @@ const MAX_ENTITY_ID_LENGTH = 64;
 const MAX_PRICE_AMOUNT = 999_999_999_999; // IDR can be large
 
 function validateEntityId(id: string, label: string): void {
-  if (!id) throw new Error(`${label} id is required`);
+  if (!id) throw new ValidationError(`${label} id is required`);
   if (id.length > MAX_ENTITY_ID_LENGTH) {
-    throw new Error(`${label} id must be ≤ ${MAX_ENTITY_ID_LENGTH} characters, got ${id.length}`);
+    throw new ValidationError(`${label} id must be ≤ ${MAX_ENTITY_ID_LENGTH} characters, got ${id.length}`);
   }
   if (!ENTITY_ID_PATTERN.test(id)) {
-    throw new Error(
+    throw new ValidationError(
       `${label} id must be lowercase alphanumeric with dash/underscore, cannot start with dash/underscore. Got: "${id}"`,
     );
   }
@@ -32,13 +33,13 @@ function validateEntityId(id: string, label: string): void {
 
 function validatePrice(price: PlanPrice): void {
   if (typeof price.amount !== 'number' || !Number.isFinite(price.amount)) {
-    throw new Error('Price amount must be a finite number');
+    throw new ValidationError('Price amount must be a finite number');
   }
-  if (price.amount < 0) throw new Error('Price amount cannot be negative');
+  if (price.amount < 0) throw new ValidationError('Price amount cannot be negative');
   if (price.amount > MAX_PRICE_AMOUNT) {
-    throw new Error(`Price amount must be ≤ ${MAX_PRICE_AMOUNT}`);
+    throw new ValidationError(`Price amount must be ≤ ${MAX_PRICE_AMOUNT}`);
   }
-  if (!price.currency) throw new Error('Price currency is required');
+  if (!price.currency) throw new ValidationError('Price currency is required');
 }
 
 // ── feature() factory ────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ export function feature(def: { id: string; type: FeatureType }): FeatureFactory 
       type: def.type,
     };
     if (def.type === 'metered' && config) {
-      if (config.limit <= 0) throw new Error('Metered limit must be positive');
+      if (config.limit <= 0) throw new ValidationError('Metered limit must be positive');
       include.metered = config;
     }
     return include;

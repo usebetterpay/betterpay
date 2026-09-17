@@ -70,7 +70,7 @@ BetterPay adalah billing framework untuk Indonesia yang menyatukan multiple paym
 │   └── Encrypted credential storage (AES-256-GCM)                    │
 │                                                                      │
 │   Framework: Agnostic (Next/Hono/Express/Fastify/Bun/Cloudflare)    │
-│   UI: Planned v2 (@betterpay/ui or build your own)                  │
+│   UI: @betterpay/ui (React billing blocks)                        │
 │   Currency: IDR first (ISO 4217 minor units ready)                  │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
@@ -1211,12 +1211,11 @@ const ISO_4217_DECIMALS = {
 │                                                              │
 │  Architecture:  Plugin-first, hooks, adapters                │
 │  Domain:        Plans, subscriptions, entitlements           │
-│  Providers:     Midtrans + Xendit + Duitku + Pakasir +      │
-│                 Tripay + Mayar (6 adapters, all with tests)  │
+│  Providers:     22 adapters (see Provider Adapters table)      │
 │  Reliability:   CB+retry on create; opt-in failover;        │
 │                 reconcile + durable webhook store           │
 │  Framework:     Next/Hono/Express/Bun/Cloudflare            │
-│  UI / OJK:      Explicitly deferred (Phase 7 growth)        │
+│  UI:            @betterpay/ui (React billing blocks)           │
 │  Currency:      IDR first (ISO 4217 minor units ready)      │
 │                                                              │
 │  With durable repos + cron:                                 │
@@ -1243,4 +1242,4 @@ const ISO_4217_DECIMALS = {
 
 ---
 
-*Last updated: 2026-07-19*
+*Last updated: 2026-09-17*

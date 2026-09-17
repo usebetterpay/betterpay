@@ -95,9 +95,51 @@ export function createTimestampHeader(
  * Create HMAC-SHA256 signature.
  */
 function createHmacSignature(data: string, secret: string): string {
-  const crypto = require('crypto');
-  return crypto
-    .createHmac('sha256', secret)
-    .update(data, 'utf8')
-    .digest('hex');
+  // Static import at top would be cleaner; lazy require kept for compat but
+  // fall back to WebCrypto-free node:crypto import (ESM-safe).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  try {
+    const { createHmac } = require('node:crypto') as typeof import('node:crypto');
+    return createHmac('sha256', secret).update(data, 'utf8').digest('hex');
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Validate providerEventId freshness when no timestamp header exists.
+ * Most Indonesian gateways don't send x-webhook-timestamp — without this,
+ * replay protection is a no-op. Providers that embed epoch ms/s in the event
+ * id or payload `createdAt` get a best-effort age check.
+ */
+export function validateEventFreshness(
+  providerEventId: string | undefined,
+  payload: Record<string, unknown> | undefined,
+  options: Partial<ReplayProtectionOptions> = {},
+): { valid: boolean; error?: string } {
+  const candidates: number[] = [];
+  const pushTs = (v: unknown): void => {
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      candidates.push(v > 1e12 ? Math.floor(v / 1000) : v > 1e10 ? Math.floor(v / 1000) : v);
+    } else if (typeof v === 'string' && /^\d{10,13}$/.test(v)) {
+      const n = parseInt(v, 10);
+      candidates.push(n > 1e12 ? Math.floor(n / 1000) : n > 1e10 ? Math.floor(n / 1000) : n);
+    } else if (typeof v === 'string') {
+      const t = Date.parse(v);
+      if (!Number.isNaN(t)) candidates.push(Math.floor(t / 1000));
+    }
+  };
+  pushTs(payload?.createdAt);
+  pushTs(payload?.created_at);
+  pushTs(payload?.timestamp);
+  pushTs((payload?.event as Record<string, unknown> | undefined)?.createdAt);
+  // providerEventId like `evt_1730000000_xxx`
+  const m = providerEventId?.match(/(\d{10,13})/);
+  if (m?.[1]) pushTs(m[1]);
+  if (candidates.length === 0) return { valid: true };
+  for (const ts of candidates) {
+    const r = validateTimestamp(ts, options);
+    if (!r.valid) return r;
+  }
+  return { valid: true };
 }

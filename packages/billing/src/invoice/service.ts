@@ -1,6 +1,7 @@
 // ── Invoice service ──────────────────────────────────────────────────────
 
 import type { InvoiceRecord, InvoiceStatus } from '../types';
+import { NotFoundError } from '@betterpay/core';
 
 export interface InvoiceRepository {
   create(data: {
@@ -42,19 +43,19 @@ export class InvoiceService {
 
   async markPaid(id: string, paidAt?: Date): Promise<InvoiceRecord> {
     const invoice = await this.repo.updateStatus(id, 'paid', paidAt ?? new Date());
-    if (!invoice) throw new Error(`Invoice not found: ${id}`);
+    if (!invoice) throw new NotFoundError(`Invoice not found: ${id}`);
     return invoice;
   }
 
   async markOverdue(id: string): Promise<InvoiceRecord> {
     const invoice = await this.repo.updateStatus(id, 'overdue');
-    if (!invoice) throw new Error(`Invoice not found: ${id}`);
+    if (!invoice) throw new NotFoundError(`Invoice not found: ${id}`);
     return invoice;
   }
 
   async void(id: string): Promise<InvoiceRecord> {
     const invoice = await this.repo.updateStatus(id, 'void');
-    if (!invoice) throw new Error(`Invoice not found: ${id}`);
+    if (!invoice) throw new NotFoundError(`Invoice not found: ${id}`);
     return invoice;
   }
 

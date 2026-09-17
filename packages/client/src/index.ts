@@ -114,7 +114,15 @@ export function createPayClient(options: PayClientOptions = {}): PayClient {
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => 'unknown');
-      throw new Error(`BetterPay API error ${response.status}: ${errorBody}`);
+      let parsed: { error?: string; code?: string } | null = null;
+      try { parsed = JSON.parse(errorBody) as { error?: string; code?: string }; } catch { /* plain text */ }
+      const err = new Error(
+        `BetterPay API error ${response.status}: ${parsed?.error ?? errorBody}`,
+      ) as Error & { status?: number; code?: string; body?: string };
+      err.status = response.status;
+      err.code = parsed?.code ?? `HTTP_${response.status}`;
+      err.body = errorBody;
+      throw err;
     }
 
     return response.json() as Promise<T>;

@@ -5,6 +5,7 @@ import type { SubscriptionRecord } from '../types';
 import type { SubscriptionRepository } from '../subscription/service';
 import type { DunningConfig, DunningStage } from './dunning-manager';
 import { DEFAULT_DUNNING_CONFIG } from './dunning-manager';
+import { NotFoundError } from '@betterpay/core';
 
 const META = {
   stage: 'dunning_stage',
@@ -59,7 +60,7 @@ export class DunningService {
   ): Promise<SubscriptionRecord> {
     const sub = await this.subscriptions.getById(subscriptionId);
     if (!sub) {
-      throw new Error(`Subscription not found: ${subscriptionId}`);
+      throw new NotFoundError(`Subscription not found: ${subscriptionId}`);
     }
 
     if (sub.status === 'ended' || sub.status === 'canceled') {

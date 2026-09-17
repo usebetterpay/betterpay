@@ -8,7 +8,7 @@
 
 import type { PaymentProvider, WebhookData, NormalizedWebhookEvent } from '../provider/interface';
 import type { TransactionService } from '../transaction/service';
-import { validateTimestamp } from './replay-protection';
+import { validateEventFreshness, validateTimestamp } from './replay-protection';
 import type { Logger } from '../logging/logger';
 import {
   InMemoryWebhookEventRepository,
@@ -96,6 +96,14 @@ export class WebhookHandler {
     }
 
     const event = events[0]!;
+    // 4b. Best-effort freshness when provider omits timestamp header
+    if (!timestampHeader) {
+      const fresh = validateEventFreshness(event.providerEventId, event.payload);
+      if (!fresh.valid) {
+        this.logger?.warn('Webhook replay detected (payload age)', { providerId, reason: fresh.error });
+        return { success: false, error: fresh.error ?? 'Webhook timestamp invalid' };
+      }
+    }
     const eventKey = this.buildEventKey(providerId, event);
 
     // 5. Claim event before mutating payment state (concurrency-safe).

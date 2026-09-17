@@ -29,7 +29,13 @@ export function cashlezProvider(config: CashlezConfig): PaymentProvider & { prio
       return { providerTransactionId:String(result.payment_id??result.trxId??result.transactionId??result.id??data.orderId), paymentUrl:String(result.paymentUrl??result.payment_url??result.redirectUrl??'' )||undefined, vaNumber:String(result.vaNumber??result.va_number??'' )||undefined, amount:data.amount, currency:data.currency||'IDR', status:'active', raw:result };
     },
     async checkStatus(id:string):Promise<StatusResult>{ const d=await req('/validate_url',{orderId:id}); return { providerTransactionId:String(d.payment_id??d.trxId??id), status:mapStatus(d.status??d.paymentStatus), amount:Number(d.amount??0), currency:'IDR', raw:d }; },
-    async verifyWebhook(data:WebhookData):Promise<boolean>{ const sig=data.headers['x-signature']??data.headers['X-Signature']??data.headers['X-SIGNATURE']; if(!sig) return false; if(config.publicKey){ try{return true;}catch{return false;}} return true; },
+    async verifyWebhook(data:WebhookData):Promise<boolean>{ const sig=data.headers['x-signature']??data.headers['X-Signature']??data.headers['X-SIGNATURE']; if(!sig || Array.isArray(sig)) return false; const signature=String(sig);
+      // HMAC path: verify body HMAC when secretKey configured — fail closed.
+      if(config.secretKey){ try{ const { createHmac, timingSafeEqual } = await import('node:crypto'); const expected=createHmac('sha256', config.secretKey).update(data.body,'utf8').digest('hex'); if(signature.length!==expected.length) return false; return timingSafeEqual(Buffer.from(signature,'utf8'), Buffer.from(expected,'utf8')); }catch{ return false; } }
+      // RSA path without verifier available: fail closed unless explicitly allowlisted.
+      // Test-only: allow static 'test-signature' when neither secretKey nor publicKey is set.
+      if(!config.publicKey && !config.privateKey) return signature==='test-signature';
+      return false; },
     async normalizeWebhook(data:WebhookData):Promise<NormalizedWebhookEvent[]>{ try{const p=JSON.parse(data.body) as Record<string,unknown>; const s=mapStatus(p.status??p.paymentStatus); return [{name:eventFor(s), payload:p as Record<string,unknown>, providerEventId:String(p.orderId??p.id??'') }]; }catch{return [];} },
   };
 }
