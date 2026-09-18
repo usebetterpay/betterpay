@@ -1,6 +1,6 @@
 {
   "name": "@betterpay/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@betterpay/core": "^0.1.1"
+    "@betterpay/core": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
